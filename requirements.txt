@@ -1,0 +1,19 @@
+# Dependencias del proyecto — Predicción de Siniestros Viales (PAA)
+# Fijar versiones cuando afecten la reproducibilidad de los resultados.
+
+# Análisis y manejo de datos
+numpy
+pandas
+
+# Visualización
+matplotlib
+seaborn
+
+# Aprendizaje automático
+scikit-learn
+
+# Notebooks
+jupyter
+
+# Pruebas
+pytest

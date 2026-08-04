@@ -1,0 +1,35 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Datos restringidos / de gran tamaño (no versionar; ver README)
+data/raw/
+data/*.csv
+data/*.parquet
+data/*.xlsx
+!data/.gitkeep
+
+# Modelos / artefactos pesados
+models/*.pkl
+models/*.joblib
+models/*.h5
+!models/.gitkeep
+
+# Credenciales y secretos
+*.env
+.env
+secrets.*
+credentials.*
+
+# Sistema operativo / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
