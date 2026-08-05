@@ -1,0 +1,37 @@
+{
+  "CLAUDE.md": {
+    "mtime": 1785859975.8336258,
+    "ast_hash": "161d63d72244b24273b96987b5f99c4c",
+    "semantic_hash": "161d63d72244b24273b96987b5f99c4c"
+  },
+  "Guia_estudiantes_PAA_2026.md": {
+    "mtime": 1785859975.8366268,
+    "ast_hash": "60bac1983c8b34891f3a23c2f4437b43",
+    "semantic_hash": "60bac1983c8b34891f3a23c2f4437b43"
+  },
+  "HANDOFF.md": {
+    "mtime": 1785859975.838626,
+    "ast_hash": "4b082a0a23c1f4b2e2db53cf4700952f",
+    "semantic_hash": "4b082a0a23c1f4b2e2db53cf4700952f"
+  },
+  "Plantilla_presentacion_aprobacion_PAA.md": {
+    "mtime": 1785859975.8406281,
+    "ast_hash": "6c5cc207c5718cd4d8e7e5adcd91b04e",
+    "semantic_hash": "6c5cc207c5718cd4d8e7e5adcd91b04e"
+  },
+  "README.md": {
+    "mtime": 1785859975.8426285,
+    "ast_hash": "d46913d7cb1baf93a5358e8d9d1544e6",
+    "semantic_hash": "d46913d7cb1baf93a5358e8d9d1544e6"
+  },
+  "documentacion/registro_uso_IA.md": {
+    "mtime": 1785859975.851624,
+    "ast_hash": "e6733d2d363ccaa1438e608cfad532db",
+    "semantic_hash": "e6733d2d363ccaa1438e608cfad532db"
+  },
+  "requirements.txt": {
+    "mtime": 1785859975.8606248,
+    "ast_hash": "2dd333d20ebce67e1ac5b6b12e35b8df",
+    "semantic_hash": "2dd333d20ebce67e1ac5b6b12e35b8df"
+  }
+}
