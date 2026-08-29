@@ -11,15 +11,20 @@ reutilizando sus datos y activos. La guía completa está en `Guia_estudiantes_P
 ## Estructura del repositorio
 
 ```
-data/            Datos o mecanismo de acceso (no versionar datos restringidos/pesados)
+data/
+  └──processed
+  └──raw            Datos o mecanismo de acceso (no versionar datos restringidos/pesados)
 notebooks/       Notebooks de exploración y análisis
 src/             Código fuente: preprocesamiento, modelado, inferencia
 models/          Modelos entrenados y artefactos (los pesados se ignoran en git)
 experiments/     Registro de experimentos, configuraciones y resultados
 app/             Prototipo / dashboard integrado (objetivo TRL 5)
-documentacion/   Documentación, incluye registro_uso_IA.md
+documentacion/   Documentación, incluye registro_uso_IA.md, Entrega1_Proyecto_Aprendizaje_Automatico_08-17-26.md, Guia_estudiantes_PAA_2026.md
 tests/           Pruebas del pipeline de inferencia
 ```
+
+## Propuesta de proyecto (Plantilla completada)
+  documentacion\Entrega1_Proyecto_Aprendizaje_Automatico_08-17-26.md
 
 ## Entorno y comandos
 
@@ -39,13 +44,11 @@ tests/           Pruebas del pipeline de inferencia
   artefactos actualizados.
 - **No versionar:** datos restringidos, credenciales, claves ni archivos grandes. Si no
   se versionan datos, documentar en el README cómo obtenerlos.
-- **Registro de IA:** todo uso relevante de IA generativa se documenta en
-  `documentacion/registro_uso_IA.md` (prompt, respuesta, cómo se usó/verificó).
+- **Registro de IA:** todo uso relevante de IA generativa se documenta en `documentacion/registro_uso_IA.md` (prompt, respuesta, cómo se usó/verificó).
 - **Trazabilidad:** mantener versiones identificables de cada hito (tags/ramas) y
   contribuciones identificables por integrante (cuentas personales, sin cuentas
   compartidas).
-- **Evitar fugas de información** en la preparación y evaluación; el conjunto de prueba
-  se reserva y solo se usa para evaluar la solución ya seleccionada.
+- **Evitar fugas de información** en la preparación y evaluación; el conjunto de prueba se reserva y solo se usa para evaluar la solución ya seleccionada.
 
 ## Convenciones
 

@@ -41,14 +41,28 @@ requirements.txt       Dependencias del entorno
 
 ## Requisitos e instalación
 
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
+**Versión de Python: 3.13.** Es la versión con la que el entorno fue verificado de
+punta a punta y la que usan los notebooks del repositorio. Fijarla es lo que garantiza
+que todos los integrantes —y el servidor institucional— reproduzcan los mismos
+resultados. Si el servidor institucional provee otra versión, alinear esta y volver a
+generar `requirements-lock.txt`.
+
+```powershell
+# Windows (PowerShell) — el selector "py" permite fijar la versión
+py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+
 # Linux/Mac
+python3.13 -m venv .venv
 source .venv/bin/activate
+
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+`requirements.txt` contiene las dependencias directas con versión fijada.
+`requirements-lock.txt` es el volcado completo del entorno verificado
+(`pip freeze`) y sirve para reproducir la instalación exacta si hiciera falta.
 
 Las credenciales y rutas sensibles se gestionan mediante variables de entorno. Copiar
 `.env.example` a `.env` y completar los valores antes de ejecutar el pipeline.

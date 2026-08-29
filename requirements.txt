@@ -1,19 +1,39 @@
 # Dependencias del proyecto — Predicción de Siniestros Viales (PAA)
-# Fijar versiones cuando afecten la reproducibilidad de los resultados.
+# Python 3.13 (ver README). Versiones fijadas por reproducibilidad (guía PAA, entregables 3 y 4).
+# Instalación:  pip install -r requirements.txt
 
-# Análisis y manejo de datos
-numpy
-pandas
+# --- Análisis y manejo de datos ---
+numpy==2.5.2
+pandas==3.0.5
+pyarrow==25.0.1          # lectura/escritura de parquet en data/processed
 
-# Visualización
-matplotlib
-seaborn
+# --- Visualización ---
+matplotlib==3.11.1
+seaborn==0.13.2
 
-# Aprendizaje automático
-scikit-learn
+# --- Aprendizaje automático ---
+scikit-learn==1.9.0      # baselines, métricas, TimeSeriesSplit
+statsmodels==0.14.6      # SARIMA/SARIMAX y diagnóstico de series temporales
+xgboost==3.4.1           # boosting con variables de rezago
+lightgbm==4.7.0          # boosting con variables de rezago
+joblib==1.5.3            # serialización de modelos (models/)
 
-# Notebooks
-jupyter
+# --- Variables exógenas ---
+holidays==0.103          # feriados de Uruguay para el calendario
+requests==2.34.2         # carga histórica puntual de Open-Meteo (cacheada)
 
-# Pruebas
-pytest
+# --- Geo / mapas ---
+pyproj==3.7.2            # conversión de coordenadas UTM 21S (EPSG:32721) a lat/lon
+folium==0.20.0
+streamlit-folium==0.27.4
+
+# --- Prototipo / dashboard (TRL 5) ---
+streamlit==1.62.0
+python-dotenv==1.2.3     # credenciales vía variables de entorno
+
+# --- Notebooks ---
+jupyter==1.1.1
+ipykernel==7.3.0
+
+# --- Pruebas ---
+pytest==9.1.1
