@@ -1,0 +1,8 @@
+comprobación,resultado,lectura
+'Dia Semana' coincide con el día de 'Fecha',100.0000%,consistente
+"'Hora' dentro de [0, 23]",100.0000%,consistente
+valores distintos en 'fixed',1,columna constante: sin información
+departamentos presentes,19 de 19,país completo
+celdas con más de un departamento,"57 de 18,487",celdas sobre límites departamentales
+X dentro del rango UTM 21S de Uruguay,100.0000%,sin atípicos
+Y dentro del rango UTM 21S de Uruguay,100.0000%,sin atípicos

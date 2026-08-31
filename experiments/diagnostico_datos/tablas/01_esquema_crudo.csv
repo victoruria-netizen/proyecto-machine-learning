@@ -1,0 +1,12 @@
+columna,tipo,no_nulos,distintos,ejemplo
+Fecha,datetime64[us],224694,2922,2018-07-24 00:00:00
+Calle,str,224693,23966,AVENIDA DIECIOCHO DE JULIO
+Tipo de Siniestro,str,224694,9,ATROPELLO DE PEATÓN
+Gravedad,str,224694,4,LEVE
+Dia Semana,str,224694,7,MARTES
+Hora,int64,224694,24,16
+Departamento,str,224694,19,MONTEVIDEO
+Localidad,str,224694,455,MONTEVIDEO
+fixed,int64,224694,1,1
+X,int64,224694,35532,575370
+Y,int64,224694,31555,6137570

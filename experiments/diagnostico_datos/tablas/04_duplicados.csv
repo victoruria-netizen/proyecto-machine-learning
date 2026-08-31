@@ -1,0 +1,4 @@
+criterio,cantidad,pct_registros
+duplicados exactos (todas las columnas),347,0.154
+"grupos con >1 registro en (fecha, hora, X, Y)",524,
+registros dentro de esos grupos,1076,0.479

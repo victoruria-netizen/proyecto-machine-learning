@@ -1,0 +1,4 @@
+grupo,días,media_diaria_nacional
+feriados 'public' (los que usa la feature actual),41,64.8
+feriados 'bank' omitidos por la feature,104,65.0
+días ordinarios,2777,77.5

@@ -1,0 +1,7 @@
+pregunta del producto,veredicto,evidencia
+Predecir el conteo exacto de una celda-día,No alcanzable,"97,4 % de las celdas positivas valen 1 y el proceso es Poisson con λ ≈ 0,004"
+Estimar la intensidad esperada por zona y día,Alcanzable,hay tasa espacial estable y efecto de calendario medible
+Ordenar zonas por riesgo para un mapa,Alcanzable,la concentración espacial es fuerte y persistente entre años
+Anticipar variaciones día a día dentro de una zona,No alcanzable con estos datos,la ACF por zona no se distingue del ruido de Poisson
+Explicar días atípicos a nivel nacional,Parcial,"queda ACF 0,30 en el residuo del calendario; requiere clima, aún no integrado"
+Distinguir riesgo de exposición,No alcanzable,no hay volumen de tránsito ni población: sólo se observa el numerador

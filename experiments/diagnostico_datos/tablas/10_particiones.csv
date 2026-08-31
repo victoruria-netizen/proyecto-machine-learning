@@ -1,0 +1,4 @@
+partición,desde,hasta,días,pct_días,siniestros,pct_siniestros,media_diaria,filas_panel
+entrenamiento,2019-01-01,2023-11-25,1790,70.0,131760,67.3,73.6,33091730
+validación,2023-11-26,2024-08-07,256,10.0,20666,10.6,80.7,4732672
+test (reservado),2024-08-08,2025-12-31,511,20.0,43416,22.2,85.0,9446857
