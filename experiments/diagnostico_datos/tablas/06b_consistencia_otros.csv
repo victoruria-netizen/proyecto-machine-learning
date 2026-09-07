@@ -1,0 +1,5 @@
+comprobación,registros
+Hora fuera de 0-23,0
+valores distintos de 'fixed',1
+registros con Departamento != MONTEVIDEO,0
+fechas fuera del período declarado,0

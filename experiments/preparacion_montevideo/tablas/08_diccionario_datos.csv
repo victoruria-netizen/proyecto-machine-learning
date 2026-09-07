@@ -1,0 +1,22 @@
+columna,tipo,rol,descripcion
+zona_id,int32,identificador,identificador de la celda de 1 km (no usar como predictor)
+fecha,datetime64[us],identificador,día de la observación
+particion,category,identificador,"entrenamiento / validacion / test, por corte cronológico"
+zona_holdout,bool,identificador,True si la zona está reservada para medir generalización entre zonas
+n_siniestros,int16,objetivo,OBJETIVO: siniestros observados en la zona ese día
+intensidad_interp,float32,objetivo,objetivo alternativo suavizado (PCHIP); NO usar como predictor
+lag_1,int16,predictora,siniestros en la misma zona 1 días antes
+lag_7,int16,predictora,siniestros en la misma zona 7 días antes
+lag_14,int16,predictora,siniestros en la misma zona 14 días antes
+lag_28,int16,predictora,siniestros en la misma zona 28 días antes
+media_7,float32,predictora,media diaria de la zona en los 7 días que terminan en t-1
+media_28,float32,predictora,media diaria de la zona en los 28 días que terminan en t-1
+media_91,float32,predictora,media diaria de la zona en los 91 días que terminan en t-1
+media_365,float32,predictora,media diaria de la zona en los 365 días que terminan en t-1
+dias_desde_ultimo,int16,predictora,"días transcurridos desde el último siniestro de la zona, anterior a t"
+dias_historia,int16,predictora,días de historia disponibles antes de t
+dow,int8,predictora,día de la semana (0 = lunes)
+mes,int8,predictora,mes del año
+dia_anio,int16,predictora,día del año
+es_feriado,int8,predictora,feriado en Uruguay (categorías public y bank)
+es_finde,int8,predictora,sábado o domingo

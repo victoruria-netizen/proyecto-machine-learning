@@ -1,0 +1,3 @@
+variable exógena,qué es,disponible antes del evento,observación
+clima (Open-Meteo),archivo histórico reanalizado,sí,disponible para cualquier fecha pasada; en producción exige pronóstico
+tipo_dia (calendario),entre_semana / fin_semana / feriado,sí,determinista: se conoce con años de anticipación

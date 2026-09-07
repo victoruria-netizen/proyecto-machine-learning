@@ -1,400 +1,574 @@
-# Resumen del diagnóstico de datos
+# Resumen del diagnóstico de datos — Montevideo
 
 **Notebook:** [`notebooks/diagnostico_datos.ipynb`](../notebooks/diagnostico_datos.ipynb)
-**Artefactos:** `experiments/diagnostico_datos/` (26 tablas CSV y 5 figuras PNG)
-**Fecha de ejecución:** 2026-08-30
-
-Documento de apoyo para presentar y defender el diagnóstico de datos ante el docente. Resume
-qué se hizo, qué se encontró y qué decisiones se derivan. Todas las cifras que aparecen aquí
-provienen de la ejecución del notebook y están respaldadas por un archivo de
-`experiments/diagnostico_datos/`; ninguna es estimada.
+**Artefactos:** `experiments/diagnostico_datos/` (36 tablas CSV y 3 figuras PNG)
+**Fecha de ejecución:** 2026-09-04
+**Alcance:** Montevideo, 2021-01-01 a 2025-12-31, unidad de análisis **(día, barrio)**
 
 ---
 
-## 1. Para qué existe este notebook
+## 0. Cómo usar este documento
+
+Este archivo es **contexto autocontenido** para redactar la documentación del proyecto (informe
+técnico, presentaciones, defensa ante el tribunal) sin necesidad de abrir el repositorio. Reúne
+todo lo que el diagnóstico de datos encontró, con la referencia al artefacto que respalda cada
+cifra.
+
+**Reglas que quien redacte debe respetar:**
+
+1. **Ninguna cifra sin artefacto.** Todos los números de este documento salen de una ejecución
+   real y están acompañados de la tabla que los respalda (`tablas/NN_nombre.csv`). No inventar,
+   estimar ni redondear "para el ejemplo". Si hace falta un número que no está acá, marcarlo como
+   `<!-- PENDIENTE: ... -->` en lugar de completarlo.
+2. **Distinguir evidencia de inferencia.** Este documento separa *lo que los datos muestran* de
+   *lo que el equipo concluye*. Al redactar, usar "los resultados sugieren", no "queda
+   demostrado".
+3. **No escribir Introducción ni Marco teórico** a partir de este documento: esas dos secciones
+   las redacta el equipo a mano (regla del proyecto).
+4. **Respetar los límites de la sección 6.** Hay afirmaciones que estos datos *no* sostienen;
+   están listadas explícitamente y no deben aparecer en el informe.
+
+---
+
+## 1. Para qué existe el diagnóstico
 
 El Entregable 2 de la guía PAA (sección 5.2) exige, como primer resultado, *«un diagnóstico de
 calidad, adecuación, cobertura y limitaciones de los datos»*, y la sección 6.1 pide revisar
 calidad, cobertura, representatividad, sesgos y restricciones de uso, además de verificar que no
 se incorpore información no disponible en el momento real de la predicción.
 
-El notebook responde a esas cuatro preguntas con evidencia reproducible:
-
 | Eje | Pregunta que responde |
 | --- | --- |
 | Calidad | ¿Los registros son completos, consistentes y precisos para lo que se les va a pedir? |
 | Cobertura | ¿Qué territorio, qué período y qué fracción de la unidad de análisis observan? |
 | Adecuación | ¿La variable objetivo y las variables disponibles sostienen el problema planteado? |
-| Limitaciones | ¿Qué no puede afirmarse con estos datos y qué riesgo introduce cada decisión? |
+| Limitaciones | ¿Qué no puede afirmarse con estos datos y qué riesgos introduce cada decisión? |
 
-**Decisión de diseño importante:** el notebook **recalcula todo desde el CSV crudo** en lugar de
-apoyarse en los Parquet ya construidos. Eso lo vuelve independiente del estado de
-`data/processed/` y —como se ve en el punto 2 de la sección 4— permitió detectar que esos
-archivos derivados no coinciden con el código que dice generarlos.
+El notebook **recalcula todo desde las fuentes crudas**, incluida la asignación de cada siniestro
+a su barrio. No depende de que `data/processed/` esté construido: cuando lo está, lo usa para
+*contrastar* su propia reconstrucción contra la salida del ETL (sección 5). Eso lo convierte en
+una **verificación independiente** del pipeline, no en un resumen de él.
 
-## 2. Qué datos se diagnostican
-
-- **Fuente:** `data/raw/uru_siniestros_unificado.csv`, heredado del PID (registros de
-  siniestros de UNASEV, ya depurados y geolocalizados).
-- **Volumen:** 224.694 registros × 11 columnas, del 2018-01-01 al 2025-12-31 (2.922 días).
-- **Unidad de análisis del PAA:** el par **(día, zona)**, donde la zona es una celda de
-  500 × 500 m sobre las coordenadas UTM 21S. La variable objetivo es el conteo de siniestros de
-  esa zona ese día.
-
-El notebook registra el `sha256` del archivo diagnosticado y las versiones de Python y de cada
-biblioteca (`tablas/00_procedencia.csv`), de modo que las cifras quedan atadas a una versión
-concreta del dato y no a «los datos» en abstracto.
-
-## 3. Cómo está organizado
-
-| Sección | Contenido |
-| --- | --- |
-| 0 | Configuración y trazabilidad de la fuente (hash, versiones) |
-| 1 | Unidad de análisis y qué variables son utilizables como predictoras |
-| 2 | **Calidad**: completitud, duplicados, consistencia, precisión espacial, validez temporal, coherencia con los artefactos derivados |
-| 3 | **Cobertura**: temporal, división cronológica de particiones, territorial, del panel día × zona, estabilidad de zonas, variables exógenas |
-| 4 | **Adecuación**: variable objetivo, granularidad, señal temporal disponible, ajuste al objetivo del producto |
-| 5 | **Limitaciones y riesgos**: tabla de 13 limitaciones con evidencia y tratamiento |
-| 6 | Artefactos generados y pendientes que el diagnóstico deja abiertos |
+> **Cambio de alcance.** Hasta 2026-09-02 el diagnóstico cubría el país entero (224.694
+> siniestros, 2018–2025, celdas de 1 km) e incluía secciones sobre división cronológica,
+> estabilidad del universo de zonas y elección de granularidad. Esas decisiones ya están tomadas
+> —Montevideo, barrios oficiales, 2021+— y esas secciones se retiraron por ser materia del
+> notebook de modelado. Los hallazgos que sobrevivieron **se recalcularon** sobre los datos
+> vigentes; no se copiaron.
 
 ---
 
-## 4. Los seis hallazgos que hay que saber explicar
+## 2. Fuentes y trazabilidad
 
-Éstos son los que cambian decisiones del proyecto. El resto del notebook los sostiene.
+`tablas/00_procedencia.csv`
 
-### 4.1 Sólo tres columnas de once son utilizables como predictoras
-
-`Gravedad`, `Tipo de Siniestro` y `Hora` describen un siniestro **que ya ocurrió**. Usarlas para
-predecir si mañana habrá un siniestro equivale a conocer la respuesta. La restricción de la guía
-(6.1) las deja fuera, y con ellas se va casi toda la riqueza aparente del archivo: quedan
-`Fecha`, `X` e `Y` para construir la unidad de análisis y el objetivo, más `Departamento` para
-agrupar y describir. `fixed` es una columna constante heredada del ETL del PID, sin información.
-
-**Consecuencia:** el poder predictivo no puede venir de los atributos del siniestro, sino del
-historial de la zona y del calendario —y, cuando se integre, del clima—.
-*Evidencia:* `tablas/02_disponibilidad_variables.csv`.
-
-### 4.2 Los datos procesados no son reproducibles con el código versionado
-
-El notebook infiere el tamaño de celda de los propios artefactos a partir de sus centroides y lo
-contrasta con el parámetro del diseño:
-
-| Comprobación | Valor | Resultado |
-| --- | --- | --- |
-| Tamaño de celda del diagnóstico | 500 m | — |
-| Tamaño inferido de `zonas.parquet` | 1.000 m | **discrepancia** |
-| Zonas según el diagnóstico | 18.487 | — |
-| Zonas en `zonas.parquet` | 11.633 | **discrepancia** |
-| Filas de `panel_diario_zona.parquet` | 33.991.626 | = 11.633 × 2.922 días |
-
-Es decir: alguien ejecutó el pipeline con celdas de 1 km sin guardar ese cambio en
-`analisis_inicial.ipynb`, que sigue declarando `TAM_CELDA = 500`. No es un problema de los
-datos, es un problema de **trazabilidad** —lo que la guía exige sostener entre datos, código,
-configuración y resultado (4.4 y 6.3)— y habría pasado inadvertido si el diagnóstico se hubiera
-apoyado en los derivados.
-*Evidencia:* `tablas/08_coherencia_artefactos.csv`.
-
-### 4.3 A nivel de zona no hay señal temporal de corto plazo
-
-Es el hallazgo de mayor consecuencia. La pregunta es si el pasado reciente de una zona informa
-sobre su futuro; para responderla no basta con mirar la autocorrelación, hay que compararla
-contra lo que produciría el puro azar. El notebook simula, para cada zona, un proceso de Poisson
-con su misma tasa y usa esa simulación como banda nula.
-
-En las 520 zonas con soporte suficiente (≥ 100 siniestros en ocho años):
-
-| Ventana | Rezago | Mediana observada | Banda nula (p5–p95) | Lectura |
-| --- | --- | --- | --- | --- |
-| Período completo | 1 | 0,0015 | −0,0318 a 0,0316 | dentro |
-| Período completo | 7 | 0,0057 | −0,0271 a 0,0301 | dentro |
-| Sólo entrenamiento | 1 | −0,0005 | −0,0379 a 0,0388 | dentro |
-| Sólo entrenamiento | 7 | 0,0035 | −0,0358 a 0,0373 | dentro |
-
-El índice de dispersión (varianza / media) por zona tiene mediana **1,015** en el período
-completo y **1,009** sólo en entrenamiento: exactamente lo que caracteriza a un Poisson. La
-serie diaria de una zona es **estadísticamente indistinguible del azar**.
-
-El cálculo se repite restringido a entrenamiento precisamente porque esta conclusión orienta una
-decisión de modelado, y el conjunto de prueba no debe usarse para decidir nada.
-
-**En cambio, a nivel nacional sí hay señal, de dos tipos:**
-
-- **Calendario:** explica el **35,3 %** de la varianza del logaritmo de la serie diaria. Viernes
-  85,0 siniestros/día frente a domingo 68,9; diciembre 85,7 frente a enero 70,8; feriados en
-  torno a 65 frente a 77,5 en días ordinarios.
-- **Persistencia no explicada por el calendario:** tras descontarlo, el residuo conserva
-  autocorrelación de **0,301** a rezago 1 y 0,180 a rezago 7 (la serie cruda daba 0,392 y
-  0,384). Hay días buenos y días malos que el calendario no explica: el clima es el candidato
-  inmediato, y es justamente lo que la integración pendiente de Open-Meteo debería capturar.
-
-**Consecuencias, que conviene declarar antes de mostrar cualquier resultado:**
-
-1. Las variables `lag_1`, `lag_7`, `lag_28` **por zona** casi no aportan. No es un error
-   incluirlas, pero no hay que esperar de ellas el desempeño.
-2. Lo que informa es la **tasa histórica de la zona** combinada con **factores temporales
-   comunes a todo el país**.
-3. Por eso la **línea base correcta es «tasa de largo plazo de la zona × factor de calendario»**.
-   Una línea base más ingenua —«lo mismo que ayer en esta zona»— sería engañosamente fácil de
-   superar y haría parecer valioso cualquier modelo.
-4. El techo de desempeño es bajo por naturaleza: con λ ≈ 0,004, **ningún modelo puede predecir
-   en qué celda concreta ocurrirá el siniestro**. Lo que sí puede hacerse —y es lo que el
-   producto necesita— es **ordenar zonas y períodos por riesgo esperado**, bien calibrado.
-
-*Evidencia:* `tablas/21_autocorrelacion_nacional.csv`, `tablas/22_acf_por_zona_vs_nulo.csv`,
-`figuras/fig5_senal_temporal.png`.
-
-### 4.4 La variable objetivo es casi binaria y extremadamente escasa
-
-El panel completo tiene **54.019.014 filas** (2.922 días × 18.487 zonas) y sólo el **0,405 %**
-es distinto de cero: 99,6 % de ceros. De las 218.778 celdas con al menos un siniestro, el
-**97,4 % tiene exactamente uno** y sólo 206 superan los dos. El índice de dispersión global es
-**1,051**, otra vez Poisson: los ceros abundan porque la tasa es bajísima, no porque exista un
-mecanismo adicional que los genere.
-
-**Consecuencias:** conviene un objetivo **Poisson** (desvianza / verosimilitud de Poisson) en
-lugar de error cuadrático sobre el conteo; y *acertar el conteo* de una celda concreta no es un
-objetivo alcanzable ni informativo — lo estimable es la **intensidad**, así que la evaluación
-debe medir calibración y ordenamiento, no exactitud puntual.
-
-Conviene además saber responder por qué no se cambió la granularidad. El notebook mide qué pasa
-al agrandar la celda y al agregar en el tiempo (% de filas con al menos un siniestro):
-
-| Celda | Diaria | Semanal | Mensual |
+| Fuente | Archivo | Tamaño | sha256 (prefijo) |
 | --- | --- | --- | --- |
-| 500 m | 0,405 % | 2,537 % | 8,274 % |
-| 1 km | 0,616 % | 3,302 % | 8,975 % |
-| 2 km | 0,951 % | 4,097 % | 10,027 % |
-| 5 km | 1,767 % | 6,185 % | 14,373 % |
+| Siniestros | `data/raw/uru_siniestros_unificado.csv` | 26,19 MB | `48a8a7e8…` |
+| Barrios | `data/raw/barrios_montevideo.geojson` | 0,98 MB | `a03e8927…` |
+| Clima | `data/raw/clima_montevideo.csv` | 0,08 MB | `f40e6c3c…` |
 
-**La escasez no se resuelve agrandando la celda:** pasar de 500 m a 5 km multiplica el área por
-100 y la densidad diaria sólo sube de 0,41 % a 1,77 %. Habría que llegar a 5 km mensuales para
-alcanzar un 14,4 %, perdiendo toda la resolución que el producto necesita. La elección de
-500 m × día se sostiene, pero por la razón correcta: es la granularidad que responde a la
-pregunta del proyecto, y el problema es tratable con modelos de conteo y submuestreo de ceros.
-*Evidencia:* `tablas/13_panel_dia_zona.csv`, `tablas/18_distribucion_objetivo.csv`,
-`tablas/19_dispersion_objetivo.csv`, `tablas/20_granularidad.csv`, `figuras/fig4_granularidad.png`.
+**Siniestros.** Heredado del Proyecto de Ingeniería de Datos (PID) del mismo equipo. Fuente
+original: UNASEV. Cubre el país entero, 2018–2025, 224.694 registros × 11 columnas.
 
-### 4.5 La variable de feriados está mal construida
+**Barrios.** Capa oficial de la Intendencia de Montevideo, obtenida de su GeoServer institucional
+(`montevideo.gub.uy/app/geoserver`), capa `mapstore-tematicas:zon_v_sig_barrios`, descargada por
+WFS `GetFeature` en GeoJSON (`EPSG:4326`) el **2026-09-04**. 62 polígonos, correspondientes a la
+división oficial en barrios. Licencia: el servicio declara `Fees: none` / `AccessConstraints:
+none` en su `GetCapabilities`.
 
-`holidays.country_holidays("UY")` devuelve por defecto sólo la categoría `public`: **41 días en
-ocho años**. Los feriados no laborables —Carnaval, Semana de Turismo, 6 de enero, 19 de abril,
-18 de mayo, 19 de junio, 12 de octubre, 2 de noviembre— quedan en la categoría `bank` y hoy
-**no** los marca la variable `es_feriado` de `analisis_inicial.ipynb`.
+**Clima.** Open-Meteo, archivo histórico reanalizado, serie diaria única para el departamento
+(punto −34,87 / −56,17), 2021-01-01 a 2025-12-31.
 
-La omisión importa porque esos días se comportan igual que los que sí se marcan:
+### Recorte al alcance del proyecto
 
-| Grupo | Días | Media diaria nacional |
-| --- | --- | --- |
-| Feriados `public` (los que usa la variable actual) | 41 | 64,8 |
-| Feriados `bank` omitidos | 104 | 65,0 |
-| Días ordinarios | 2.777 | 77,5 |
+| Paso | Registros | % del archivo | Artefacto |
+| --- | --- | --- | --- |
+| Registros del archivo | 224.694 | 100,0 % | `02_recorte_alcance` |
+| Tras filtrar `MONTEVIDEO` | 62.427 | 27,8 % | `02_recorte_alcance` |
+| Tras filtrar `Fecha >= 2021-01-01` | 39.676 | 17,7 % | `02_recorte_alcance` |
+| Tras eliminar 96 duplicados exactos | **39.580** | 17,6 % | `05_duplicados` |
+| Tras descartar 11 que caen fuera de todo polígono | **39.569** | 17,6 % | `09_calidad_capa_barrios` |
 
-La variable actual identifica **41 de los 145 días con caída sistemática de siniestralidad** —el
-28 %— y trata como normales a los 104 restantes, entre ellos los 40 días de Semana de Turismo,
-el período de movilidad más atípico del año. **Corrección propuesta:** construirla con
-`categories=("bank", "public")` y evaluar además una variable de «período especial», ya que
-Semana de Turismo y Carnaval son períodos y no días sueltos.
-*Evidencia:* `tablas/16_feriados.csv`, `tablas/17_feriados_omitidos.csv`.
+Las dos últimas filas no están en `02_recorte_alcance.csv`: se derivan de los conteos de
+`05_duplicados.csv` y `09_calidad_capa_barrios.csv`, que es donde hay que ir a verificarlas.
 
-### 4.6 Las variables climáticas están previstas pero no incorporadas
-
-`data/` sólo contiene el CSV de siniestros y los derivados del panel; no hay ninguna caché de
-Open-Meteo en el repositorio. Hasta que se integre y se verifique su cobertura por zona y fecha,
-**ningún resultado puede atribuirse al clima**. Es también el hueco más prometedor: es lo que
-podría explicar la autocorrelación residual de 0,30 de la sección 4.3.
+**Período diagnosticado:** 1.826 días (2021-01-01 a 2025-12-31).
 
 ---
 
-## 5. Cobertura: qué observan realmente los datos
+## 3. Calidad
 
-**Temporal.** Los 2.922 días están completos y **no hay un solo día vacío**. El mínimo nacional
-son 26 siniestros (22 de marzo de 2020, primer fin de semana de la emergencia sanitaria) y el
-máximo 129 (23 de diciembre de 2024). Que el piso sea 26 y no 0 es lo que hace correcto el
-relleno con ceros del panel: **el cero de una zona es ausencia de siniestro, no ausencia de
-dato**, porque el país nunca deja de registrar.
+### 3.1 Completitud — `tablas/04_completitud.csv`
 
-El volumen anual es estable salvo **2020, con 24.031 siniestros (−13,0 % respecto de 2019)** y
-una caída concentrada en abril (1.331 frente a 2.298 de media en los demás abriles). Desde 2021
-la serie se recupera y crece hasta 2025 (31.005, máximo del período). El período de
-entrenamiento contiene, por tanto, una anomalía estructural que no reaparece en validación ni en
-test: hay que declararla y no interpretar una caída de desempeño entre particiones como
-sobreajuste sin antes descartar el cambio de régimen.
+El archivo **no trae valores nulos**: los faltantes vienen codificados como texto (`SIN DATOS` y
+variantes). Contarlos como categoría sería subestimar el problema.
 
-**Territorial.** Los 19 departamentos están representados, pero la cobertura es muy concentrada:
+| Columna | Centinelas en el país | **Centinelas en Montevideo** |
+| --- | --- | --- |
+| `Localidad` | 17,91 % | **4,45 %** (1.765 registros) |
+| `Calle` | 12,37 % | **2,33 %** (925 registros) |
+| `Tipo de Siniestro` | 0,01 % | 0,03 % (10 registros) |
+| `Gravedad`, `Dia Semana`, `Departamento` | 0,00 % | 0,00 % |
 
-- Las 18.487 celdas observadas suman **4.622 km², el 2,6 % del territorio continental**. El
-  modelo sólo puede pronunciarse sobre esa fracción; el resto del país no es «riesgo bajo», es
-  **territorio no observado**.
-- **Montevideo concentra el 27,8 % de los siniestros en 1.167 zonas** (53,5 por zona), mientras
-  Rocha o Florida reparten menos de 6 por zona.
-- La mitad de los siniestros ocurre en **687 zonas** y el 80 % en **2.589**, sobre 18.487.
+**Evidencia:** el recorte a Montevideo mejora sustancialmente la completitud.
+**Inferencia del equipo:** el problema de calidad que dominaba el diagnóstico nacional era, en
+buena medida, un problema del interior del país.
 
-El problema es entonces **muy heterogéneo en soporte**: unas pocas zonas urbanas con serie densa
-y una larga cola de zonas con dos o tres eventos en ocho años. Es el argumento para evaluar el
-desempeño **por estrato de soporte** y no sólo de forma agregada.
+**Decisión: no se imputa.** Las columnas afectadas son descriptivas y **ninguna se usa como
+predictora** — el barrio sale de la geometría, no del texto de `Localidad`. Se declara el conteo
+en lugar de omitirlo, que es lo que la guía pide cuando la imputación no corresponde.
 
-| Umbral de soporte | Zonas | % de zonas | % de siniestros | % de días con evento |
-| --- | --- | --- | --- | --- |
-| ≥ 1 siniestro | 18.487 | 100,0 | 100,0 | 0,41 |
-| ≥ 5 | 5.458 | 29,5 | 90,5 | 1,24 |
-| ≥ 50 | 1.113 | 6,0 | 61,7 | 4,10 |
-| ≥ 100 | 520 | 2,8 | 43,4 | 6,12 |
+### 3.2 Duplicados — `tablas/05_duplicados.csv`
 
-## 6. Diseño de las particiones (70 / 10 / 20)
+| Indicador | Valor |
+| --- | --- |
+| Duplicados exactos en el archivo | 347 (0,15 %) |
+| Duplicados exactos en el recorte | **96 (0,24 %)** |
+| Grupos con repetición | 77 |
+| Repeticiones en el grupo mayor | **10** |
 
-La división es **cronológica, nunca aleatoria**: con variables de rezago, un corte al azar le
-filtra el futuro al modelo. El período de modelado empieza en 2019 porque 2018 se consume como
-calentamiento de las medias móviles de 365 días. Se reserva el 20 % final como test y el 80 %
-restante se reparte en 70 % de entrenamiento y 10 % de validación, calculando los cortes sobre
-el eje de días para que las proporciones se cumplan exactamente.
+**Evidencia:** existen grupos de hasta diez filas idénticas byte a byte.
+**Inferencia:** un siniestro no se repite diez veces en la misma esquina, a la misma hora, con el
+mismo tipo y la misma gravedad — se trata de un artefacto de carga, no de eventos distintos.
 
-| Partición | Desde | Hasta | Días | % días | Siniestros | % siniestros | Media diaria |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Entrenamiento | 2019-01-01 | 2023-11-25 | 1.790 | 70,0 | 131.760 | 67,3 | 73,6 |
-| Validación | 2023-11-26 | 2024-08-07 | 256 | 10,0 | 20.666 | 10,6 | 80,7 |
-| Test (reservado) | 2024-08-08 | 2025-12-31 | 511 | 20,0 | 43.416 | 22,2 | 85,0 |
+**Efecto sobre la variable objetivo:** sin deduplicar, el máximo de siniestros en un día y una
+zona quedaba inflado por repeticiones. Con la grilla anterior, el máximo declarado era 11 y
+correspondía a **10 copias del mismo registro más uno distinto**: 2 siniestros reales.
 
-**Dos asimetrías que hay que declarar.**
+**Limitación del criterio, a declarar:** el dataset no tiene identificador de siniestro, de modo
+que dos siniestros reales con atributos idénticos serían indistinguibles de un duplicado de carga.
+La eliminación es una decisión conservadora sobre la cola alta del objetivo.
 
-1. **Composición estacional.** Cumplir 70/10/20 con exactitud obliga a cortar a mitad de año: la
-   validación **no contiene ningún día de setiembre ni de octubre**, mientras el test cubre los
-   doce meses e incluye dos diciembres, el mes de mayor siniestralidad. Por eso **el nivel del
-   error de validación y el de test no son directamente comparables**; la comparación *entre
-   modelos dentro de la validación* sí lo es, que es para lo que la validación se usa. La
-   alternativa —cortar por años completos— daría particiones estacionalmente homogéneas a costa
-   de no alcanzar las proporciones pedidas.
-2. **Régimen de siniestralidad.** La media diaria sube de 73,6 en entrenamiento a 85,0 en test:
-   el modelo se entrena sobre un régimen algo más bajo que aquel sobre el que se lo evalúa.
+### 3.3 Consistencia interna — `tablas/06_consistencia.csv`, `06b_consistencia_otros.csv`
 
-**Zonas sin historial.** De las 8.061 zonas con siniestros en el tramo de test, **1.787
-(22,2 %) no registraron ninguno durante el entrenamiento**; en validación son 922 de 5.773
-(16,0 %). Sobre ellas el modelo predice con historial vacío. Concentran el **4,6 % de los
-siniestros del test** y el 4,7 % de los de validación: es una cota inferior del error inevitable
-para cualquier modelo basado en historial de zona, y debe tratarse como estrato propio en el
-análisis de errores.
+La columna `Dia Semana` es redundante respecto de `Fecha`, y esa redundancia permite **verificar el
+formato de fecha contra evidencia independiente del propio archivo**.
 
-**Fuga leve declarada.** El catálogo de zonas se construye con los ocho años, test incluido: la
-existencia de una zona en el panel usa información posterior al corte de entrenamiento. Afecta
-al universo de filas, no a ninguna variable predictora, y su efecto es conservador —agrega zonas
-casi siempre vacías—, pero es real y se declara en lugar de dejarla implícita. La alternativa
-limpia es definir el catálogo sólo con entrenamiento y tratar las zonas nuevas como fuera de
-dominio.
+| Formato probado | Fechas no parseables | Coincidencia con `Dia Semana` |
+| --- | --- | --- |
+| `%m/%d/%Y` | 0 | **100,0000 %** |
+| `%d/%m/%Y` | 133.356 | 6,7955 % |
 
-## 7. Calidad: lo que se verificó y salió bien
+**Consecuencia importante:** esto **refuta la suposición del ETL del PID**, que probaba varios
+formatos en cascada (`parsear_fecha_mixta`) asumiendo que el archivo los mezclaba. El archivo es
+homogéneo. La suposición era peligrosa porque una fecha como `05/06/2021` parsea con los dos
+formatos y da días distintos, sin avisar.
 
-Conviene poder decir también qué se comprobó y **no** dio problemas, porque es parte del
-diagnóstico:
+Otras comprobaciones, todas en cero: `Hora` fuera de 0–23, registros de otro departamento, fechas
+fuera del período. La columna `fixed` toma **un único valor**: no aporta información y no puede
+usarse como indicador de calidad de la geocodificación, aunque su nombre lo sugiera.
 
-- **Completitud.** Las columnas que sostienen la unidad de análisis (`Fecha`, `X`, `Y`) están
-  completas. Los faltantes están en `Localidad` (40.238, 17,91 %) y `Calle` (27.793, 12,37 %) y
-  vienen **encubiertos como texto** (`SIN DATOS`, `NO SE INGRESO`), no como nulos: contar sólo
-  nulos habría dado una completitud aparente del 100 %. Ninguna de las dos se usa como
-  predictora, así que no compromete al modelo; sí impide usar la localidad como unidad
-  territorial alternativa a la grilla.
-- **Consistencia.** `Dia Semana` coincide con el día de `Fecha` en los 224.694 registros, `Hora`
-  siempre está en [0, 23] y no hay coordenadas fuera de Uruguay.
-- **Duplicados.** Hay 347 registros idénticos (0,15 %), repartidos de forma pareja entre 2018 y
-  2025 (24 a 58 por año). La regularidad interanual descarta un error de carga —un archivo
-  cargado dos veces se concentraría en un año— y es compatible con siniestros múltiples
-  registrados por separado. **Se conservan**, porque el archivo no tiene identificador de
-  siniestro que permita distinguir un duplicado de dos eventos reales en el mismo punto, día y
-  hora.
-- **Precisión espacial.** Todas las coordenadas son múltiplos de 5 m y los 224.694 siniestros se
-  reparten entre sólo **68.152 puntos distintos** (3,3 por punto de media, 186 en el más
-  repetido): la geocodificación ajusta al eje de calle o a la intersección. Eso **respalda la
-  celda de 500 m** —cien veces la resolución de la fuente— y **descalifica** cualquier análisis
-  de puntos negros a escala de decenas de metros.
-- **Hora = 0** concentra el 2,08 % de los registros, con participación estable año a año
-  (1,98 %–2,17 %). Un centinela encubierto daría un pico muy superior al de las horas vecinas;
-  aquí es compatible con tránsito real de medianoche. No afecta al PAA porque la hora no se usa.
+### 3.4 Precisión espacial — `tablas/07_precision_espacial.csv`
 
-## 8. Limitaciones declaradas
+| Indicador | Valor |
+| --- | --- |
+| Coordenadas múltiplo de 5 m | 100,00 % |
+| Coordenadas distintas | 8.088 |
+| Siniestros por coordenada (media) | 4,9 |
+| Siniestros en la coordenada más repetida | 122 (**0,31 %** del recorte) |
+| Las 10 coordenadas más repetidas concentran | 1,97 % |
+| Coordenadas nulas o ≤ 0 | 0 |
 
-La sección 5 del notebook las reúne en `tablas/24_limitaciones.csv`, cada una con su evidencia y
-su tratamiento. Las que no se derivan de los puntos anteriores:
+**Evidencia:** resolución de 5 m, miles de coordenadas distintas, concentración baja en la más
+repetida.
+**Inferencia:** el patrón es el de una geocodificación **a esquina o tramo de calle**, no a un
+centroide genérico. Esto es lo que hace viable la asignación por intersección punto-polígono.
 
-- **Sin medida de exposición.** Los datos registran siniestros, no tránsito ni población. Una
-  zona con muchos siniestros puede ser peligrosa o simplemente muy transitada, y sin denominador
-  ambas explicaciones son indistinguibles. Por eso el producto **no señala «zonas peligrosas»
-  sino zonas donde se espera mayor cantidad de siniestros**, que es una afirmación más débil y
-  más honesta. Para fiscalización sigue siendo útil; para inferir causas o rediseñar
-  infraestructura, no alcanza.
-- **Subregistro no cuantificable.** El archivo contiene los siniestros que fueron registrados;
-  la fracción no registrada es desconocida y probablemente distinta entre Montevideo y el
-  interior. El registro no se limita a los casos graves —**28,1 % «SIN LESIONADOS»**, casi 60 %
-  «LEVE», 10,5 % «GRAVE» y 1,4 % «FATAL»—, lo que sugiere una cobertura amplia pero no la
-  prueba: cuantificar el subregistro exigiría una fuente externa de contraste que el proyecto no
-  tiene. Es la única limitación que **no** surge de un cálculo del notebook, y así está marcada
-  en la tabla. *Evidencia del indicio interno:* `tablas/01b_composicion_descriptiva.csv`.
-- **Etiqueta departamental aproximada en zonas limítrofes.** 57 celdas de 18.487 reciben
-  siniestros de más de un departamento; el catálogo resuelve por moda. Sirve para agrupar y
-  describir, no como predictor fino.
+**Limitación a declarar:** un punto ajustado a la esquina puede caer del lado equivocado de un
+límite de barrio cuando ese límite corre por el eje de la calle. El error afectaría a siniestros
+individuales cerca de los bordes, no al orden de magnitud por barrio.
+
+### 3.5 Validez temporal — `tablas/08_validez_temporal.csv`
+
+| Indicador | Valor |
+| --- | --- |
+| Días del período | 1.826 |
+| **Días sin ningún siniestro** | **0** |
+| Mínimo / mediana / máximo diario | 4 / 22,0 / 44 |
+| Fecha del mínimo / del máximo | 2022-01-16 / 2025-12-11 |
+
+La serie diaria del departamento está completa, sin huecos. Un día sin registros habría sido
+sospechoso de falla del sistema de carga más que de ausencia real de siniestros, y no ocurre.
+
+### 3.6 Calidad de la asignación a barrios — `tablas/09_calidad_capa_barrios.csv`
+
+La zona sale de una **intersección punto-polígono** entre las coordenadas UTM del siniestro y la
+capa de barrios. **No se geocodifica ninguna dirección.**
+
+| Indicador | Valor |
+| --- | --- |
+| Polígonos en la capa | 62 |
+| Nombres distintos | 62 |
+| Barrios con al menos un siniestro | **62** |
+| Siniestros asignados | 39.569 |
+| **Siniestros fuera de todo polígono** | **11 (0,03 %)** |
+
+**Decisión:** se descartan y se documenta el conteo (detalle en `09b_siniestros_sin_barrio.csv`),
+en lugar de reasignarlos al barrio más cercano. La reasignación introduciría una decisión
+arbitraria sobre casos que no cambian ninguna conclusión.
+
+### 3.7 Calidad de la serie climática — `tablas/10_calidad_clima.csv`
+
+| Indicador | Valor |
+| --- | --- |
+| Días en la caché | 1.826 |
+| Días del período cubiertos | **1.826 de 1.826** |
+| Fechas duplicadas | 0 |
+| Celdas faltantes | **0** |
+| Temperatura media fuera de −10…45 °C | 0 |
+| Precipitación negativa | 0 |
+
+Sin faltantes y con el período completo: **no corresponde imputar** el clima.
+
+**Limitación de diseño, no de calidad:** se usa **una sola serie para todo el departamento**. A
+resolución diaria las variables meteorológicas son prácticamente uniformes sobre unos 200 km²
+urbanos, de modo que el supuesto es razonable, pero significa que el clima **no puede explicar
+ninguna diferencia entre barrios**: aporta sólo variación temporal, la misma para las 62 zonas.
+Esto tiene consecuencias directas en la sección 5.3.
+
+---
+
+## 4. Cobertura
+
+### 4.1 Cobertura temporal — `tablas/11_cobertura_temporal_anual.csv`, `figuras/fig1_cobertura_temporal.png`
+
+| Año | Siniestros | Media diaria | Variación |
+| --- | --- | --- | --- |
+| 2021 | 6.893 | 18,88 | — |
+| 2022 | 7.665 | 21,00 | +11,2 % |
+| 2023 | 7.873 | 21,57 | +2,7 % |
+| 2024 | 8.398 | 22,95 | +6,7 % |
+| 2025 | 8.740 | 23,95 | +4,1 % |
+
+Hay una **tendencia creciente sostenida** en todo el período. Esto importa para el diseño de
+evaluación: un modelo entrenado sobre los primeros años se evalúa sobre un régimen de
+siniestralidad más alto.
+
+#### El filtro de 2021 no elimina el régimen de la pandemia — `tablas/12_pandemia_residual.csv`
+
+| Período | Siniestros | Días | Media diaria |
+| --- | --- | --- | --- |
+| ene–jun **2021** | 2.957 | 181 | **16,34** |
+| ene–jun 2022–2025 | 15.512 | 725 | **21,40** |
+| **Diferencia** | | | **−23,6 %** |
+
+**Evidencia:** el primer semestre de 2021 tiene una siniestralidad marcadamente inferior a la de
+los mismos meses de los años siguientes.
+**Inferencia:** en Uruguay la ola de COVID y las restricciones de movilidad fueron justamente en
+ese semestre. La justificación del filtro —«empezar en 2021 para que el modelo no vea la
+pandemia»— **no se sostiene con los datos**: el recorte excluye 2020 pero conserva el semestre más
+afectado.
+
+**Decisión del equipo:** mantener 2021 completo y **declarar el sesgo en el informe**. La
+alternativa —empezar el 2021-07-01— cuesta seis meses de datos y es un cambio de una línea en el
+notebook de preparación. Consecuencia a declarar: el conjunto de entrenamiento contiene un tramo
+con un régimen de movilidad que no volverá a repetirse, lo que sesga a la baja cualquier tasa
+histórica estimada sobre los primeros meses de la serie.
+
+### 4.2 Cobertura territorial — `tablas/13_cobertura_barrios.csv`, `13b_concentracion_territorial.csv`, `figuras/fig2_cobertura_territorial.png`
+
+| Indicador | Valor |
+| --- | --- |
+| Barrios de la capa | 62 |
+| **Barrios con al menos un siniestro** | **62** |
+| Siniestros — mínimo por barrio | **225** |
+| Siniestros — mediana por barrio | 570 |
+| Siniestros — máximo por barrio | 1.939 |
+| Razón máximo/mínimo | 8,6× |
+| Barrios que acumulan el 50 % | 19 |
+| Barrios que acumulan el 90 % | 49 |
+
+**Barrios más activos:** UNIÓN (1.939 · 4,90 %), CORDÓN (1.694 · 4,28 %), AGUADA (1.204 · 3,04 %),
+CENTRO (1.197 · 3,03 %), MERCADO MODELO Y BOLÍVAR (1.138), CERRO (1.122), POCITOS (1.081).
+**Menos activos:** LA BLANQUEADA (225), BARRIO SUR (241), JACINTO VERA (249), PALERMO (261).
+
+**Este es el resultado que habilita el experimento del docente.** Ningún barrio queda sin
+siniestros y el menos activo tiene 225 en el período, de modo que **todos tienen soporte
+suficiente** para estimarles una tasa. Con la grilla de 1 km anterior había 80 celdas con 5
+siniestros o menos y 28 con uno solo, lo que volvía inviable reservar zonas para evaluar
+generalización.
+
+**Limitación de representatividad, a declarar:** el mapa refleja **dónde se registran** siniestros,
+no dónde son más probables por unidad de exposición. Sin datos de tránsito no se puede normalizar
+por volumen de vehículos, de modo que un barrio muy transitado aparecerá arriba aunque su riesgo
+por viaje sea bajo.
+
+### 4.3 El panel día × barrio — `tablas/14_panel_dia_barrio.csv`
+
+| Indicador | Valor |
+| --- | --- |
+| Filas del panel (días × barrios) | **113.212** |
+| Filas con al menos un siniestro | 31.747 |
+| **Densidad (filas no nulas)** | **28,04 %** |
+| Ceros | 71,96 % |
+| Media de siniestros por fila | 0,3495 |
+| Máximo en una fila | 7 |
+
+Comparación con la zonificación anterior (grilla de 1 km, 403 celdas): el panel tenía 735.878
+filas y **95,08 % de ceros**. La agregación por barrios **reduce drásticamente la escasez**.
+
+**Consecuencia de modelado:** con esta densidad, una pérdida de conteo (Poisson o Tweedie) tiene
+material suficiente y **no hace falta balancear**. Con el panel anterior el objetivo era casi
+binario y eso obligaba a un tratamiento distinto.
+
+### 4.4 Variables exógenas — `tablas/15_cobertura_calendario.csv`, `16_feriados.csv`
+
+| `tipo_dia` | Días | % | Media de siniestros/día |
+| --- | --- | --- | --- |
+| `entre_semana` | 1.232 | 67,5 % | **23,75** |
+| `fin_semana` | 504 | 27,6 % | **17,73** |
+| `feriado` | 90 | 4,9 % | **15,41** |
+
+La variable **discrimina**: feriados y fines de semana no se comportan como los días hábiles.
+
+**Un problema detectado y ya resuelto** (`tablas/16_feriados.csv`): la configuración por omisión de
+la biblioteca `holidays` para Uruguay reconoce **25 feriados** en el período, mientras que
+`categories=("public", "bank")` reconoce **90**. Los **65 días omitidos** incluyen **Carnaval y
+Semana de Turismo**, los dos períodos de mayor alteración de la movilidad del año. El ETL vigente
+usa la configuración correcta. Detalle en `16b_feriados_omitidos_por_defecto.csv`.
+
+El **clima está integrado** (sección 3.7), lo que cierra el otro hueco que el diagnóstico
+reportaba como abierto en su versión nacional.
+
+---
+
+## 5. Adecuación
+
+### 5.1 La variable objetivo — `tablas/17_distribucion_objetivo.csv`, `18_dispersion_objetivo.csv`
+
+| `n_siniestros` | Filas | % |
+| --- | --- | --- |
+| 0 | 81.465 | 71,958 % |
+| 1 | 25.332 | 22,376 % |
+| 2 | 5.248 | 4,636 % |
+| 3 | 974 | 0,860 % |
+| 4 | 158 | 0,140 % |
+| 5 | 26 | 0,023 % |
+| 6 | 6 | 0,005 % |
+| 7 | 3 | 0,003 % |
+
+| Indicador | Valor |
+| --- | --- |
+| Media | 0,3495 |
+| Varianza | 0,3957 |
+| **Índice de dispersión (var/media)** | **1,132** |
+
+**Evidencia:** la varianza casi iguala a la media.
+**Inferencia:** es la firma de un proceso de **Poisson**, con una sobredispersión leve.
+
+**Consecuencia para el protocolo de evaluación:** las métricas deben medir **calibración y
+ordenamiento** de una intensidad esperada, no exactitud puntual del conteo. Un error absoluto medio
+sobre un objetivo así premia predecir siempre cerca de cero y no informa nada útil. La
+recomendación derivada es **desvianza de Poisson** como métrica principal, acompañada de
+calibración por estrato de actividad.
+
+### 5.2 Señal temporal — `tablas/19_senal_temporal_barrios.csv`, `20_senal_serie_agregada.csv`, `20b_varianza_calendario.csv`, `figuras/fig3_senal_temporal.png`
+
+Éste es **el hallazgo de mayor consecuencia del diagnóstico**. Se recalculó íntegramente sobre los
+barrios, porque una conclusión obtenida con celdas de 1 km no se hereda al cambiar de granularidad.
+
+El contraste no es contra cero, sino contra lo que produciría el **puro azar**: se simulan 400
+series de Poisson con la tasa media de cada barrio y se compara la autocorrelación observada contra
+la banda que generan esas simulaciones.
+
+**A nivel de barrio:**
+
+| Rezago | ACF mediana | ACF máxima | Banda nula Poisson (p97,5) | Barrios sobre la banda | Esperables por azar |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0,0137 | 0,0724 | 0,0449 | **7 de 62** | 1,6 |
+| 7 | 0,0101 | 0,0838 | 0,0455 | **8 de 62** | 1,6 |
+
+**Evidencia:** la autocorrelación mediana cae muy por debajo de la banda nula. Pero los barrios que
+la superan (7 y 8) son **más de los que produciría el azar** (≈1,6 al percentil 97,5).
+
+**Inferencia, enunciada con cuidado:** en la enorme mayoría de los barrios no se detecta señal
+temporal de corto plazo; en una minoría parece haber algo de estructura real, pero **su magnitud es
+despreciable para el modelado** — incluso la autocorrelación más alta observada (0,084) explica
+menos del 1 % de la varianza de esa serie. La distinción importa: una cosa es «no se detecta señal»
+y otra «no existe». Lo que estos datos sostienen es lo primero.
+
+**A nivel del departamento sí hay señal, y es de calendario:**
+
+| Serie | ACF rezago 1 | ACF rezago 7 |
+| --- | --- | --- |
+| Serie cruda del departamento | 0,2379 | **0,3459** |
+| Residuo tras descontar `tipo_dia` | 0,2438 | **0,2427** |
+
+El pico en el rezago 7 es estacionalidad semanal, y `tipo_dia` la captura **en parte** (0,346 →
+0,243). Queda autocorrelación en el residuo: días buenos y días malos que ninguna de las variables
+disponibles anticipa.
+
+**Varianza de la serie diaria del departamento explicada por el calendario:**
+
+| Bloque | % de varianza explicada |
+| --- | --- |
+| `tipo_dia` | 21,0 % |
+| Día de la semana | 19,5 % |
+| Mes | 9,0 % |
+| `tipo_dia` + mes | 30,2 % |
+| Día de la semana + mes | 30,8 % |
+
+**Consecuencia de modelado, sin adornos:** una regla de persistencia por zona («ayer hubo, hoy
+habrá») **no tiene fundamento en estos datos**. La línea base defendible es **tasa histórica del
+barrio × factor de calendario**, y cualquier modelo más complejo debe justificarse contra ella con
+el mismo protocolo.
+
+### 5.3 Qué puede aportar cada bloque de variables — `tablas/21_aporte_bloques_variables.csv`, `21b_descomposicion_varianza.csv`
+
+Se compara la **desvianza de Poisson** de cuatro predictores, todos **oráculos calculados en
+muestra**: a cada uno se le entrega directamente la media empírica del grupo correspondiente. Cada
+valor es por tanto una **cota superior** — ningún modelo real que use sólo esas variables la va a
+superar.
+
+| Información disponible | Desvianza de Poisson | Mejora sobre la constante |
+| --- | --- | --- |
+| Constante global (sin información) | 0,94110 | — |
+| **Sólo variables de día (clima + calendario) — techo** | 0,90784 | **−3,5 %** |
+| **Sólo tasa histórica del barrio** | 0,85280 | **−9,4 %** |
+| Barrio × día | 0,81954 | −12,9 % |
+
+Descomposición de varianza (`21b`):
+
+| Componente | Varianza | % de la total |
+| --- | --- | --- |
+| Total del objetivo | 0,39573 | 100,0 % |
+| **Entre barrios** | 0,03476 | **8,8 %** |
+| **Entre días** | 0,01130 | **2,85 %** |
+
+**Éste es el resultado con mayor consecuencia práctica para el diseño de variables.**
+
+**Evidencia:** las variables exógenas previstas —clima, día de la semana, feriados— son **todas
+variables de día**. Ninguna distingue un barrio de otro: para una fecha dada, los 62 barrios reciben
+exactamente los mismos valores. Su techo conjunto es −3,5 %. La identidad del barrio aporta −9,4 %,
+casi el triple.
+
+**Inferencia:** un modelo construido sólo con clima y calendario **predeciría el mismo número para
+todos los barrios cada día**, que es precisamente lo que el producto no puede hacer. Hace falta al
+menos una variable de nivel de zona —la tasa histórica del barrio, ajustada sólo con datos de
+entrenamiento— y ésa es la construcción que el notebook de modelado debe abordar primero.
+
+### 5.4 Adecuación al objetivo del producto — `tablas/22_adecuacion_objetivo.csv`
+
+| Pregunta | Respuesta | Fundamento |
+| --- | --- | --- |
+| ¿Se puede predecir el conteo diario por barrio? | **Sí** | densidad suficiente; objetivo de tipo Poisson (5.1) |
+| ¿Se puede predecir dónde ocurrirá el próximo siniestro? | **No** | sin persistencia sobre el azar a nivel barrio-día (5.2) |
+| ¿Se puede ordenar barrios por riesgo esperado? | **Sí** | la tasa histórica es estable y aporta la mayor parte de la señal (5.3) |
+| ¿Se puede estimar riesgo por unidad de exposición? | **No** | no hay datos de tránsito |
+| ¿Se puede modelar por gravedad o franja horaria? | **No con el conjunto vigente** | el ETL descarta esas columnas |
+| ¿Se puede evaluar en barrios no vistos al entrenar? | **Sí** | los 62 tienen soporte; ninguna variable identifica al barrio |
+
+**Las filas 2 y 4 acotan honestamente el alcance del producto.** El sistema puede **ordenar y
+calibrar riesgo esperado por barrio**, que es lo que sirve para asignar recursos de fiscalización;
+**no puede anticipar siniestros individuales**, y no hay dato disponible que lo permita.
+Presentarlo de otro modo ante el tribunal sería insostenible.
+
+---
+
+## 6. Limitaciones y lo que NO puede afirmarse
+
+`tablas/24_limitaciones.csv` — diez limitaciones, cada una con la sección que la sustenta y el
+tratamiento que recibe.
+
+| Limitación | Sección | Cómo se trata |
+| --- | --- | --- |
+| Régimen de pandemia dentro del período | 4.1 | Se declara; alternativa: iniciar 2021-07-01 |
+| Sin señal temporal de corto plazo por barrio | 5.2 | Línea base = tasa × calendario |
+| Variables exógenas sin variación espacial | 3.7, 5.3 | Construir tasa histórica del barrio |
+| Clima observado, no pronosticado | 2 | Declararlo: el desempeño medido es cota optimista |
+| Sin datos de exposición (tránsito) | 4.2, 5.4 | Limitar afirmaciones a conteo esperado |
+| Duplicados exactos en la fuente | 3.2 | Eliminados; criterio declarado |
+| Faltantes encubiertos como texto | 3.1 | No se imputa; se declara el conteo |
+| Siniestros fuera de todo polígono | 3.6 | Se descartan (11); se documenta |
+| Catálogo y estratos sobre todo el período | 4.2 | Recalcular estrato sólo con entrenamiento |
+| **Subregistro de siniestros** | **—** | **No es medible con estos datos** |
+
+### Frases que NO deben aparecer en el informe
+
+- ❌ «El modelo predice dónde ocurrirá el próximo siniestro.» → Sólo ordena y calibra riesgo
+  esperado por barrio y día.
+- ❌ «El barrio X es el más peligroso.» → Es el que **registra** más siniestros. Sin exposición no
+  se puede hablar de peligrosidad por viaje.
+- ❌ «Los datos cubren todos los siniestros de Montevideo.» → Cubren los **registrados**. El
+  subregistro es desconocido.
+- ❌ «El clima explica la siniestralidad.» → Aporta, junto con el calendario, un techo de −3,5 % de
+  desvianza, y no explica diferencias entre barrios.
+- ❌ «Queda demostrado que no hay señal temporal.» → **No se detecta** señal aprovechable; en 7–8
+  barrios de 62 hay algo por encima de la banda nula, de magnitud despreciable.
+
+### Sobre el subregistro
+
+**No es medible con los propios datos.** El archivo contiene los siniestros que fueron registrados;
+la fracción no registrada —típicamente los leves o sin lesionados que no generan intervención— es
+desconocida y probablemente no uniforme entre barrios. Si la propensión a registrar variara entre
+barrios, el ordenamiento estaría sesgado de una forma que este diagnóstico **no puede detectar**.
+Cuantificarlo exigiría una fuente externa de contraste que el proyecto no tiene. Declararlo es
+parte del diagnóstico.
+
+---
+
+## 7. Verificación cruzada con el ETL — `tablas/23_coherencia_etl.csv`
+
+El diagnóstico reconstruye el panel desde las fuentes crudas de forma **independiente** del ETL. La
+comparación es una verificación real: una discrepancia significaría que uno de los dos notebooks
+tiene un error.
+
+| Comprobación | Diagnóstico (recalculado) | ETL (`data/processed`) | Resultado |
+| --- | --- | --- | --- |
+| Filas del panel | 113.212 | 113.212 | ✅ coincide |
+| Siniestros totales | 39.569 | 39.569 | ✅ coincide |
+| Zonas | 62 | 62 | ✅ coincide |
+| Días | 1.826 | 1.826 | ✅ coincide |
+| Máximo del objetivo | 7 | 7 | ✅ coincide |
+
+**Las cinco comprobaciones coinciden.** Dos implementaciones independientes de la asignación
+punto-polígono y del armado del panel llegan al mismo resultado.
+
+---
+
+## 8. Índice de artefactos
+
+`experiments/diagnostico_datos/` — 36 tablas y 3 figuras. `tablas/25_artefactos.csv` lista todas.
+
+**Figuras:**
+
+| Figura | Qué muestra | Sección |
+| --- | --- | --- |
+| `fig1_cobertura_temporal.png` | Serie mensual de siniestros, con el 1.º semestre de 2021 sombreado | 4.1 |
+| `fig2_cobertura_territorial.png` | Mapa coroplético de los 62 barrios por siniestros acumulados | 4.2 |
+| `fig3_senal_temporal.png` | ACF por barrio vs banda nula (izq.) y ACF de la serie agregada (der.) | 5.2 |
+
+**Tablas principales por eje:**
+
+| Eje | Tablas |
+| --- | --- |
+| Trazabilidad | `00_procedencia`, `00b_entorno`, `01_esquema_crudo`, `02_recorte_alcance` |
+| Disponibilidad | `03_disponibilidad_variables`, `03b_disponibilidad_exogenas` |
+| Calidad | `04_completitud`, `05_duplicados`, `06_consistencia`, `06b`, `07_precision_espacial`, `08_validez_temporal`, `09_calidad_capa_barrios`, `09b`, `10_calidad_clima`, `10b` |
+| Cobertura | `11_cobertura_temporal_anual`, `11b`, `12_pandemia_residual`, `13_cobertura_barrios`, `13b`, `14_panel_dia_barrio`, `15_cobertura_calendario`, `16_feriados`, `16b` |
+| Adecuación | `17_distribucion_objetivo`, `18_dispersion_objetivo`, `19_senal_temporal_barrios`, `20_senal_serie_agregada`, `20b`, `21_aporte_bloques_variables`, `21b`, `22_adecuacion_objetivo` |
+| Verificación | `23_coherencia_etl` |
+| Limitaciones | `24_limitaciones` |
+
+**Antes de citar cualquier cifra:** verificar que los `sha256` de `00_procedencia.csv` sigan siendo
+los de las fuentes vigentes. Si alguna fuente cambió, hay que volver a ejecutar el notebook.
+
+---
 
 ## 9. Qué queda pendiente
 
-En el orden de prioridad que el propio notebook propone:
+Lo que este diagnóstico **deja planteado** y corresponde al notebook de modelado:
 
-1. Resolver la discrepancia de granularidad entre `analisis_inicial.ipynb` (500 m) y los
-   artefactos de `data/processed/` (1 km), y regenerar los derivados.
-2. Alinear el corte de particiones de `analisis_inicial.ipynb` —hoy por años completos— con la
-   división 70/10/20.
-3. Integrar la caché climática de Open-Meteo y repetir el análisis de señal residual.
-4. Corregir la construcción de `es_feriado`.
-5. Decidir si el catálogo de zonas se redefine usando sólo entrenamiento.
-6. Fijar las métricas del Entregable 2 en coherencia con un objetivo Poisson casi binario.
-7. Implementar la línea base como tasa histórica de la zona × factor de calendario.
-
-## 10. Cómo reproducirlo
-
-Con el entorno del `README.md` activado, ejecutar el notebook de arriba a abajo. No requiere
-descargas ni credenciales, y es de sólo lectura sobre `data/`: no reescribe el panel ni las
-*features*. Es determinista salvo la simulación nula de la sección 4.3, fijada con
-`SEMILLA = 42`.
-
-```powershell
-.venv\Scripts\Activate.ps1
-jupyter lab notebooks/diagnostico_datos.ipynb
-```
-
-Al ejecutarlo se regeneran los 31 archivos de `experiments/diagnostico_datos/`. Cada cifra
-citada en la sección *Metodología — datos* del informe debe remitir a uno de esos archivos o a
-una celda del notebook.
-
----
-
-## Anexo. Preguntas previsibles y cómo responderlas
-
-**«¿Por qué celdas de 500 m y no otra cosa?»**
-Porque es cien veces la resolución real de la fuente (5 m), de modo que el redondeo no puede
-mover un siniestro de celda salvo en el borde, y porque agrandar la celda no resuelve la escasez
-(tabla de la sección 4.4): a 5 km diarios la densidad sigue en 1,77 %. La granularidad se eligió
-por la pregunta del proyecto, no por comodidad del panel.
-
-**«¿No es un problema tener 99,6 % de ceros?»**
-Es la naturaleza del fenómeno, no un defecto del dato: ningún umbral ni granularidad razonable
-lo convierte en un problema denso. Se trata con objetivo Poisson, submuestreo de ceros con pesos
-(que preserva el valor esperado) y métricas de calibración y ordenamiento en lugar de exactitud
-puntual.
-
-**«¿Cómo saben que los ceros son ceros reales y no falta de datos?»**
-Porque no hay un solo día vacío en 2.922 días y el mínimo nacional es 26 siniestros. El país
-nunca deja de registrar, así que el cero de una zona significa que no hubo siniestro.
-
-**«¿Por qué dicen que los rezagos no sirven?»**
-Porque la autocorrelación observada por zona cae dentro de la banda que produciría un proceso
-puramente aleatorio de la misma tasa, y la comparación se hizo contra una simulación explícita,
-no contra la intuición. Se verificó además restringiendo el cálculo a entrenamiento, para no
-apoyar la decisión en datos reservados.
-
-**«¿Cómo evitan las fugas de información?»**
-Tres medidas: las columnas posteriores al evento quedan fuera del conjunto de predictoras
-(sección 4.1); la división es cronológica y el test está reservado; y las dos fugas residuales
-detectadas —el catálogo de zonas definido con los ocho años y el uso del histórico completo en
-los análisis descriptivos— se declaran explícitamente, con la comprobación de que la conclusión
-que orienta el modelado se mantiene usando sólo entrenamiento.
-
-**«¿Qué esperan que logre el modelo?»**
-Estimar la intensidad esperada por zona y día y ordenar zonas por riesgo, que es lo que el mapa
-necesita. No predecir en qué celda concreta ocurrirá un siniestro: con λ ≈ 0,004 eso no es
-alcanzable por ningún método, y decirlo por adelantado es parte del diagnóstico.
+1. **Construir la variable de nivel de zona** (tasa histórica del barrio), ajustada sólo con el
+   tramo de entrenamiento. Es el aporte más grande disponible (5.3) y hoy no existe.
+2. **Definir las particiones cronológicas** con el conjunto de prueba reservado. El diagnóstico
+   *no* las define: es decisión del protocolo de evaluación.
+3. **Recalcular el estrato de actividad sólo con entrenamiento** antes de usarlo para reservar
+   barrios del «megamodelo». Hoy es descriptivo, calculado sobre todo el período.
+4. **Fijar las métricas**: desvianza de Poisson como principal, más calibración por estrato.
+5. **Decidir el balanceo**: primera opción a probar, pérdida de Poisson o Tweedie, que maneja el
+   exceso de ceros nativamente.
+6. **Implementar la línea base** (tasa del barrio × factor de calendario) y evaluarla con el
+   protocolo definitivo.
+7. **Decidir el filtro de 2021** (4.1): mantener y declarar el sesgo, o mover el inicio.

@@ -1,0 +1,9 @@
+clave,valor
+ejecutado,2026-09-04 09:20
+python,3.13.2 · Windows 10
+pandas,3.0.5
+numpy,2.5.2
+matplotlib,3.11.1
+holidays,0.103
+pyproj,3.7.2
+pyshp,3.1.6

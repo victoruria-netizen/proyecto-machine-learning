@@ -1,0 +1,9 @@
+indicador,valor
+zonificación,barrios
+zonas con al menos un siniestro,62
+siniestros por zona — mediana,570
+siniestros por zona — mínimo,225
+siniestros por zona — máximo,1939
+zonas con 5 siniestros o menos en el período,0
+zonas activas (>= 60 siniestros),62
+zonas que acumulan el 90 % de los siniestros,49

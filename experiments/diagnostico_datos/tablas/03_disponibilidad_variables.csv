@@ -1,0 +1,11 @@
+columna,qué es,disponible antes del evento,uso en el PAA
+Fecha,día del siniestro,sí,eje temporal de la unidad de análisis
+"X, Y",coordenadas UTM 21S del siniestro,sí,definen el barrio por intersección
+Departamento,atributo territorial,sí,sólo para el recorte; constante después
+Localidad,atributo territorial,parcial,faltante encubierto; la zona sale del polígono
+Calle,texto libre del lugar,parcial,alta cardinalidad; no se usa
+Dia Semana,derivable de Fecha,sí,se usa para verificar el formato de fecha (2.3)
+Hora,hora del siniestro ocurrido,no,posterior al evento; la unidad es el día
+Tipo de Siniestro,clasificación del siniestro ocurrido,no,posterior al evento
+Gravedad,consecuencia del siniestro ocurrido,no,posterior al evento
+fixed,marca del proceso ETL del PID,no,constante: sin información

@@ -1,7 +1,0 @@
-indicador,valor,detalle
-zonas del catálogo (2018–2025),"18,487",
-zonas activas en entrenamiento,"14,807",80.1 % del catálogo
-zonas activas en validación,"5,773",922 sin historial en entrenamiento (16.0 %)
-siniestros de validación en zonas sin historial,972,4.7 % de la partición
-zonas activas en test (reservado),"8,061","1,787 sin historial en entrenamiento (22.2 %)"
-siniestros de test (reservado) en zonas sin historial,"1,991",4.6 % de la partición

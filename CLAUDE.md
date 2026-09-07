@@ -234,6 +234,68 @@ formato/rango de salidas), incluidos los errores detectados y sus correcciones.
   señalarlo explícitamente en vez de dejarlo pasar.
 - La sesión quedó registrada en `documentacion/registro_uso_IA.md`.
 
+## Documentación de notebooks (obligatorio)
+
+> **Instrucción para Claude Code:** **cada notebook de `notebooks/` tiene un documento
+> acompañante en `documentacion/`**. Al crear un notebook nuevo, crear su documento. Al
+> modificarlo de forma que cambie cualquier cifra o decisión, **actualizar el documento en la
+> misma sesión**. Un notebook cuyo documento quedó desactualizado es peor que uno sin documento:
+> induce a citar cifras que ya no existen.
+
+### Para qué existen estos documentos
+
+Son **contexto autocontenido** para que un asistente **sin acceso al repositorio** —típicamente
+Claude en la web— pueda ayudar a redactar la documentación del proyecto (informe técnico,
+presentaciones, defensa). Quien los lea no puede abrir el notebook, ni ejecutar código, ni ver
+`experiments/`: **todo lo que necesite tiene que estar en el documento**.
+
+De ahí las dos propiedades que los definen:
+
+1. **Autocontenidos.** Nada de «ver la sección 3 del notebook». Si un número importa, va escrito.
+2. **Trazables.** Cada cifra lleva al lado el artefacto que la respalda
+   (`tablas/NN_nombre.csv`, `figuras/figN_nombre.png`). Es la regla de oro del informe aplicada
+   un nivel antes: si el documento no puede rastrear una cifra, el informe tampoco podrá.
+
+### Convención de nombres
+
+`documentacion/<nombre_del_notebook>.md`, con el mismo nombre que el notebook. Ejemplos:
+
+| Notebook | Documento |
+| --- | --- |
+| `notebooks/diagnostico_datos.ipynb` | `documentacion/resumen_diagnostico_datos.md` |
+| `notebooks/preparacion_montevideo.ipynb` | `documentacion/resumen_preparacion_montevideo.md` |
+
+El prefijo `resumen_` se mantiene por continuidad con el primero. **Referencia de estructura y
+tono:** `documentacion/resumen_diagnostico_datos.md`.
+
+### Estructura mínima
+
+Adaptar al contenido del notebook, pero no omitir estas piezas:
+
+1. **Encabezado** — notebook de origen, artefactos que produce, fecha de ejecución, alcance.
+2. **Cómo usar este documento** — para qué sirve y las reglas que quien redacte debe respetar
+   (ninguna cifra sin artefacto; distinguir evidencia de inferencia; no redactar Introducción ni
+   Marco teórico).
+3. **Qué hace el notebook y por qué** — decisiones tomadas **con su justificación**, no sólo el
+   qué. Las decisiones descartadas se registran igual, con el motivo.
+4. **Resultados, en tablas** — con la referencia al artefacto en cada bloque.
+5. **Limitaciones y lo que NO puede afirmarse** — incluida una lista explícita de **frases que no
+   deben aparecer en el informe** porque los datos no las sostienen. Esta sección es la que más
+   protege al equipo ante el tribunal.
+6. **Índice de artefactos** — qué tabla o figura respalda qué afirmación.
+7. **Qué queda pendiente** — lo que el notebook deja planteado para el siguiente.
+
+### Reglas de contenido
+
+- **Distinguir evidencia de inferencia**, explícitamente. «Los datos muestran X» y «el equipo
+  concluye Y» son afirmaciones distintas y se marcan como tales.
+- **Registrar los cambios de alcance.** Si el notebook fue reescrito, decir qué cubría antes y por
+  qué cambió: evita que alguien cite cifras de una versión superada.
+- **Comparar contra la versión anterior** cuando ayude a entender una decisión (p. ej. «con la
+  grilla de 1 km eran 95,08 % de ceros; con barrios, 71,96 %»).
+- **No adornar.** Si un resultado es débil o incómodo, se dice. El documento existe para que el
+  equipo pueda defender el trabajo, y una cifra maquillada se cae en la primera pregunta.
+
 ## Convenciones
 
 - Idioma del proyecto y de la documentación: **español**.
@@ -241,6 +303,8 @@ formato/rango de salidas), incluidos los errores detectados y sus correcciones.
   existente.
 - Al terminar una sesión relevante, actualizar `HANDOFF.md` con el estado y lo pendiente,
   y `documentacion/registro_uso_IA.md` con los prompts de la sesión.
+- Si la sesión tocó un notebook, actualizar también su documento acompañante en
+  `documentacion/` (ver **Documentación de notebooks**).
 
 ## Git
 

@@ -1,4 +1,4 @@
-grupo,días,media_diaria_nacional
-feriados 'public' (los que usa la feature actual),41,64.8
-feriados 'bank' omitidos por la feature,104,65.0
-días ordinarios,2777,77.5
+configuración de `holidays`,días en el período
+"feriados con categories=('public','bank')",90
+feriados con la configuración por defecto,25
+días que la configuración por defecto omite,65

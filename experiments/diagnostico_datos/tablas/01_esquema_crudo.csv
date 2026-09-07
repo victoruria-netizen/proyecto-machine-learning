@@ -1,6 +1,6 @@
 columna,tipo,no_nulos,distintos,ejemplo
 Fecha,datetime64[us],224694,2922,2018-07-24 00:00:00
-Calle,str,224693,23966,AVENIDA DIECIOCHO DE JULIO
+Calle,str,224693,23746,AVENIDA DIECIOCHO DE JULIO
 Tipo de Siniestro,str,224694,9,ATROPELLO DE PEATÓN
 Gravedad,str,224694,4,LEVE
 Dia Semana,str,224694,7,MARTES

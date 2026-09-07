@@ -13,6 +13,7 @@ seaborn==0.13.2
 
 # --- Aprendizaje automático ---
 scikit-learn==1.9.0      # baselines, métricas, TimeSeriesSplit
+scipy==1.18.1            # interpolación y pruebas estadísticas (dependencia de scikit-learn)
 statsmodels==0.14.6      # SARIMA/SARIMAX y diagnóstico de series temporales
 xgboost==3.4.1           # boosting con variables de rezago
 lightgbm==4.7.0          # boosting con variables de rezago
@@ -24,7 +25,9 @@ requests==2.34.2         # carga histórica puntual de Open-Meteo (cacheada)
 
 # --- Geo / mapas ---
 pyproj==3.7.2            # conversión de coordenadas UTM 21S (EPSG:32721) a lat/lon
-folium==0.20.0
+folium==0.20.0           # mapa de zonas del ETL y del dashboard
+branca==0.8.2            # escalas y leyendas de los mapas folium
+pyshp==3.1.6             # lectura de la capa de barrios (shapefile) sin GDAL/geopandas
 streamlit-folium==0.27.4
 
 # --- Prototipo / dashboard (TRL 5) ---

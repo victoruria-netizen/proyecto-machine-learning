@@ -1,0 +1,105 @@
+
+========================================================================
+0. Procedencia
+========================================================================
+archivo: data\raw\uru_siniestros_unificado.csv
+sha256 : 48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2
+
+========================================================================
+1. ¿Es correcto el formato de fecha %m/%d/%Y? (contraste con 'Dia Semana')
+========================================================================
+filas: 224694 | NaT tras parsear: 0
+coincidencia con %m/%d/%Y: 100.0000 %
+coincidencia con %d/%m/%Y: 6.7955 % (NaT: 133356)
+
+========================================================================
+2. Recorte del notebook: MONTEVIDEO y Fecha.dt.year > 2020
+========================================================================
+registros: (39676, 11) | rango: 2021-01-01 -> 2025-12-31
+
+siniestros por año:
+Fecha
+2021    6921
+2022    7683
+2023    7902
+2024    8422
+2025    8748
+
+Localidad dentro del departamento:
+Localidad
+MONTEVIDEO    37911
+SIN DATOS      1765
+
+========================================================================
+3. Régimen de movilidad residual de la pandemia dentro del recorte
+========================================================================
+Fecha  2021  2022  2023  2024  2025
+mes                                
+1       454   459   524   594   566
+2       429   523   571   576   614
+3       513   663   681   657   730
+4       460   614   567   709   745
+5       554   670   685   775   815
+6       553   681   691   695   747
+7       637   656   687   709   720
+8       655   683   719   711   778
+9       633   694   634   710   742
+10      647   660   716   753   763
+11      735   713   698   745   736
+12      651   667   729   788   792
+
+media diaria ene-jun 2021      : 16.37
+media diaria ene-jun 2022-2025 : 21.45
+caída del primer semestre 2021 : 23.7 %
+
+========================================================================
+4. Duplicados exactos (el notebook no los trata)
+========================================================================
+filas duplicadas: 96 (0.24 % del recorte)
+
+========================================================================
+5. Grilla de 1 km y panel día × zona
+========================================================================
+zonas: 403 | mediana de siniestros por zona: 37
+zonas con 1 solo siniestro en 5 años: 28 | con 5 o menos: 79
+zonas que acumulan el 90 % de los siniestros: 167
+
+panel: 1826 días x 403 zonas = 735878 filas
+suma del objetivo: 39676 (recorte: 39676)
+ceros en el panel : 95.08 %  (el notebook informa 58,60 %, pero es sólo la zona más activa)
+media 0.053917 | varianza 0.061732 | índice de dispersión 1.145
+
+distribución del objetivo:
+n
+0     699707
+1      33011
+2       2861
+3        271
+4         20
+5          6
+9          1
+11         1
+
+========================================================================
+6. El máximo del objetivo (11) es un artefacto de duplicados
+========================================================================
+celda: 2021-07-30 567000_6152000 | registros: 11
+registros únicos tras eliminar duplicados exactos: 2
+     Fecha  Hora     Calle        Tipo de Siniestro Gravedad      X       Y
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    15 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567200 6152645
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+2021-07-30    17 SIN DATOS COLISIÓN ENTRE VEHÍCULOS     LEVE 567295 6152820
+
+========================================================================
+7. Zona más activa (la que grafica el notebook)
+========================================================================
+zona: 574000_6137000 | siniestros: 994
+días con cero: 1070 de 1826 (58.60 %)

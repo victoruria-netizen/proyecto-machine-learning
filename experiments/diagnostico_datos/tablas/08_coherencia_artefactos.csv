@@ -1,7 +1,0 @@
-comprobación,valor,resultado
-tamaño de celda del diagnóstico,500 m,
-tamaño de celda inferido de zonas.parquet,1000 m,DISCREPANCIA
-zonas según el diagnóstico,"18,487",
-zonas en zonas.parquet,"11,633",DISCREPANCIA
-siniestros acumulados en zonas.parquet,"224,694",coincide
-filas de panel_diario_zona.parquet,"33,991,626","= 11,633 zonas × 2,922 días"

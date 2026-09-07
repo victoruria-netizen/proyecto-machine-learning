@@ -1,0 +1,6 @@
+bloque de calendario,% de varianza explicada
+tipo_dia,21.0
+día de la semana,19.5
+mes,9.0
+tipo_dia + mes,30.2
+día de la semana + mes,30.8

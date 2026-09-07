@@ -1,0 +1,7 @@
+verificación,detalle,resultado
+Se conservan todos los siniestros del recorte,"39,676",OK
+Rezagos y medias móviles coinciden con shift/rolling,zona 205,OK
+La intensidad interpolada no tiene valores negativos,mín 0.0000,OK
+La intensidad conserva el total por zona y partición,error máx 0.0000,OK
+Sin valores faltantes,21 columnas,OK
+Particiones cronológicas sin solapamiento ni huecos,"1,826 días",OK

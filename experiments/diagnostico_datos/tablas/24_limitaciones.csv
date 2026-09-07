@@ -1,14 +1,11 @@
-limitación,sección,evidencia,tratamiento
-Sin medida de exposición,4.4,"no hay tránsito ni población: el mapa mide siniestros esperados, no peligrosidad",declararlo en el dashboard y en el informe; no atribuir causalidad
-Sin señal temporal por zona,4.3,los rezagos por zona no superan la banda nula de Poisson,línea base tasa × calendario; no esperar desempeño de los lags
-Objetivo casi binario y extremadamente escaso,"3.4, 4.1","99,6 % de ceros; 97,4 % de los positivos valen 1","objetivo Poisson, submuestreo con pesos, métricas de calibración y ordenamiento"
-Clima no incorporado,3.6,"no hay caché de Open-Meteo en data/; queda sin explicar la ACF residual de 0,30",integrar la caché del PID y verificar cobertura por zona y fecha antes de usarla
-Feature de feriados incompleta,3.6,marca 41 de 145 días con caída sistemática; omite Semana de Turismo y Carnaval,"usar categories=('bank','public') y evaluar una variable de período especial"
-Anomalía estructural de 2020 dentro de entrenamiento,3.1,−13 % anual y abril con 1.331 siniestros frente a 2.298 de media,declararla; considerar un indicador de período o ponderación al comparar particiones
-Particiones con distinta composición estacional,3.2,"el corte 70/10/20 cae a mitad de año: validación sin setiembre ni octubre, test con dos diciembres",no comparar el nivel de error entre validación y test; comparar modelos dentro de cada partición
-Zonas de test sin historial en entrenamiento,3.5,"1.787 zonas (22,2 %) y 4,6 % de los siniestros del tramo de test",estrato propio en el análisis de errores; cota inferior del error en test
-Catálogo de zonas definido con los ocho años,3.5,el universo de filas usa información posterior al corte de entrenamiento,revisar antes de la evaluación final: definir el catálogo sólo con entrenamiento
-Geocodificación al eje de calle,2.4,68.152 puntos distintos para 224.694 siniestros; resolución de 5 m,no analizar por debajo de la celda de 500 m
-Duplicados no resolubles,2.2,347 registros idénticos sin identificador de siniestro que los distinga,"se conservan; impacto acotado al 0,15 % del total"
-Etiqueta departamental por moda en celdas limítrofes,2.3,57 celdas reciben siniestros de más de un departamento,"usar el departamento sólo para agrupar y describir, no como predictor fino"
-Subregistro no cuantificable,—,sólo se observan los siniestros efectivamente registrados; no hay denominador,declarar el sesgo; no interpretar ausencia de registro como ausencia de siniestro
+limitación,sección,por qué importa,cómo se trata
+Régimen de pandemia dentro del período,3.1,El 1.º semestre de 2021 tiene siniestralidad marcadamente menor. Sesga a la baja las tasas estimadas sobre el arranque de la serie.,Declararlo; o mover el inicio a 2021-07-01 (una línea en el ETL).
+Sin señal temporal de corto plazo por barrio,4.2,Descarta las reglas de persistencia y acota lo que cualquier modelo puede lograr.,Línea base = tasa del barrio × calendario; justificar todo modelo contra ella.
+Variables exógenas sin variación espacial,"2.7, 4.3",Clima y calendario son iguales para los 62 barrios cada día: no explican diferencias entre zonas.,"Construir la tasa histórica del barrio, ajustada sólo con entrenamiento."
+"Clima observado, no pronosticado",1.2,"En producción habría pronóstico, con su propio error. El desempeño medido es una cota optimista.","Declararlo en el informe; si se puede, evaluar con pronóstico diferido."
+Sin datos de exposición (tránsito),"3.2, 4.4","Se modela el conteo observado, no el riesgo por viaje. Un barrio muy transitado aparece arriba aunque sea seguro por unidad de exposición.",Limitar las afirmaciones a conteo esperado; no hablar de 'peligrosidad'.
+Duplicados exactos en la fuente,2.2,Inflaban la cola alta del objetivo con repeticiones del mismo registro.,Eliminados; criterio declarado. Revisar si la fuente se actualiza.
+Faltantes encubiertos como texto,2.1,"Afectan a columnas descriptivas, no a las que consume el modelo.",No se imputa; se declara el conteo.
+Siniestros fuera de todo polígono,2.6,Fricción entre la geocodificación y los límites de barrio.,Se descartan y se documenta el conteo.
+Catálogo de barrios y estratos definidos sobre todo el período,3.2,Usan información posterior al corte de entrenamiento. Fuga leve pero real.,Recalcular el estrato sólo con entrenamiento antes de reservar zonas.
+Subregistro de siniestros,—,El archivo contiene los siniestros registrados; la fracción no registrada es desconocida y probablemente no uniforme entre barrios.,No es medible con estos datos. Declararlo como amenaza a la validez.

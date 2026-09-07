@@ -1,0 +1,6 @@
+archivo,filas,columnas,tamaño
+data/processed/panel_diario_montevideo.csv,"113,212",13,9.4 MB
+data/processed/siniestros_montevideo.csv,"39,569",6,2.5 MB
+data/processed/zonas_montevideo.csv,62,9,0.0 MB
+data/processed/panel_zona_top.csv,"1,826",13,0.1 MB
+data/processed/panel_zona_contraste.csv,"1,826",13,0.1 MB
