@@ -1,14 +1,17 @@
 verificación,detalle,resultado
-El panel conserva todos los siniestros del recorte,"39,569 vs 39,569",OK
-El panel es el producto completo días × zonas,"113,212 filas",OK
+El panel conserva todos los siniestros del recorte,"36,612 vs 36,612",OK
+El panel es el producto completo días × zonas,"13,160 filas",OK
 "La clave (fecha, zona) no se repite",clave única,OK
 El índice es temporal y está ordenado,DatetimeIndex creciente,OK
+La serie empieza en la fecha declarada,2021-07-01 == 2021-07-01,OK
+Todos los polígonos de la capa tienen siniestros,8 de 8 municipios,OK
 No quedan faltantes en el panel,0 celdas vacías -> no corresponde imputar,OK
-Ninguna columna del panel es constante,12 columnas,OK
+Ninguna columna del panel es constante,11 columnas,OK
 No hay columnas de gravedad en el panel,sin fuga por gravedad,OK
-El calendario cubre todo el período sin huecos,1826 días,OK
-El clima cubre todo el período sin huecos,1826 días,OK
+El panel no lleva variables de nivel de zona (se construyen en el modelado),sólo zona_id como identificador,OK
+El calendario cubre todo el período sin huecos,1645 días,OK
+El clima cubre todo el período sin huecos,1645 días,OK
 tipo_dia tiene los tres niveles esperados,"['entre_semana', 'feriado', 'fin_semana']",OK
 El objetivo es entero y no negativo,n_siniestros,OK
 Los eventos están ordenados cronológicamente,sort_values por fecha,OK
-Los centroides de zona caen dentro de Uruguay,62 zonas,OK
+Los centroides de zona caen dentro de Uruguay,8 zonas,OK

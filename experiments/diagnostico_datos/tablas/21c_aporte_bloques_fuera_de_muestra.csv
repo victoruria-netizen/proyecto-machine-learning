@@ -1,0 +1,7 @@
+predictor (estimado sólo con la 1.ª mitad),medias estimadas,desvianza de Poisson en la 2.ª mitad,mejora sobre la constante
+constante global,1,1.36394,+0.0 %
+sólo factor de calendario (día de la semana + feriado),14,1.3053,-4.3 %
+sólo tasa histórica del municipio,8,1.26172,-7.5 %
+tasa del municipio × factor de calendario  ← línea base propuesta,22,1.20308,-11.8 %
+tasa del municipio × (calendario + llovió),34,1.20716,-11.5 %
+celdas saturadas municipio × calendario × mes (sin regularizar),888,1.50546,+10.4 %

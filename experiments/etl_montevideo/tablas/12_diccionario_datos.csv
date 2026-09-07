@@ -1,8 +1,7 @@
 archivo,columna,tipo,descripcion
-panel_diario_montevideo.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por zona)
-panel_diario_montevideo.csv,zona_id,str,"zona (barrios). Identificador, no usar como predictor"
-panel_diario_montevideo.csv,n_siniestros,int16,OBJETIVO — siniestros en esa zona ese día
-panel_diario_montevideo.csv,estrato_actividad,category,tercil de actividad (baja/media/alta). DESCRIPTIVO: calculado sobre todo el período; recalcular con entrenamiento si se usa para decidir
+panel_diario_montevideo.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por municipio)
+panel_diario_montevideo.csv,zona_id,str,"municipio de Montevideo. Identificador, no usar como predictor"
+panel_diario_montevideo.csv,n_siniestros,int16,OBJETIVO — siniestros en ese municipio ese día
 panel_diario_montevideo.csv,tipo_dia,str,CODIFICACIÓN del calendario: entre_semana / fin_semana / feriado
 panel_diario_montevideo.csv,temp_media,float64,temperatura media diaria (°C) — Open-Meteo
 panel_diario_montevideo.csv,temp_max,float64,temperatura máxima diaria (°C) — Open-Meteo
@@ -12,25 +11,23 @@ panel_diario_montevideo.csv,lluvia_mm,float64,"lluvia total diaria (mm), sin nie
 panel_diario_montevideo.csv,viento_max_kmh,float64,velocidad máxima del viento a 10 m (km/h) — Open-Meteo
 panel_diario_montevideo.csv,estado_clima,str,CODIFICACIÓN del código WMO: despejado/nublado/niebla/lluvia/tormenta
 panel_diario_montevideo.csv,llovio,int8,"1 si la precipitación superó 0,1 mm"
-siniestros_montevideo.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por zona)
-siniestros_montevideo.csv,zona_id,str,"zona (barrios). Identificador, no usar como predictor"
+siniestros_montevideo.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por municipio)
+siniestros_montevideo.csv,zona_id,str,"municipio de Montevideo. Identificador, no usar como predictor"
 siniestros_montevideo.csv,coord_x,int64,"coordenada X del siniestro, UTM 21S"
 siniestros_montevideo.csv,coord_y,int64,"coordenada Y del siniestro, UTM 21S"
-siniestros_montevideo.csv,latitud,float64,latitud WGS84 (del siniestro o del centroide de la zona)
-siniestros_montevideo.csv,longitud,float64,longitud WGS84 (del siniestro o del centroide de la zona)
-zonas_montevideo.csv,zona_id,str,"zona (barrios). Identificador, no usar como predictor"
-zonas_montevideo.csv,siniestros,int64,siniestros de la zona en todo el período
-zonas_montevideo.csv,dias_con_siniestro,int64,días con al menos un siniestro en la zona
-zonas_montevideo.csv,centro_x,float64,"centroide de los siniestros de la zona, UTM 21S"
-zonas_montevideo.csv,centro_y,float64,"centroide de los siniestros de la zona, UTM 21S"
-zonas_montevideo.csv,latitud,float64,latitud WGS84 (del siniestro o del centroide de la zona)
-zonas_montevideo.csv,longitud,float64,longitud WGS84 (del siniestro o del centroide de la zona)
-zonas_montevideo.csv,estrato_actividad,category,tercil de actividad (baja/media/alta). DESCRIPTIVO: calculado sobre todo el período; recalcular con entrenamiento si se usa para decidir
-zonas_montevideo.csv,zona_activa,bool,True si la zona tiene >= 60 siniestros en el período
-panel_zona_top.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por zona)
-panel_zona_top.csv,zona_id,str,"zona (barrios). Identificador, no usar como predictor"
-panel_zona_top.csv,n_siniestros,int16,OBJETIVO — siniestros en esa zona ese día
-panel_zona_top.csv,estrato_actividad,category,tercil de actividad (baja/media/alta). DESCRIPTIVO: calculado sobre todo el período; recalcular con entrenamiento si se usa para decidir
+siniestros_montevideo.csv,latitud,float64,latitud WGS84 (del siniestro o del centroide del municipio)
+siniestros_montevideo.csv,longitud,float64,longitud WGS84 (del siniestro o del centroide del municipio)
+zonas_montevideo.csv,zona_id,str,"municipio de Montevideo. Identificador, no usar como predictor"
+zonas_montevideo.csv,siniestros,int64,siniestros del municipio en todo el período
+zonas_montevideo.csv,dias_con_siniestro,int64,días con al menos un siniestro en el municipio
+zonas_montevideo.csv,centro_x,float64,"centroide de los siniestros del municipio, UTM 21S"
+zonas_montevideo.csv,centro_y,float64,"centroide de los siniestros del municipio, UTM 21S"
+zonas_montevideo.csv,latitud,float64,latitud WGS84 (del siniestro o del centroide del municipio)
+zonas_montevideo.csv,longitud,float64,longitud WGS84 (del siniestro o del centroide del municipio)
+zonas_montevideo.csv,estrato_actividad,category,"tercil de volumen (baja/media/alta). SÓLO EN EL CATÁLOGO y DESCRIPTIVO: calculado sobre todo el período y sobre un rango de 1,71×, así que los cortes son arbitrarios. No es predictor"
+panel_zona_top.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por municipio)
+panel_zona_top.csv,zona_id,str,"municipio de Montevideo. Identificador, no usar como predictor"
+panel_zona_top.csv,n_siniestros,int16,OBJETIVO — siniestros en ese municipio ese día
 panel_zona_top.csv,tipo_dia,str,CODIFICACIÓN del calendario: entre_semana / fin_semana / feriado
 panel_zona_top.csv,temp_media,float64,temperatura media diaria (°C) — Open-Meteo
 panel_zona_top.csv,temp_max,float64,temperatura máxima diaria (°C) — Open-Meteo
@@ -40,10 +37,9 @@ panel_zona_top.csv,lluvia_mm,float64,"lluvia total diaria (mm), sin nieve — Op
 panel_zona_top.csv,viento_max_kmh,float64,velocidad máxima del viento a 10 m (km/h) — Open-Meteo
 panel_zona_top.csv,estado_clima,str,CODIFICACIÓN del código WMO: despejado/nublado/niebla/lluvia/tormenta
 panel_zona_top.csv,llovio,int8,"1 si la precipitación superó 0,1 mm"
-panel_zona_contraste.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por zona)
-panel_zona_contraste.csv,zona_id,str,"zona (barrios). Identificador, no usar como predictor"
-panel_zona_contraste.csv,n_siniestros,int16,OBJETIVO — siniestros en esa zona ese día
-panel_zona_contraste.csv,estrato_actividad,category,tercil de actividad (baja/media/alta). DESCRIPTIVO: calculado sobre todo el período; recalcular con entrenamiento si se usa para decidir
+panel_zona_contraste.csv,fecha,datetime64[us],ÍNDICE — día de la observación (no único: una fila por municipio)
+panel_zona_contraste.csv,zona_id,str,"municipio de Montevideo. Identificador, no usar como predictor"
+panel_zona_contraste.csv,n_siniestros,int16,OBJETIVO — siniestros en ese municipio ese día
 panel_zona_contraste.csv,tipo_dia,str,CODIFICACIÓN del calendario: entre_semana / fin_semana / feriado
 panel_zona_contraste.csv,temp_media,float64,temperatura media diaria (°C) — Open-Meteo
 panel_zona_contraste.csv,temp_max,float64,temperatura máxima diaria (°C) — Open-Meteo

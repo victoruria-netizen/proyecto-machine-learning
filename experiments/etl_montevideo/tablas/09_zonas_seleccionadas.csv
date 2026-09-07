@@ -1,3 +1,3 @@
 papel,zona_id,siniestros,dias_con_siniestro,estrato_actividad,latitud,longitud,pct_dias_en_cero
-zona más activa (primer modelo),UNION,1939,1157,alta,-34.877109,-56.14059,36.64
-zona de contraste (actividad mediana),TRES CRUCES,689,574,alta,-34.895082,-56.166154,68.57
+municipio más activo,MUNICIPIO C,5783,1566,alta,-34.873211,-56.184261,4.8
+municipio de actividad mediana (contraste),MUNICIPIO A,5016,1549,media,-34.858565,-56.255808,5.84

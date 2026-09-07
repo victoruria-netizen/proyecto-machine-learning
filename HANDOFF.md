@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-04_
+_Última actualización: 2026-09-07_
 
 ---
 
@@ -63,36 +63,53 @@ _Última actualización: 2026-09-04_
       que un asistente sin acceso al repositorio ayude a redactar el informe. La regla está en
       `CLAUDE.md`, sección **Documentación de notebooks**. Documentos vigentes:
       `resumen_diagnostico_datos.md` y `resumen_preparacion_montevideo.md`.
+- [x] **Zonificación por municipios y corte de pandemia** (2026-09-07): capa oficial de los 8
+      municipios obtenida vía WFS, y la serie recortada al **2021-07-01**. Aplicado a
+      `diagnostico_datos.ipynb` (ejecutado sin errores, 43 tablas y 3 figuras) y a
+      `resumen_diagnostico_datos.md`.
+- [x] **ETL migrado al mismo alcance** (2026-09-07, segunda parte de la sesión):
+      `preparacion_montevideo.ipynb` reescrito por municipios desde 2021-07-01, ejecutado con las
+      **16 verificaciones en verde**, y `data/processed/` regenerado. La **verificación cruzada
+      entre los dos notebooks pasa con las cinco comprobaciones en verde**: `data/processed/` ya
+      es citable en el informe. `resumen_preparacion_montevideo.md` reescrito.
 
 ### Hallazgos del diagnóstico que condicionan lo que sigue
 
-Vigentes tras la reescritura del 2026-09-04 (alcance Montevideo / barrios). Detalle y respaldo en
-`documentacion/resumen_diagnostico_datos.md`.
+Vigentes tras la reescritura del **2026-09-07** (alcance Montevideo / **municipios**, desde
+**2021-07-01**). Detalle y respaldo en `documentacion/resumen_diagnostico_datos.md`.
 
-1. **No se detecta señal temporal de corto plazo por barrio.** ACF mediana 0,0137 (rezago 1) y
-   0,0101 (rezago 7) contra bandas nulas de Poisson de 0,0449 y 0,0455. Consecuencia: la línea
-   base debe ser *tasa histórica del barrio × factor de calendario*, no una regla de persistencia.
-   *Matiz:* 7 y 8 barrios de 62 superan la banda, más que los ≈1,6 esperables por azar — hay algo
-   de estructura en una minoría, pero de magnitud despreciable (ACF máxima 0,084).
-2. **El objetivo es de tipo Poisson** (71,96 % de ceros, dispersión 1,132, máximo 7). Las métricas
-   deben medir calibración y ordenamiento, no exactitud puntual del conteo: desvianza de Poisson
-   como principal. Con esta densidad **no hace falta balancear**.
-3. **Las variables exógenas previstas no alcanzan solas.** Clima, día de la semana y feriados son
-   todas variables *de día*: ninguna distingue un barrio de otro. Techo conjunto −3,5 % de
-   desvianza, contra −9,4 % de la sola tasa histórica del barrio. **Falta construir la variable de
-   nivel de zona**, ajustada sólo con entrenamiento.
-4. **El filtro de 2021 no elimina el régimen de pandemia.** Ene–jun 2021 promedia 16,34
-   siniestros/día contra 21,40 en los mismos meses de 2022–2025 (**−23,6 %**). Decisión del equipo:
-   mantener 2021 completo y declarar el sesgo en el informe.
-5. **Sin datos de exposición (tránsito).** Se modela el conteo observado, no el riesgo por viaje:
-   el sistema puede ordenar y calibrar riesgo esperado por barrio, **no** anticipar siniestros
-   individuales ni hablar de «peligrosidad».
-6. **El subregistro no es medible con estos datos** y probablemente no es uniforme entre barrios.
-   Es una amenaza a la validez que se declara, no se cuantifica.
+> ⚠️ **Los hallazgos de las versiones anteriores (país/grilla y Montevideo/barrios) están
+> superados.** Dos de ellos se invirtieron al cambiar de zonificación: no alcanza con actualizar
+> las cifras, cambia la conclusión.
 
-*Resueltos desde la versión nacional del diagnóstico:* clima integrado (1.826 días sin faltantes),
-feriados corregidos con `categories=("public","bank")` (90 en el período contra 25), y
-`data/processed/` reproducible con el código versionado (verificado por contraste cruzado).
+1. **El objetivo dejó de tener exceso de ceros.** El panel es de 13.160 filas (1.645 días × 8
+   municipios) con **8,60 % de ceros**, media 2,7821, dispersión **1,259**, máximo 13. Es una
+   regresión de conteo ordinaria: **no corresponde balancear** ni aplicar variantes
+   *zero-inflated*, y la interpolación de ceros que se había propuesto pierde su objeto.
+2. **Sí hay señal temporal a rezago 1, y es genuina.** ACF mediana 0,0558 contra banda nula de
+   Poisson 0,0464, con **5 de 8 municipios por encima** (0,2 esperables por azar). Sobrevive a
+   descontar el calendario (mediana del residuo 0,0475, 5 de 8 sobre la banda). **A rezago 7 la
+   señal es puro calendario**: descontado día de la semana y feriado, ningún municipio queda sobre
+   la banda. *Antes, con barrios, no se detectaba señal a ningún rezago: el ruido de Poisson la
+   tapaba.* La magnitud sigue siendo pequeña (< 1 % de la varianza), así que el rezago de un día
+   es **candidato a evaluar**, no supuesto.
+3. **La línea base multiplicativa está medida, no postulada.** Evaluada fuera de muestra (mitad
+   temporal): constante 1,36394; sólo calendario −4,3 %; sólo tasa del municipio −7,5 %;
+   **tasa × calendario −11,8 %**; con clima −11,5 %; **celdas saturadas +10,4 %** (peor que no
+   usar nada). Confirma la forma multiplicativa y descarta el cruce saturado.
+4. **El clima no aporta nada fuera de muestra.** Mantenerlo exige una justificación mejor que
+   «estaba disponible». Ojo: el techo *en muestra* de las variables de día es −17,4 %, pero es un
+   oráculo inalcanzable; el calendario construible rinde −4,3 %.
+5. **Hay tendencia creciente en todo el período** y el corte de pandemia no la elimina: la media
+   del objetivo sube **+11,0 %** entre la primera y la segunda mitad. El modelado tiene que
+   tratarla explícitamente (recalibrar nivel, tendencia o ponderación).
+6. **Sólo hay 8 zonas y se parecen mucho entre sí** (razón máx/mín **1,71×**, contra ~10× con
+   barrios). Consecuencias: el margen para *ordenar* zonas es estrecho, y el hold-out de zonas del
+   «megamodelo» pierde casi todo su poder — con 8 municipios lo único defendible es dejar uno
+   afuera por vez y promediar.
+7. **Sin datos de exposición (tránsito).** Se modela el conteo observado, no el riesgo por viaje.
+8. **El subregistro no es medible con estos datos** y probablemente no es uniforme entre
+   municipios. Es una amenaza a la validez que se declara, no se cuantifica.
 
 ### Cambio de alcance tras la reunión de seguimiento (2026-08-31)
 
@@ -563,57 +580,200 @@ lugar de la grilla, las exógenas, el conjunto exportado con su diccionario, las
 y una **tabla de cobertura de la rúbrica de preparación** que declara también lo que *no*
 corresponde y por qué (imputación, escalado, balanceo, reducción de dimensionalidad).
 
+### Zonificación por municipios y corte de pandemia (2026-09-07)
+
+Reunión de seguimiento con el docente. Tres pedidos: **zonas más grandes (municipios en lugar de
+barrios)**, **sacar los meses de pandemia de 2021**, y actualizar los informes de
+`documentacion/`. Esta sesión resolvió el primer notebook y su documento; **el ETL queda
+pendiente**.
+
+**Capa de municipios.** El `data/raw/municipios.json` que dejó el equipo **no era la capa**: era
+la respuesta `GetCapabilities` (XML) del servicio WMS, el mismo problema que ya había pasado con
+barrios. La capa real se obtuvo por WFS del GeoServer de la Intendencia:
+
+```
+GET https://montevideo.gub.uy/app/geoserver/mapstore-tematicas/zon_v_sig_municipios/ows
+    ?service=WFS&version=2.0.0&request=GetFeature
+    &typeName=mapstore-tematicas:zon_v_sig_municipios
+    &outputFormat=application/json&srsName=EPSG:4326
+Header: User-Agent: Mozilla/5.0 (cualquier UA de navegador)   # sin esto devuelve 403
+```
+
+Guardada en `data/raw/municipios_montevideo.geojson` (2,87 MB, sha256 `ed0ba13e…`). **8 polígonos:
+A, B, C, CH, D, E, F y G**, campo del nombre `municipio` (trae la letra sola; el notebook le
+antepone `MUNICIPIO `). Licencia: `Fees: none` / `AccessConstraints: none`.
+
+**Corte de la pandemia: `FECHA_INICIO = "2021-07-01"`.** Cierra el pendiente A2, que venía abierto
+desde el 2026-09-01 como «decisión del equipo». La decisión quedó **justificada con evidencia en
+tres pasos** dentro del notebook (sección 3.1), no por decreto:
+
+| Paso | Qué muestra | Tabla |
+| --- | --- | --- |
+| 1. Nivel | ene–jun 2021 promedia 16,34/día contra 21,40 en 2022–2025: **−23,7 %** | `12_pandemia_paso1_nivel` |
+| 2. No es tendencia | Índice estacional (mes / media del propio año): feb–jun 2021 entre −7,0 % y **−17,2 %** | `12b_…indice_estacional` |
+| 3. El corte alcanza | jul–dic 2021 encadena con 2022–2025 (+3,1 %, +2,8 %, +5,7 %, +2,8 %) | `12c`, `12d` |
+
+Dos matices que quedaron escritos y que el informe debe recoger: **enero de 2021 no está
+deprimido** (índice +1,1 %) y se excluye igual para no dejar un mes suelto — es conveniencia del
+equipo, y se declara como tal; y **noviembre de 2021 se aparta hacia arriba** (+10,7 %) sin
+explicación disponible. **Costo:** 2.957 registros (7,5 %) y 181 días; quedan 1.645 días.
+
+**Estado del notebook de diagnóstico.** `notebooks/diagnostico_datos.ipynb` reescrito y **ejecutado
+de punta a punta sin errores** (77 celdas). Deja **43 tablas y 3 figuras** en
+`experiments/diagnostico_datos/`. Se borraron las 36 tablas y 3 figuras de la corrida por barrios:
+convivir con las nuevas habría hecho ambigua cualquier cita desde el informe.
+
+**Cifras que cambiaron** (barrios → municipios):
+
+| Indicador | Barrios (superado) | **Municipios (vigente)** |
+| --- | --- | --- |
+| Zonas | 62 | **8** |
+| Período | 2021-01-01 → 2025-12-31 (1.826 d) | **2021-07-01 → 2025-12-31 (1.645 d)** |
+| Siniestros | 39.569 | **36.612** |
+| Filas del panel | 113.212 | **13.160** |
+| % de ceros | 71,96 % | **8,60 %** |
+| Media / dispersión | 0,3495 / 1,132 | **2,7821 / 1,259** |
+| Máximo del objetivo | 7 | **13** |
+| Razón máx/mín entre zonas | ~10× | **1,71×** |
+
+**Aporte metodológico de esta versión: la medición fuera de muestra.** Las versiones anteriores
+medían el aporte de cada bloque de variables con oráculos en muestra, que son techos. Ahora el
+notebook agrega una segunda pasada con partición temporal por la mitad, y **el orden se invierte**:
+en muestra el oráculo de día parece dominar (−17,4 %), fuera de muestra la tasa del municipio
+(−7,5 %) supera al calendario construible (−4,3 %) y la combinación multiplicativa gana (−11,8 %).
+También aparece que las **celdas saturadas empeoran** el resultado (+10,4 %), lo que justifica la
+forma multiplicativa de la línea base.
+
+> **La verificación cruzada con el ETL no se pudo hacer en esta primera corrida**, porque
+> `data/processed/` todavía estaba en el alcance anterior (62 zonas, desde 2021-01-01, 113.212
+> filas). El notebook lo **detectó y se abstuvo de comparar** en vez de informar una discrepancia
+> falsa. **Resuelto en la segunda parte de la sesión** (sección siguiente): el ETL se migró y la
+> verificación pasa con las cinco comprobaciones en verde.
+
+### Migración del ETL a municipios (2026-09-07, segunda parte)
+
+`notebooks/preparacion_montevideo.ipynb` reescrito al mismo alcance que el diagnóstico:
+**municipios (8), desde 2021-07-01**. Ejecutado de punta a punta sin errores, **16 de 16
+verificaciones en OK**, y `data/processed/` regenerado.
+
+**Resultado que cierra el bloqueante:** la verificación cruzada del diagnóstico
+(`23_coherencia_etl.csv`) pasa con **las cinco comprobaciones en verde** — 13.160 filas, 36.612
+siniestros, 8 zonas, 1.645 días, máximo 13. Dos implementaciones independientes del recorte, la
+deduplicación, la asignación punto-polígono y el armado del panel llegan al mismo resultado.
+**`data/processed/` ya es citable en el informe.**
+
+**Cambios de fondo, más allá de la zonificación y la fecha**
+
+| Decisión | Antes | Ahora | Por qué |
+| --- | --- | --- | --- |
+| Capa de zonas ausente | Caía a **grilla de 1 km** y lo avisaba por pantalla | **Falla ruidosamente** | Producía igual un conjunto completo de otro alcance (403 zonas, 95 % de ceros) que quedaba en `data/processed/` indistinguible del bueno |
+| `estrato_actividad` | En el panel | **Sólo en el catálogo** | Con 8 zonas en un rango de 1,71× los terciles son arbitrarios, y está calculado sobre todo el período (fuga) |
+| `zona_activa` / `UMBRAL_ACTIVA` | En el catálogo | **Eliminados** | Con municipios es cierto para los ocho: no informa nada |
+| Balanceo | «Decisión del modelado, ver tasa de ceros» | **No corresponde** | 8,60 % de ceros: no hay clases que balancear |
+| Interpolación de ceros | Pendiente a revisar | **Sin objeto** | Se pensó para un panel dominado por ceros estructurales |
+| Sección 3.1 | «Advertencia» sobre el filtro de 2021 | **Verificación que detiene la ejecución** | La decisión ya está tomada; lo que hay que impedir es que la fecha se mueva sin releer el diagnóstico |
+
+**Consecuencia declarada: el panel exportado no lleva ninguna variable de nivel de zona.** Es
+deliberado — la tasa histórica del municipio, que el diagnóstico identificó como el bloque más
+útil fuera de muestra, debe estimarse **sólo con entrenamiento** y es trabajo del modelado.
+Ponerla en el ETL filtraría información del test. Hay una verificación nueva que lo custodia.
+
+**Tres verificaciones nuevas** (5, 6 y 10 de las 16), cada una contra un error concreto: que
+`FECHA_INICIO` se mueva sin releer el diagnóstico, que un polígono de la capa quede sin datos, y
+que vuelva a colarse al panel una variable de zona calculada sobre todo el período.
+
+**Salida en `data/processed/`** (regenerable, no versionada):
+
+| Archivo | Filas | Columnas | Tamaño |
+| --- | --- | --- | --- |
+| `panel_diario_montevideo.csv` | 13.160 | 12 | 1,0 MB |
+| `siniestros_montevideo.csv` | 36.612 | 6 | 2,2 MB |
+| `zonas_montevideo.csv` | 8 | 8 | — |
+| `panel_zona_top.csv` / `panel_zona_contraste.csv` | 1.645 c/u | 12 | 0,1 MB c/u |
+| `diccionario_datos.csv` | 50 | 4 | — |
+
+El panel bajó de 9,4 MB a **1,0 MB**: con 8 zonas ya no hay razón para comprimirlo.
+
+**Dos errores propios detectados y corregidos durante la migración**
+
+1. **Fecha ISO leída con `dayfirst`.** La celda del diagnóstico que lee el panel del ETL usaba
+   `pd.to_datetime(..., format="mixed", dayfirst=True)`, que sobre `2021-07-01` devuelve **el 7 de
+   enero**, en silencio. Por eso la verificación cruzada seguía diciendo «otro alcance» aun con el
+   ETL ya migrado. Es exactamente el riesgo que el propio notebook verifica en la fuente cruda
+   (sección 2.3). Corregido: el formato se decide mirando el texto, no por bandera.
+2. **Cifras que parecían discrepancias y eran redondeo.** La varianza del objetivo difería en el
+   cuarto decimal (`ddof=1` en el ETL contra `ddof=0` en el diagnóstico) y la variación interanual
+   en el segundo (el ETL la calculaba sobre medias ya redondeadas). Ambas alineadas: el panel es
+   la población completa, así que `ddof=0`, y la variación se calcula sin redondear antes.
+
+**Par top/contraste: perdió sentido y queda declarado.** Con barrios eran UNIÓN (1.939) contra
+TRES CRUCES (689), razón 2,8×. Con municipios son C (5.783) contra A (5.016), razón **1,15×**, y
+las dos series son casi indistinguibles (`figuras/series_zonas.png`). Se conservan por continuidad
+del pipeline, pero **no sirven como evidencia de generalización**: la evaluación seria es la del
+panel completo con métricas desagregadas por municipio.
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
 de 2026)**. En orden de prioridad.
 
+**✅ Resuelto — el ETL ya está en el alcance nuevo** (2026-09-07)
+
+- [x] ~~Reescribir `preparacion_montevideo.ipynb` con municipios y `FECHA_INICIO = "2021-07-01"`~~
+      — hecho, 16/16 verificaciones en verde.
+- [x] ~~Volver a correr la sección 5 del diagnóstico~~ — hecho: `23_coherencia_etl.csv` con las
+      cinco comprobaciones en verde. **`data/processed/` ya es citable en el informe.**
+- [x] ~~Actualizar `resumen_preparacion_montevideo.md`~~ — hecho.
+- [x] ~~Revisar `estrato_actividad`~~ — resuelto: sale del panel, queda en el catálogo como
+      descriptivo. Con 8 zonas en un rango de 1,71× los terciles son arbitrarios.
+- [x] ~~Revisar `panel_zona_top` / `panel_zona_contraste`~~ — se conservan, pero **declarados como
+      no informativos**: la razón entre ambos bajó de 2,8× a 1,15×.
+
 **Bloqueantes del Entregable 2**
 
-- [x] ~~Reconstruir la preparación~~ — hecho: `preparacion_montevideo.ipynb` es ahora el
-      notebook de ETL y exporta a `data/processed/`.
-- [x] ~~Deduplicar el recorte~~ — hecho (347 filas en el país, 96 en el recorte). El máximo del
-      objetivo bajó de 11 a 5.
+- [x] ~~Reconstruir la preparación~~ — hecho: `preparacion_montevideo.ipynb` es el notebook de
+      ETL y exporta a `data/processed/`. **Pendiente de migrar al alcance nuevo (arriba).**
+- [x] ~~Deduplicar el recorte~~ — hecho. Con el recorte vigente son 90 duplicados exactos.
 - [x] ~~Sacar la ruta de Colab~~ — hecho: las rutas se resuelven solas en Colab y en local.
-- [ ] **Decidir el filtro de pandemia** (hallazgo A2). El notebook ya mide el efecto (−23,7 % en
-      ene–jun 2021); falta que el equipo decida: cortar en `FECHA_INICIO = "2021-07-01"` o dejar
-      2021 completo y declarar el sesgo en el informe. **Es decisión del equipo, no técnica.**
-- [ ] **Borrar los artefactos huérfanos** una vez validado el ETL nuevo:
-      `experiments/preparacion_montevideo/`, `data/processed/montevideo/` y los Parquet
-      nacionales de `data/processed/`. Ninguno lo genera código vigente.
-- [ ] **Fijar las métricas** del protocolo de evaluación en coherencia con un objetivo Poisson
-      con exceso de ceros: desvianza de Poisson, calibración por estrato de soporte y
-      ordenamiento. Recalcular la tasa de ceros con la zonificación por barrios antes de decidir.
-- [ ] **Decidir el balanceo.** Primera opción a probar: pérdida de Poisson o Tweedie, que maneja
-      el exceso de ceros nativamente y no necesita balanceo. Si se pasa a una formulación binaria,
-      hay que declarar los pesos por clase o el submuestreo usados.
-- [ ] **Implementar la línea base** (tasa histórica de la zona × factor de calendario) y
-      evaluarla con el protocolo definitivo.
+- [x] ~~Decidir el filtro de pandemia~~ (hallazgo A2) — **resuelto el 2026-09-07**:
+      `FECHA_INICIO = "2021-07-01"`, con la justificación en tres pasos dentro del diagnóstico.
+- [ ] **Borrar los artefactos huérfanos**: `experiments/preparacion_montevideo/`,
+      `data/processed/montevideo/` y los Parquet nacionales de `data/processed/`. Ninguno lo
+      genera código vigente. Ya no hay razón para esperar: el ETL vigente está validado.
+- [ ] **Fijar las métricas** del protocolo de evaluación: **desvianza de Poisson** como principal
+      más calibración. *Ojo:* la redacción anterior hablaba de «objetivo Poisson con exceso de
+      ceros» y **ya no aplica** — con municipios los ceros son el 8,60 %.
+- [x] ~~Decidir el balanceo~~ — **no corresponde**: con 8,60 % de ceros no hay clases que
+      balancear. Las notas anteriores sobre exceso de ceros y Tweedie están superadas.
+- [ ] **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario) y
+      evaluarla con el protocolo definitivo. El diagnóstico ya midió que es la mejor forma
+      disponible (−11,8 % fuera de muestra) y que **la forma saturada empeora** el resultado.
 
 **Metodología abierta**
 
-- [x] ~~Bajar la capa de barrios de Montevideo~~ — hecho (2026-09-04): 62 polígonos vía WFS del
-      GeoServer de la Intendencia, en `data/raw/barrios_montevideo.geojson`. Detalle y consulta
-      exacta en la sección 3 de arriba.
-- [x] ~~Verificar el campo del nombre del barrio~~ — el campo es `barrio` (ya cubierto por
-      `CAMPOS_NOMBRE`); los 62 nombres son únicos y coinciden con la nomenclatura oficial.
-- [ ] **Primer modelo sobre `panel_zona_top.csv`**, y el mismo modelo sobre
-      `panel_zona_contraste.csv` para medir la caída al cambiar de zona.
-- [ ] **Entrenar el «megamodelo»** con todas las zonas menos las reservadas, sin `zona_id` como
-      predictor, y evaluarlo **con métricas desagregadas por estrato**. Sólo si falla en algún
-      estrato, pasar a un modelo por estrato y compararlo contra el agrupado bajo el mismo
-      protocolo (ver la sección del ETL para el detalle del razonamiento).
-- [ ] **Recalcular `estrato_actividad` sólo con entrenamiento** antes de usarlo para elegir las
-      zonas reservadas: hoy está calculado sobre todo el período y es descriptivo.
-- [ ] **Decidir el tratamiento del catálogo de zonas** (definirlo sólo con entrenamiento o
-      declarar la fuga, hallazgo A14) y tratar las zonas sin historial como estrato propio.
-- [x] ~~Corregir `es_feriado`~~ — hecho: `categories=("public", "bank")`, 90 feriados en el
-      período, con Carnaval y Semana de Turismo incluidos.
-- [x] ~~Integrar el clima~~ — hecho: serie diaria de Open-Meteo cacheada en `data/raw/`.
+- [x] ~~Bajar la capa de zonas~~ — hecho: barrios (2026-09-04, 62 polígonos) y **municipios
+      (2026-09-07, 8 polígonos, vigente)**, ambos vía WFS del GeoServer de la Intendencia.
+- [x] ~~Verificar el campo del nombre~~ — en municipios el campo es `municipio` y trae la letra
+      sola (A, B, C, CH, D, E, F, G); el notebook le antepone `MUNICIPIO `.
+- [x] ~~Corregir `es_feriado`~~ — hecho: `categories=("public","bank")`. En el período vigente son
+      77 feriados contra 23 de la configuración por omisión.
+- [x] ~~Integrar el clima~~ — hecho, pero **hay que reconsiderarlo**: fuera de muestra no aporta
+      nada (−11,5 % con clima contra −11,8 % sin él).
 - [x] ~~Decidir el destino de `analisis_inicial.ipynb`~~ — borrado del repositorio.
-- [ ] **Agregar la variable de nivel de zona** (tasa histórica ajustada sólo con entrenamiento).
-      Sin ella el modelo no puede distinguir una zona de otra: es el 25 % de desvianza que hoy
-      queda sobre la mesa.
+- [ ] **Agregar la variable de nivel de zona** (tasa histórica del municipio, ajustada sólo con
+      entrenamiento). Sigue siendo el bloque más útil fuera de muestra (−7,5 %) y hoy no está en
+      el panel.
+- [ ] **Tratar la tendencia creciente** (+11,0 % entre mitades): recalibrar nivel, incluir
+      tendencia o ponderar los datos recientes. Decisión abierta.
+- [ ] **Evaluar el rezago de un día** como variable candidata, contra la línea base y bajo el
+      mismo protocolo. Ya no se lo descarta de entrada: hay señal en 5 de 8 municipios.
+- [ ] **Rediseñar el hold-out de zonas del «megamodelo».** Con 8 municipios, dejar uno afuera por
+      vez y promediar las ocho corridas es lo único defendible; declarar que su poder estadístico
+      es bajo y que no puede ser la evidencia principal de la generalización.
+- [ ] **Definir las particiones cronológicas** con el conjunto de prueba reservado. La partición
+      por la mitad que usa el diagnóstico es **sólo instrumental** y no sustituye al protocolo.
+- [ ] **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y
+      todos con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
 
 **Entrega**
 

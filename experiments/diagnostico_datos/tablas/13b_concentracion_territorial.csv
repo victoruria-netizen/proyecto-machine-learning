@@ -1,9 +1,9 @@
 indicador,valor
-barrios de la capa,62
-barrios con al menos un siniestro,62
-siniestros — mínimo por barrio,225
-siniestros — mediana por barrio,570
-siniestros — máximo por barrio,1939
-razón máximo/mínimo,8.6×
-barrios que acumulan el 50 % de los siniestros,19
-barrios que acumulan el 90 % de los siniestros,49
+municipios de la capa,8
+municipios con al menos un siniestro,8
+siniestros — mínimo por municipio,"3,377"
+siniestros — mediana por municipio,"4,720"
+siniestros — máximo por municipio,"5,783"
+razón máximo/mínimo,1.71×
+% de días con al menos un siniestro — mínimo,84.3 %
+% de días con al menos un siniestro — máximo,95.6 %

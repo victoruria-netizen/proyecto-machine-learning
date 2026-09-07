@@ -1,8 +1,8 @@
 indicador,valor
-media,0.3495
-varianza,0.3957
-índice de dispersión (var/media),1.132
-máximo,7
-% de filas en cero,71.96 %
-% de filas con 1,22.38 %
-% de filas con 2 o más,5.67 %
+media,2.7821
+varianza,3.5039
+índice de dispersión (var/media),1.259
+máximo,13
+% de filas en cero,8.60 %
+% de filas con 1,18.47 %
+% de filas con 2 o más,72.93 %

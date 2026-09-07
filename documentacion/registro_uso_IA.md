@@ -844,3 +844,197 @@ uniformar las cifras por comodidad.
 **Archivos afectados:** `CLAUDE.md` (sección nueva **Documentación de notebooks** y un bullet en
 **Convenciones**), `documentacion/resumen_preparacion_montevideo.md` (nuevo), `HANDOFF.md`,
 `documentacion/registro_uso_IA.md`.
+
+
+---
+
+## Sesión 2026-09-07 — Victor Uria — Claude Code (Anthropic, Claude Opus 5)
+
+**Contexto:** ajustes pedidos por el docente en la reunión de seguimiento: cambiar la zonificación
+de barrios a **municipios**, excluir del período los meses de pandemia de 2021, y actualizar los
+informes de `documentacion/`. La sesión cubrió el primer notebook y su documento acompañante:
+`notebooks/diagnostico_datos.ipynb` y `documentacion/resumen_diagnostico_datos.md`. El ETL
+(`preparacion_montevideo.ipynb`) quedó explícitamente pendiente.
+
+### Prompt 1
+
+> Claude, para que tengas mas contexto de nuestro proyecto lee el claude.md y el handoff.md.
+> Acabamos de reunirnos con nuestro profesor y tenemos que hacer unos ajustes:
+> - cambiar el tamaño de las zonas de Montevideo. vamos a hacer por municipios. En data/raw hay un
+> .json que tiene el link de donde conseguir el .geojson con los limites de dichos municipios (Si
+> no me equivoco son 8)
+> - Arreglar el indice temporal en los notebooks. Empieza con 2021 pero en ese año hubieron algunos
+> meses de pandemia, hay que sacarlos.
+> - Arreglar los informes que estan en documentacion, especificamente "resumen_diagnostico_datos.md"
+> y "resumen_preparacion_montevideo.md"
+>
+> Vamos a empezar arreglando el primer notebook "diagnostico_datos.ipynb" con el nuevo enfoque y su
+> respectivo informe
+
+**Respuesta (extracto relevante):**
+
+*Capa de municipios.* Se identificó que `data/raw/municipios.json` **no era la capa** sino la
+respuesta `GetCapabilities` (XML) del servicio WMS —el mismo problema que ya había ocurrido con
+barrios—. De ese XML se extrajo el nombre de la capa (`zon_v_sig_municipios`) y se la descargó por
+WFS, con `User-Agent` de navegador porque el servicio devuelve 403 ante el de una librería:
+
+```
+GET https://montevideo.gub.uy/app/geoserver/mapstore-tematicas/zon_v_sig_municipios/ows
+    ?service=WFS&version=2.0.0&request=GetFeature
+    &typeName=mapstore-tematicas:zon_v_sig_municipios
+    &outputFormat=application/json&srsName=EPSG:4326
+```
+
+Resultado: 8 polígonos (A, B, C, CH, D, E, F, G), guardados en
+`data/raw/municipios_montevideo.geojson`. Confirma la cifra que anticipaba el equipo.
+
+*Corte temporal.* En lugar de aplicar el corte por decreto, se midió primero. El análisis
+exploratorio mostró que el déficit de 2021 se concentra en **febrero–junio** y que julio–diciembre
+ya se comporta como un año normal, de modo que `FECHA_INICIO = "2021-07-01"` quedó respaldado con
+evidencia en tres pasos, que se incorporaron al notebook como sección 3.1:
+
+| Paso | Qué mide | Resultado |
+| --- | --- | --- |
+| 1. Nivel | ene–jun 2021 contra los mismos meses de 2022–2025 | −23,7 % |
+| 2. Índice estacional | cada mes / media de su propio año (elimina la tendencia) | feb–jun 2021 entre −7,0 % y −17,2 % |
+| 3. Verificación del corte | jul–dic 2021 contra jul–dic siguientes | +3,1 %, +2,8 %, +5,7 %, +2,8 % (variación ordinaria) |
+
+El paso 2 es el que separa «pandemia» de «tendencia creciente», y sin él el argumento no cerraba.
+
+*Advertencia sobre el impacto del cambio de zonificación.* Al recalcular el panel con 8 municipios
+en lugar de 62 barrios, **dos conclusiones centrales del diagnóstico se invierten**, y se señaló
+como el hallazgo más importante de la sesión:
+
+| Indicador | Barrios | Municipios |
+| --- | --- | --- |
+| Filas del panel | 113.212 | 13.160 |
+| % de ceros | 71,96 % | **8,60 %** |
+| Señal temporal a rezago 1 | no se detecta | **5 de 8 zonas sobre la banda nula** |
+| Razón máx/mín entre zonas | ~10× | **1,71×** |
+
+Consecuencias que se dejaron escritas: ya no corresponde balancear ni tratar exceso de ceros; el
+rezago de un día pasa a ser candidato en vez de estar descartado; y el hold-out de zonas del
+«megamodelo» pierde casi todo su poder estadístico.
+
+*Aporte metodológico añadido.* Las versiones anteriores medían el aporte de cada bloque de
+variables con **oráculos en muestra**, que son techos inalcanzables. Se agregó una segunda pasada
+con partición temporal, y el orden se invierte:
+
+| Predictor (estimado en la 1.ª mitad, evaluado en la 2.ª) | Desvianza | Mejora |
+| --- | --- | --- |
+| Sólo calendario (día de semana + feriado) | 1,30530 | −4,3 % |
+| Sólo tasa histórica del municipio | 1,26172 | −7,5 % |
+| **Tasa × calendario (multiplicativa)** | **1,20308** | **−11,8 %** |
+| Tasa × (calendario + llovió) | 1,20716 | −11,5 % |
+| Celdas saturadas municipio × calendario × mes | 1,50546 | **+10,4 %** |
+
+Esto confirmó con medición la línea base que hasta ahora estaba postulada, mostró que **el clima no
+aporta nada fuera de muestra**, y mostró que **la forma saturada empeora el resultado**, lo que
+justifica la forma multiplicativa.
+
+**Uso y verificación:** utilizado con adaptaciones. Verificaciones realizadas:
+
+1. **Ejecución completa del notebook** con `jupyter nbconvert --to notebook --execute`: 77 celdas,
+   **sin errores**, 43 tablas y 3 figuras escritas en `experiments/diagnostico_datos/`.
+2. **Contraste de cada cifra del documento contra su artefacto CSV**, no contra la memoria de la
+   conversación.
+3. Se detectaron y corrigieron **tres defectos propios** antes de cerrar: (a) la tabla del costo
+   del corte contaba registros sin deduplicar (2.963) mientras la del paso 1 contaba deduplicados
+   (2.957) — se unificó al criterio deduplicado; (b) la tabla de cobertura anual informaba una
+   variación 2021→2022 de +94,7 % que era un artefacto de comparar medio año contra uno entero —
+   se pasó a comparar medias diarias, se agregó la columna de días observados y se marcó esa
+   celda como «no comparable»; (c) la etiqueta del municipio C quedaba ilegible sobre el relleno
+   oscuro del mapa — se le agregó halo blanco.
+4. Se verificó que el bloque climático más fino (`dow + feriado + mes + llovió + temp`) daba
+   −9,3 % **en muestra** pero +0,4 % fuera de muestra: era sobreajuste (1.344 grupos para 1.645
+   días). Se descartó esa cifra en lugar de informarla.
+5. **La verificación cruzada contra el ETL no se pudo ejecutar** porque `data/processed/` sigue en
+   el alcance anterior. Se modificó la celda para que **detecte el desfasaje y se abstenga de
+   comparar**, en vez de informar una discrepancia falsa, y quedó registrado como bloqueante en
+   `HANDOFF.md` y en el documento.
+6. Se borraron las 36 tablas y 3 figuras de la corrida por barrios: convivir con las nuevas habría
+   hecho ambigua cualquier cita desde el informe.
+
+**Lo que quedó pendiente y se declaró explícitamente:** `preparacion_montevideo.ipynb` y
+`documentacion/resumen_preparacion_montevideo.md` **siguen en el alcance anterior**. Mientras
+tanto, ninguna cifra de `data/processed/` puede citarse en el informe.
+
+**Archivos afectados:** `notebooks/diagnostico_datos.ipynb`,
+`documentacion/resumen_diagnostico_datos.md`, `experiments/diagnostico_datos/` (43 tablas y 3
+figuras), `data/raw/municipios_montevideo.geojson` (nuevo), `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`.
+
+
+---
+
+## Sesión 2026-09-07 (segunda) — Victor Uria — Claude Code (Anthropic, Claude Opus 5)
+
+**Contexto:** continuación de la sesión anterior. Migración del ETL
+(`notebooks/preparacion_montevideo.ipynb`) al mismo alcance que el diagnóstico —municipios (8)
+desde 2021-07-01— y reescritura de su documento acompañante
+`documentacion/resumen_preparacion_montevideo.md`.
+
+### Prompt 1
+
+> Perfecto. Sigue con el ETL
+
+**Respuesta (extracto relevante):**
+
+*Migración aplicada.* El notebook se reescribió con la zonificación por municipios y
+`FECHA_INICIO = "2021-07-01"`, y se ejecutó de punta a punta con **16 de 16 verificaciones en
+verde**. Resultado del panel, idéntico al que el diagnóstico reconstruye por su cuenta: 13.160
+filas, 36.612 siniestros, 8 zonas, 1.645 días, 8,60 % de ceros, máximo 13.
+
+*Cambios de criterio que fueron más allá de cambiar dos parámetros*, cada uno con su razón:
+
+| Decisión | Antes | Ahora | Por qué |
+| --- | --- | --- | --- |
+| Capa ausente | Caía a grilla de 1 km | **Falla ruidosamente** | Producía igual un conjunto de otro alcance (403 zonas, 95 % de ceros) indistinguible del bueno en `data/processed/` |
+| `estrato_actividad` | En el panel | **Sólo en el catálogo** | Con 8 zonas en un rango de 1,71× los terciles son arbitrarios, y está calculado sobre todo el período (fuga) |
+| `zona_activa` | En el catálogo | **Eliminado** | Con municipios es cierto para los ocho: no informa |
+| Balanceo / interpolación de ceros | Pendientes a decidir | **No corresponden** | 8,60 % de ceros: no hay exceso que tratar |
+| Sección 3.1 | «Advertencia» sobre el filtro de 2021 | **Verificación que detiene la ejecución** | La decisión ya está tomada; hay que impedir que la fecha se mueva sin releer el diagnóstico |
+
+Consecuencia declarada y deliberada: **el panel exportado no lleva ninguna variable de nivel de
+zona**. La tasa histórica del municipio —el bloque más útil según el diagnóstico— debe estimarse
+sólo con entrenamiento, así que corresponde al notebook de modelado. Se agregó una verificación
+que lo custodia.
+
+*Tres verificaciones nuevas* (5, 6 y 10 de las 16), cada una contra un error concreto: que
+`FECHA_INICIO` se mueva sin releer el diagnóstico, que un polígono de la capa quede sin datos, y
+que vuelva a colarse al panel una variable de zona calculada sobre todo el período.
+
+**Uso y verificación:** utilizado con adaptaciones. Verificaciones realizadas:
+
+1. **Ejecución completa** del notebook con `jupyter nbconvert --to notebook --execute`: 42 celdas,
+   sin errores, 16/16 verificaciones en OK, 15 tablas y 2 figuras en
+   `experiments/etl_montevideo/`.
+2. **Verificación cruzada entre los dos notebooks**, que es la evidencia más fuerte de esta
+   sesión: `diagnostico_datos.ipynb` reconstruye el panel desde las fuentes crudas con su propia
+   implementación de la asignación punto-polígono, y **las cinco comprobaciones coinciden**
+   (13.160 filas, 36.612 siniestros, 8 zonas, 1.645 días, máximo 13). Con esto `data/processed/`
+   pasa a ser citable en el informe.
+3. Se detectaron y corrigieron **dos errores propios**, ambos del tipo que produce cifras
+   equivocadas en silencio:
+   - **Fecha ISO leída con `dayfirst=True`.** La celda del diagnóstico que lee el panel del ETL
+     usaba `pd.to_datetime(..., format="mixed", dayfirst=True)`, que sobre `2021-07-01` devuelve
+     **el 7 de enero**. Por eso la verificación cruzada seguía diciendo «otro alcance» aun con el
+     ETL ya migrado. Es exactamente el riesgo que el propio notebook verifica en la fuente cruda
+     (sección 2.3). Corregido: el formato se decide mirando el texto, no por bandera.
+   - **Dos diferencias de redondeo que parecían discrepancias entre notebooks:** la varianza del
+     objetivo (`ddof=1` en el ETL contra `ddof=0` en el diagnóstico) y la variación interanual
+     (el ETL la calculaba sobre medias ya redondeadas). Ambas alineadas en vez de explicadas al
+     pie: el panel es la población completa, así que `ddof=0`.
+4. **Contraste de cada cifra del documento contra su artefacto CSV**, y comprobación por script de
+   que las 15 tablas están citadas y de que no se cita ninguna que no exista.
+5. Se verificó que el par `panel_zona_top` / `panel_zona_contraste` **perdió su utilidad**: la
+   razón entre ambos bajó de 2,8× (barrios) a **1,15×** (municipios) y las series son casi
+   indistinguibles. Se conservan por continuidad, pero quedó declarado en el documento que **no
+   sirven como evidencia de generalización**.
+
+**Archivos afectados:** `notebooks/preparacion_montevideo.ipynb`,
+`documentacion/resumen_preparacion_montevideo.md`, `notebooks/diagnostico_datos.ipynb` (celda de
+lectura del panel del ETL), `documentacion/resumen_diagnostico_datos.md` (sección 7 y pendientes),
+`experiments/etl_montevideo/` (15 tablas, 2 figuras), `experiments/diagnostico_datos/`
+(reejecutado), `data/processed/` (6 archivos regenerados), `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`.

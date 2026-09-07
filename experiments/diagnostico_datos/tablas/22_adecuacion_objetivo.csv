@@ -1,7 +1,8 @@
 pregunta,respuesta,fundamento
-¿Se puede predecir el conteo diario por barrio?,Sí,el panel tiene densidad suficiente y el objetivo es de tipo Poisson
-¿Se puede predecir dónde ocurrirá el próximo siniestro?,No,a nivel de barrio-día no hay persistencia sobre el azar (4.2)
-¿Se puede ordenar barrios por riesgo esperado?,Sí,la tasa histórica por barrio es estable y aporta la mayor parte de la señal (4.3)
+¿Se puede predecir el conteo diario por municipio?,Sí,el panel es denso (menos del 9 % de ceros) y el objetivo es un conteo de tipo Poisson
+¿Se puede predecir dónde ocurrirá el próximo siniestro?,No,la unidad es el municipio-día; la persistencia detectada (4.2) es de magnitud despreciable
+¿Se puede ordenar municipios por riesgo esperado?,"Sí, con margen estrecho","la tasa por municipio es estable y es el bloque más útil (4.3), pero entre el mayor y el menor hay menos de 2× (3.2): el ordenamiento es fino y poco robusto"
 ¿Se puede estimar riesgo por unidad de exposición?,No,"no hay datos de tránsito: sólo se observa el conteo, no la exposición"
 ¿Se puede modelar por gravedad o franja horaria?,No con el conjunto vigente,el ETL descarta esas columnas; exige volver a ejecutarlo
-¿Se puede evaluar en barrios no vistos al entrenar?,Sí,los 62 barrios tienen soporte; ninguna variable identifica al barrio
+¿Se puede evaluar en municipios no vistos al entrenar?,Muy limitado,"con 8 zonas, reservar 2 deja 6 para entrenar y una medición con enorme error de muestreo"
+¿La resolución espacial sirve para asignar recursos?,Parcialmente,"un municipio abarca entre 1.148 y 14.380 ha: orienta el reparto entre gobiernos municipales, no el despliegue en calle"

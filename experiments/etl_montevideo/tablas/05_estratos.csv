@@ -1,4 +1,4 @@
-estrato_actividad,zonas,siniestros,mediana_por_zona,pct_siniestros
-baja,21,7013,319.0,17.7
-media,20,11334,570.5,28.6
-alta,21,21222,997.0,53.6
+estrato_actividad,zonas,siniestros,minimo,maximo,pct_siniestros
+baja,3,10693,3377,3701,29.2
+media,2,9440,4424,5016,25.8
+alta,3,16479,5319,5783,45.0

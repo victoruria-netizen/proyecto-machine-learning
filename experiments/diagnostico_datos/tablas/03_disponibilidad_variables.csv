@@ -1,6 +1,6 @@
 columna,qué es,disponible antes del evento,uso en el PAA
 Fecha,día del siniestro,sí,eje temporal de la unidad de análisis
-"X, Y",coordenadas UTM 21S del siniestro,sí,definen el barrio por intersección
+"X, Y",coordenadas UTM 21S del siniestro,sí,definen el municipio por intersección
 Departamento,atributo territorial,sí,sólo para el recorte; constante después
 Localidad,atributo territorial,parcial,faltante encubierto; la zona sale del polígono
 Calle,texto libre del lugar,parcial,alta cardinalidad; no se usa

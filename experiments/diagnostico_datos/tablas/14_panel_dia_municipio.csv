@@ -1,0 +1,9 @@
+indicador,valor
+días del período,"1,645"
+municipios,8
+filas del panel (días × municipios),"13,160"
+filas con al menos un siniestro,"12,028"
+densidad (filas no nulas),91.40 %
+ceros,8.60 %
+media de siniestros por fila,2.7821
+máximo en una fila,13

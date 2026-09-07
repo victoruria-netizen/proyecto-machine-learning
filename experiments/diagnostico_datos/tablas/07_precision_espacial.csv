@@ -1,10 +1,10 @@
 indicador,valor
 coordenadas múltiplo de 5 m,100.00 %
-coordenadas distintas,"8,088"
-siniestros por coordenada (media),4.9
-siniestros en la coordenada más repetida,122
+coordenadas distintas,"7,833"
+siniestros por coordenada (media),4.7
+siniestros en la coordenada más repetida,113
 … como % del recorte,0.31 %
-las 10 coordenadas más repetidas concentran,1.97 %
+las 10 coordenadas más repetidas concentran,2.01 %
 rango X (m),"554,380 – 588,320"
 rango Y (m),"6,134,505 – 6,157,850"
 coordenadas nulas o <= 0,0

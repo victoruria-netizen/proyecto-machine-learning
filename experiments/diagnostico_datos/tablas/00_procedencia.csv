@@ -1,4 +1,4 @@
 fuente,archivo,tamaño,sha256,modificado
 siniestros,data\raw\uru_siniestros_unificado.csv,26.19 MB,48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2,2026-08-24 11:21
-barrios,data\raw\barrios_montevideo.geojson,0.98 MB,a03e89278409ffff4b30e7ebea9aa22620d4ffae85897cd896ce18035bb2089e,2026-09-04 08:40
+municipios,data\raw\municipios_montevideo.geojson,2.87 MB,ed0ba13e53b08f1e35eead16ffdef16d57e518aff30c7cc77dc0082713b489bd,2026-09-07 13:36
 clima,data\raw\clima_montevideo.csv,0.08 MB,f40e6c3ccdeeb87aae40dcc5a9b685aa7471aefe50f4467a8176bfe37381e1a8,2026-09-02 10:30

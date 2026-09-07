@@ -1,99 +1,106 @@
-# Resumen del ETL y la preparación de datos — Montevideo
+# Resumen del ETL y la preparación de datos — Montevideo por municipios
 
 **Notebook:** [`notebooks/preparacion_montevideo.ipynb`](../notebooks/preparacion_montevideo.ipynb)
-**Artefactos:** `experiments/etl_montevideo/` (14 tablas CSV, 1 mapa HTML, 1 figura PNG)
-**Salida:** `data/processed/` (5 CSV + diccionario de datos)
-**Fecha de ejecución:** 2026-09-04
-**Alcance:** Montevideo, 2021-01-01 a 2025-12-31, unidad de análisis **(día, barrio)**
+**Artefactos:** `experiments/etl_montevideo/` (15 tablas CSV, 1 mapa HTML, 1 figura PNG)
+**Salida:** `data/processed/` (6 archivos, regenerables, no versionados)
+**Fecha de ejecución:** 2026-09-07
+**Alcance:** Montevideo, **2021-07-01 a 2025-12-31**, unidad de análisis **(día, municipio)**
 
 ---
 
 ## 0. Cómo usar este documento
 
-Este archivo es **contexto autocontenido** para redactar la documentación del proyecto (informe
-técnico, presentaciones, defensa ante el tribunal) sin necesidad de abrir el repositorio. Cubre la
-sección *Metodología — preparación* del informe: qué transformaciones se aplicaron, **por qué**, y
-qué efecto tuvieron.
-
-Es el complemento de [`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md), que cubre
-*Metodología — datos*. Los dos se leen juntos: el diagnóstico dice **cómo son** los datos; éste
-dice **qué se les hizo**.
+Este archivo es **contexto autocontenido** para redactar la sección *Metodología — preparación*
+del informe (guía PAA 6.1) sin necesidad de abrir el repositorio. Reúne qué hace el ETL, con qué
+criterio, y la referencia al artefacto que respalda cada cifra.
 
 **Reglas que quien redacte debe respetar:**
 
 1. **Ninguna cifra sin artefacto.** Todos los números salen de una ejecución real y llevan al lado
-   la tabla que los respalda (`experiments/etl_montevideo/tablas/NN_nombre.csv`). Si hace falta un
-   número que no está acá, marcarlo como `<!-- PENDIENTE: ... -->` en lugar de completarlo.
-2. **Distinguir evidencia de inferencia.** Este documento separa *lo que se midió* de *lo que el
-   equipo decidió*.
-3. **Cada transformación va con su porqué y su efecto observado**, que es lo que la guía pide
-   (sección 6.1). Una lista de pasos sin justificación no sirve para el informe.
-4. **Respetar los límites de la sección 7.** Hay afirmaciones que este conjunto no sostiene.
+   la tabla que los respalda (`tablas/NN_nombre.csv`). Si hace falta un número que no está acá,
+   marcarlo como `<!-- PENDIENTE: ... -->` en lugar de completarlo.
+2. **Distinguir evidencia de inferencia.** Separar *lo que los datos muestran* de *lo que el
+   equipo concluye*.
+3. **No escribir Introducción ni Marco teórico** a partir de este documento.
+4. **Respetar los límites de la sección 10.** Hay afirmaciones que este ETL *no* sostiene.
+
+**Documento hermano:** [`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md) cubre
+*Metodología — datos* (calidad, cobertura, adecuación, limitaciones). Este cubre *preparación*.
+Las decisiones de **alcance** —qué zonas y desde cuándo— se justifican allá con evidencia; acá se
+aplican y se verifican.
+
+> ### ⚠️ Este documento reemplaza a la versión por barrios
+>
+> | Versión | Alcance | Estado |
+> | --- | --- | --- |
+> | 2026-09-04 | Montevideo, 62 barrios, desde 2021-01-01 | **superada** |
+> | **2026-09-07** | **Montevideo, 8 municipios, desde 2021-07-01** | **vigente** |
+>
+> **Las cifras de la versión anterior no deben citarse.** El cambio deja sin objeto tres cosas que
+> ese documento discutía largamente: el **balanceo** (ya no hay exceso de ceros), la
+> **interpolación de ceros** (no hay nada que interpolar) y el **estrato de actividad** como
+> variable (con 8 zonas en un rango de 1,71× los terciles son arbitrarios).
 
 ---
 
 ## 1. Qué hace este notebook y qué lo distingue
 
-Construye el **conjunto de modelado** a partir de tres fuentes crudas y lo deja en
-`data/processed/` como CSV. Es la adaptación al contexto de aprendizaje automático del pipeline
-ETL del **Proyecto de Ingeniería de Datos (PID)** del mismo equipo, que vive en `etl/`.
+Adapta al contexto de aprendizaje automático el pipeline ETL del **Proyecto de Ingeniería de Datos
+(PID)** que está en `etl/`, y deja en `data/processed/` el conjunto con el que se entrenan los
+modelos. Extrae del CSV crudo de UNASEV, limpia, recorta al alcance, asigna cada siniestro a su
+municipio, construye las variables exógenas y arma el **panel día × municipio** con los ceros
+explícitos.
 
-**Lo que este notebook NO hace, deliberadamente:**
-
-- No define particiones de entrenamiento / validación / prueba.
-- No escala ni normaliza.
-- No balancea.
-- No construye variables que aprendan de los datos (rezagos, medias móviles, tasa histórica).
-
-Todo eso corresponde al notebook de modelado, **porque debe ajustarse dentro de cada partición
-para no filtrar información**. Un escalador ajustado sobre el conjunto completo le pasa al modelo
-información del tramo de prueba; una tasa histórica calculada sobre todo el período, también. Es la
-distinción que la guía llama evitar fugas de información (sección 6.2), y la razón por la que el
-ETL se detiene donde se detiene.
+**Lo que lo distingue de un script de carga:** cada decisión de preparación está justificada en el
+propio notebook, y **dieciséis verificaciones detienen la ejecución** si algo no cierra
+(sección 8). Ningún resultado del informe depende de que alguien se acuerde de mirar una salida.
 
 ### Trazabilidad respecto del PID
 
-Punto que el informe debe declarar con precisión, porque la guía exige distinguir **lo heredado del
-PID** de **lo desarrollado en el PAA**.
-
-| PID (`etl/`) | Este notebook | Por qué cambia |
+| PID (`etl/`) | Este notebook | Por qué |
 | --- | --- | --- |
 | Tres países (UY, BR, ES) | Sólo Uruguay → Montevideo | Alcance acordado con el docente |
 | Carga a PostgreSQL y MongoDB | Carga a CSV en `data/processed/` | El PAA se entrega como repositorio ejecutable, sin infraestructura |
-| Unidad = un siniestro | Unidad = **(día, barrio)** | El objetivo es el conteo por zona y día |
-| `encoding='latin-1'` | `encoding='utf-8'` | **El archivo es UTF-8**; latin-1 rompe los acentos |
-| `parsear_fecha_mixta` (prueba formatos en cascada) | Formato fijo `%m/%d/%Y` **verificado** | El «formato mixto» era una suposición del PID; el archivo es homogéneo |
+| Unidad = siniestro | Unidad = **(día, municipio)** | El objetivo es el conteo por zona y día |
+| `encoding='latin-1'` | `encoding='utf-8'` | El CSV es UTF-8; latin-1 rompe los acentos |
+| `parsear_fecha_mixta` (prueba formatos hasta que uno ande) | Formato fijo `%m/%d/%Y` **verificado contra `Dia Semana`** | El formato mixto era una suposición; el archivo es homogéneo |
 | Sin tratamiento de duplicados | Duplicados exactos eliminados | Distorsionaban la cola alta del objetivo |
-| Clima a PostgreSQL, por siniestro y por hora | Clima diario del departamento, cacheado en `data/raw/` | Sin base de datos, y la unidad es el día |
+| Clima a PostgreSQL, por hora y por punto | Clima diario para Montevideo, cacheado en `data/raw/` | Sin base de datos, y la unidad es el día |
+| Reproyección UTM→WGS84 | Reutilizada | Sirve para el mapa y para la asignación a municipios |
 
-**Reutilizado del PID sin cambios:** el vocabulario controlado de gravedad
-(`fatal` / `grave` / `leve` / `solo_danos`) y la reproyección UTM 21S → WGS84.
-
-**`etl/` no se ejecuta en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`. Está
-en el repositorio como fuente de la adaptación, no como código vivo.
+**`etl/` no se ejecuta en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`. Se
+conserva en el repositorio como fuente de la adaptación.
 
 ---
 
 ## 2. Fuentes y trazabilidad
 
-`tablas/00_procedencia.csv`, `tablas/03b_procedencia_capa_zonas.csv`
-
-| Fuente | Archivo | sha256 (prefijo) | Detalle |
+| Fuente | Archivo | sha256 (prefijo) | Artefacto |
 | --- | --- | --- | --- |
-| Siniestros | `data/raw/uru_siniestros_unificado.csv` | `48a8a7e8…` | 224.694 registros × 11 columnas, heredado del PID (fuente original: UNASEV) |
-| Barrios | `data/raw/barrios_montevideo.geojson` | `a03e8927…` | 62 polígonos, Intendencia de Montevideo |
-| Clima | `data/raw/clima_montevideo.csv` | — | 1.826 días, Open-Meteo (caché) |
+| Siniestros | `data/raw/uru_siniestros_unificado.csv` | `48a8a7e8…` | `00_procedencia` |
+| **Municipios** | `data/raw/municipios_montevideo.geojson` | `ed0ba13e…` | `03b_procedencia_capa_zonas` |
+| Clima | `data/raw/clima_montevideo.csv` | — | `07_clima` |
 
-**La capa de barrios** se obtuvo del GeoServer institucional de la Intendencia de Montevideo
-(`montevideo.gub.uy/app/geoserver`), capa `mapstore-tematicas:zon_v_sig_barrios`, mediante WFS
-`GetFeature` en GeoJSON (`EPSG:4326`), el **2026-09-04**. Licencia: el servicio declara
-`Fees: none` / `AccessConstraints: none` en su `GetCapabilities`.
+**Siniestros.** Heredado del PID. Fuente original: UNASEV. 224.694 registros × 11 columnas, país
+entero, 2018–2025. **Sin valores nulos** en ninguna columna.
 
-*Detalle práctico para reproducir la descarga:* el servicio devuelve **403** ante un `User-Agent`
-de librería (bloqueo por WAF) y **200** con uno de navegador.
+**Municipios.** Capa oficial de la Intendencia de Montevideo (GeoServer institucional,
+`montevideo.gub.uy/app/geoserver`), capa `mapstore-tematicas:zon_v_sig_municipios`, descargada por
+WFS `GetFeature` en GeoJSON (`EPSG:4326`) el 2026-09-07. **8 polígonos**: MUNICIPIO A, B, C, CH,
+D, E, F y G. Licencia: `Fees: none` / `AccessConstraints: none`.
 
-**El clima** se pide una sola vez a Open-Meteo (archivo histórico reanalizado) y se cachea. Mientras
-la caché exista, el notebook corre sin conexión a internet.
+> **Dos detalles no obvios, por si hay que reobtenerla.** El servicio devuelve **403** ante el
+> `User-Agent` por omisión de una librería HTTP y **200** con uno de navegador. Y el archivo
+> `data/raw/municipios.json` **no es la capa**: es la respuesta `GetCapabilities` (XML) del
+> servicio WMS, útil sólo para encontrar el nombre de la capa.
+
+**Clima.** Open-Meteo, archivo histórico reanalizado, serie diaria única para el departamento
+(−34,87 / −56,17), cacheada en `data/raw/`. El notebook la acota al período: **1.645 días, sin
+faltantes**.
+
+**El repositorio no versiona `data/raw/` ni `data/processed/`.** Ambos son regenerables: el
+notebook detecta las fuentes solo y registra su `sha256` en cada corrida, de modo que se puede
+verificar más adelante que un resultado del informe salió de estos datos y no de otra versión.
 
 ---
 
@@ -101,26 +108,25 @@ la caché exista, el notebook corre sin conexión a internet.
 
 ### 3.1 Selección de columnas — el conjunto se reduce a lo que el problema necesita
 
-De las once columnas del archivo, **sólo tres construyen la unidad de análisis**: `Fecha`, `X`, `Y`.
-El resto se descarta acá, y no en el modelado, con estos motivos:
+El modelo predice **cuántos siniestros habrá por municipio y día**. Todo lo que no sirve para eso
+se descarta en el ETL, no en el modelado:
 
-| Columna | Destino | Motivo |
+| Columna del CSV | Destino | Motivo |
 | --- | --- | --- |
-| `Fecha`, `X`, `Y` | **Se conservan** | Definen cuándo y dónde: la unidad de análisis |
+| `Fecha`, `X`, `Y` | **Se conservan** | Definen la unidad de análisis: cuándo y dónde |
 | `Departamento`, `fixed` | Se descartan | **Varianza cero** tras el recorte: un solo valor |
-| `Localidad` | Se descarta | Dos valores, uno es `SIN DATOS`; la zona sale de la geometría |
+| `Localidad` | Se descarta | Faltante encubierto; la zona sale de la geometría |
 | `Gravedad` | Se descarta | Agregada por día daría columnas que **suman exactamente el objetivo**: fuga perfecta |
-| `Hora` | Se descarta | La unidad es el día; no sobrevive a la agregación |
-| `Calle`, `Tipo de Siniestro` | Se descartan | No se usan como exógenas |
+| `Hora` | Se descarta | La unidad es el día; no sobrevive al agregado |
+| `Calle`, `Tipo de Siniestro` | Se descartan | No se usan como exógenas; `Calle` tiene 854 `SIN DATOS` |
 | `Dia Semana` | Se usa y se descarta | Sólo para **verificar** el formato de fecha (3.3) |
 
-**La fila de `Gravedad` merece énfasis en el informe.** Desagregar el conteo por gravedad produce
-`n_fatal + n_grave + n_leve + n_solo_danos`, que **suman exactamente `n_siniestros`**. Como
-predictoras serían una fuga perfecta: un modelo que las use obtiene un ajuste impecable y valor
-nulo. Se retiraron del panel por esa razón, no por falta de interés.
+**Consecuencia declarada:** el conjunto ya no permite modelar por gravedad ni por franja horaria
+sin volver a correr el ETL. Es barato —son dos líneas— pero hay que decirlo.
 
-**Consecuencia declarada:** el conjunto vigente **no permite modelar por gravedad ni por franja
-horaria** sin volver a ejecutar el ETL. Es barato — dos líneas — pero hay que decirlo.
+**Aunque `Gravedad` se descarte, se valida.** El notebook controla que sus valores sigan siendo el
+vocabulario del PID (`FATAL`, `GRAVE`, `LEVE`, `SIN LESIONADOS`) y **falla** si la fuente
+introduce uno nuevo: es una alarma barata sobre un cambio silencioso en el origen.
 
 ### 3.2 Duplicados — `tablas/01_duplicados.csv`
 
@@ -132,203 +138,239 @@ horaria** sin volver a ejecutar el ETL. Es barato — dos líneas — pero hay q
 | **Repeticiones en el grupo mayor** | **10** |
 | Registros después | 224.347 |
 
-En el recorte de Montevideo el efecto son **96 filas**.
+**Evidencia:** el archivo trae registros repetidos byte a byte; el caso extremo son diez filas
+idénticas el 2021-07-30 en la misma esquina.
 
-**Criterio:** se eliminan las filas duplicadas en **todas** las columnas del archivo original,
-conservando la primera. Se comparan las columnas completas y no las que sobreviven a la selección
-de 3.1: con sólo fecha y coordenadas se borrarían siniestros distintos ocurridos el mismo día en la
-misma esquina.
+**Inferencia del equipo:** un siniestro no se repite diez veces en la misma esquina, a la misma
+hora, con el mismo tipo y la misma gravedad. Es un artefacto de carga, no eventos distintos.
 
-**Evidencia:** existen grupos de hasta diez filas idénticas byte a byte.
-**Inferencia:** un siniestro no se repite diez veces en la misma esquina, a la misma hora, con el
-mismo tipo y la misma gravedad — es un artefacto de carga.
-
-**Efecto observado, que es el argumento fuerte:** con la zonificación anterior, el máximo del
-objetivo era **11** y correspondía a **10 copias del mismo registro más uno distinto** — es decir,
-2 siniestros reales. Deduplicar bajó ese máximo a 5. La cola alta del objetivo era, en su valor
-extremo, un artefacto.
-
-**Limitación del criterio, a declarar:** el dataset no tiene identificador de siniestro, así que dos
-siniestros reales con atributos idénticos serían indistinguibles de un duplicado de carga. Es una
-decisión conservadora sobre la cola alta.
+**Criterio, y por qué importa el detalle:** se eliminan las filas duplicadas en **todas** las
+columnas del archivo original —**no** en las que sobreviven al paso 3.1, que serían muchas menos y
+borrarían siniestros realmente distintos ocurridos el mismo día en la misma esquina—, conservando
+la primera. El dataset **no tiene identificador de siniestro**, así que la decisión es
+conservadora sobre la cola alta del objetivo y queda declarada.
 
 ### 3.3 Fecha — verificada, no supuesta
 
-El ETL del PID usa `parsear_fecha_mixta`, que prueba `%m/%d/%Y`, `%d/%m/%Y` y `%Y-%m-%d` hasta que
-uno funciona. **Es peligroso:** `05/06/2021` parsea con los dos primeros y da días distintos, sin
-avisar.
+El PID usaba `parsear_fecha_mixta`, que probaba `%m/%d/%Y`, `%d/%m/%Y` y `%Y-%m-%d` hasta que uno
+funcionara. Eso es peligroso: `05/06/2021` parsea con los dos primeros y **da días distintos, sin
+avisar**.
 
-Este notebook fija un único formato, `%m/%d/%Y`, y lo **verifica contra la columna `Dia Semana`**,
-que es información independiente del propio archivo. La celda levanta `ValueError` si la
-coincidencia no es total.
+Acá se fija `%m/%d/%Y` y se **verifica contra la columna `Dia Semana`**, que es información
+independiente del propio archivo. Resultado: **100,0000 % de coincidencia sobre 224.694 registros
+y 0 fechas inválidas**. La celda falla ruidosamente si la coincidencia no es total.
 
-**Resultado:** coincidencia del **100,0000 %** en los 224.694 registros, con **0 fechas
-inválidas** (con `%d/%m/%Y` la coincidencia es 6,80 %). El archivo es homogéneo y la suposición del
-PID era innecesaria.
+Es una verificación barata que ya se pagó sola dos veces: refutó la suposición del PID, y en el
+notebook de diagnóstico volvió a aparecer el mismo riesgo al leer el panel exportado (una fecha
+ISO leída con `dayfirst` se interpreta como otro día, en silencio).
 
 ### 3.4 Coordenadas
 
-Reproyección UTM 21S (`EPSG:32721`) → WGS84 (`EPSG:4326`), reutilizada del PID. Se agrega una
-verificación que el PID no hacía: que los puntos caigan dentro del rectángulo que contiene a
-Uruguay. **0 registros descartados** por este control.
+Reproyección UTM 21S → WGS84, reutilizada de `etl/transform/transformer.py`, más una verificación
+que el PID no hacía: que los puntos caigan dentro del rectángulo que contiene a Uruguay. Una
+coordenada mal cargada crearía una zona fantasma. **Resultado: todas las coordenadas caen dentro
+de Uruguay.**
 
 ---
 
-## 4. Recorte del alcance
-
-`tablas/02_recorte.csv`
+## 4. Recorte del alcance — `tablas/02_recorte.csv`
 
 | Paso | Registros | % del total |
 | --- | --- | --- |
-| Registros del país (deduplicados) | 224.347 | 100,0 % |
+| Registros del país (ya deduplicados) | 224.347 | 100,0 % |
 | Tras filtrar `MONTEVIDEO` | 62.288 | 27,8 % |
-| Tras filtrar `Fecha >= 2021-01-01` | **39.580** | 17,6 % |
-| Tras descartar 11 fuera de todo polígono (sección 5) | **39.569** | 17,6 % |
+| **Tras filtrar `fecha >= 2021-07-01`** | **36.623** | **16,3 %** |
+| Tras descartar 11 fuera de todo polígono (§5) | **36.612** | 16,3 % |
 
-El conjunto queda **ordenado cronológicamente**, que es lo que necesitan después los rezagos y las
-medias móviles del notebook de modelado.
+**Período:** 1.645 días, 2021-07-01 a 2025-12-31.
 
-### El filtro de 2021 no elimina el régimen de la pandemia — `tablas/03_pandemia_residual.csv`
+### El inicio de la serie: decisión tomada, no advertencia — `tablas/03_inicio_serie.csv`
 
-| Período | Siniestros | Días | Media diaria |
-| --- | --- | --- | --- |
-| ene–jun **2021** | 2.957 | 181 | **16,34** |
-| ene–jun 2022–2025 | 15.516 | 725 | **21,40** |
-| **Diferencia** | | | **−23,7 %** |
+La versión anterior de este ETL empezaba el 2021-01-01 y **dejaba la decisión abierta**. El filtro
+se había puesto «para que el modelo no vea la pandemia», pero en Uruguay la ola de COVID y las
+restricciones de movilidad fueron en el **primer semestre de 2021**, dentro del recorte.
 
-**Evidencia:** el primer semestre de 2021 tiene una siniestralidad marcadamente inferior.
-**Inferencia:** en Uruguay la ola de COVID y las restricciones de movilidad fueron justamente en ese
-semestre.
+La decisión se tomó el 2026-09-07: **`FECHA_INICIO = "2021-07-01"`**. La justificación en tres
+pasos está en el notebook de diagnóstico (sección 3.1, tablas `12` a `12e`) y **no se repite acá**:
+déficit de nivel de −23,7 % en ene–jun 2021, índice estacional que descarta que sea tendencia
+(feb–jun entre −7,0 % y −17,2 %), y verificación de que jul–dic 2021 ya encadena normal.
 
-*Nota para quien compare documentos:* `resumen_diagnostico_datos.md` informa **−23,6 %** para el
-mismo cálculo. La diferencia son los 11 siniestros que caen fuera de todo polígono, que el ETL
-descarta después de calcular esta tabla y el diagnóstico antes. Ambas cifras están respaldadas por
-su propio artefacto; en el informe conviene citar una sola y decir sobre qué base se calculó. La justificación del filtro —«empezar en 2021 para que el modelo no vea la pandemia»—
-**no se sostiene con los datos**.
+Lo que el ETL sí hace es **verificar que el recorte quedó donde debe**, comparando el mismo tramo
+de meses año contra año:
 
-**Decisión del equipo:** mantener 2021 completo y **declarar el sesgo en el informe**. La
-alternativa —`FECHA_INICIO = "2021-07-01"`— cuesta seis meses de datos y es un cambio de una línea.
-Consecuencia a declarar: el entrenamiento contiene un tramo con un régimen de movilidad que no
-volverá a repetirse.
+| Año | Media diaria (jul–dic) | Variación interanual |
+| --- | --- | --- |
+| **2021** | **21,39** | — |
+| 2022 | 22,05 | +3,1 % |
+| 2023 | 22,68 | +2,8 % |
+| 2024 | 23,96 | +5,7 % |
+| 2025 | 24,62 | +2,8 % |
+
+El notebook **detiene la ejecución** si el primer año se aparta más de un 15 % de los siguientes
+en el mismo tramo de meses. Corrida vigente: **−8,3 %**, dentro del margen — es la tendencia
+creciente general de la serie, no un régimen distinto.
+
+> **Nota de coherencia entre documentos.** Esta tabla coincide dígito a dígito con la `12c` del
+> diagnóstico, aunque las dos se calculan sobre bases levemente distintas: el diagnóstico incluye
+> los 11 siniestros que caen fuera de todo polígono y el ETL ya los descartó. La diferencia está
+> por debajo del segundo decimal.
 
 ---
 
-## 5. Zonificación: barrios de Montevideo
+## 5. Zonificación: municipios de Montevideo
 
-`tablas/03b_procedencia_capa_zonas.csv`, `tablas/04_zonas.csv`
+`tablas/03b_procedencia_capa_zonas.csv`, `03c_asignacion_zonas.csv`, `04_zonas.csv`
 
-**Criterio de asignación: intersección punto-polígono.** No se geocodifica ninguna dirección — el
-CSV ya trae coordenadas X/Y. Se reproyecta el polígono a UTM y se pregunta qué barrio contiene cada
-punto, resolviendo anillos interiores (agujeros) y multipolígonos.
+### Por qué municipios y no barrios
+
+**Criterio, y no es estadístico:** el municipio es la unidad de descentralización
+político-administrativa del departamento — **tiene gobierno propio con competencias en tránsito**,
+de modo que una predicción por municipio se puede accionar. Un barrio no tiene a quién dirigirle
+una recomendación de asignación de recursos.
+
+**El costo está medido y hay que declararlo** (diagnóstico, §4.2 y §5.4): entre el municipio más y
+el menos activo hay **1,71×** de diferencia, contra ~10× entre barrios. El margen para *ordenar*
+zonas se estrechó mucho.
+
+### Asignación: intersección punto-polígono — `tablas/03c_asignacion_zonas.csv`
+
+No se geocodifica ninguna dirección: el CSV ya trae X/Y en UTM 21S. Se reproyecta el polígono a
+UTM y se pregunta qué municipio contiene cada punto, resolviendo anillos interiores y
+multipolígonos.
 
 | Indicador | Valor |
 | --- | --- |
-| Zonificación | **barrios** (62 polígonos) |
-| Zonas con al menos un siniestro | **62** |
-| Siniestros por zona — mínimo | **225** |
-| Siniestros por zona — mediana | 570 |
-| Siniestros por zona — máximo | 1.939 |
-| **Zonas con 5 siniestros o menos** | **0** |
-| Zonas que acumulan el 90 % | 49 |
+| Polígonos en la capa | 8 |
+| **Siniestros asignados** | **36.612** |
 | Siniestros fuera de todo polígono | **11 (0,03 %)** |
+| Municipios con al menos un siniestro | **8 de 8** |
 
-### Por qué barrios y no la grilla anterior
+**Decisión:** los 11 se **descartan y se documenta el conteo**, en lugar de reasignarlos al
+municipio más cercano. La reasignación introduciría una decisión arbitraria sobre casos que no
+cambian ninguna conclusión.
 
-El proyecto usó primero una **grilla regular de 1 km** (403 celdas), como solución provisoria
-mientras no se conseguía cartografía. La comparación explica la decisión:
+### Cambio de conducta: la capa es obligatoria
 
-| | Grilla 1 km (403 celdas) | **Barrios (62)** |
-| --- | --- | --- |
-| Zonas con ≤ 5 siniestros | **80** | **0** |
-| Zonas con 1 solo siniestro | 28 | 0 |
-| Mínimo por zona | 1 | **225** |
-| Filas del panel | 735.878 | 113.212 |
-| % de ceros | 95,08 % | **71,96 %** |
+La versión anterior **caía a una grilla de 1 km** cuando no encontraba la capa, y lo avisaba por
+pantalla. El problema es que producía igual un conjunto completo, de otro alcance (403 zonas,
+95,08 % de ceros), que quedaba en `data/processed/` **indistinguible del bueno**. Ahora el
+notebook **falla ruidosamente**: es preferible no correr a correr mal.
 
-**Éste es el cambio que habilita el experimento que pidió el docente.** Con la grilla, un hold-out
-de zonas quedaba dominado por celdas casi vacías y no podía responder si el modelo generaliza a
-zonas no vistas. Con barrios, **todas las zonas tienen soporte suficiente**.
+### Catálogo de municipios — `data/processed/zonas_montevideo.csv`
 
-**Los 11 siniestros fuera de todo polígono se descartan y se documenta el conteo**, en lugar de
-reasignarlos al barrio más cercano: la reasignación introduciría una decisión arbitraria sobre
-casos que no cambian ninguna conclusión.
+| Municipio | Siniestros | % del total | Días con siniestro |
+| --- | --- | --- | --- |
+| C | 5.783 | 15,8 % | 1.566 |
+| B | 5.377 | 14,7 % | 1.562 |
+| D | 5.319 | 14,5 % | 1.572 |
+| A | 5.016 | 13,7 % | 1.549 |
+| F | 4.424 | 12,1 % | 1.533 |
+| G | 3.701 | 10,1 % | 1.446 |
+| E | 3.615 | 9,9 % | 1.414 |
+| CH | 3.377 | 9,2 % | 1.386 |
 
-### Estratos de actividad — `tablas/05_estratos.csv`
+Mediana 4.720 · **razón máximo/mínimo 1,71×** · 7 de 8 municipios acumulan el 90 % de los
+siniestros (`04_zonas`).
 
-| Estrato | Zonas | Siniestros | Mediana por zona | % de siniestros |
-| --- | --- | --- | --- | --- |
-| baja | 21 | 7.013 | 319,0 | 17,7 % |
-| media | 20 | 11.334 | 570,5 | 28,6 % |
-| alta | 21 | 21.222 | 997,0 | 53,6 % |
+### Estratos de actividad: por qué dejan de usarse — `tablas/05_estratos.csv`
 
-Terciles de actividad. Permiten entrenar **un** modelo y medirlo por estrato, o **uno por estrato**,
-comparando ambos con el mismo protocolo, sin volver a correr el ETL.
+| Estrato | Zonas | Siniestros | Mínimo | Máximo | % |
+| --- | --- | --- | --- | --- | --- |
+| baja | 3 | 10.693 | 3.377 | 3.701 | 29,2 % |
+| media | 2 | 9.440 | 4.424 | 5.016 | 25,8 % |
+| alta | 3 | 16.479 | 5.319 | 5.783 | 45,0 % |
 
-**Advertencia metodológica, a declarar:** el estrato está calculado sobre **todo el período**, así
-que es **descriptivo**. Antes de usarlo para elegir las zonas reservadas del «megamodelo» hay que
-**recalcularlo sólo con el tramo de entrenamiento**: si no, la selección de zonas usaría información
-del conjunto de prueba.
+**`estrato_actividad` deja de incorporarse al panel y queda sólo en el catálogo.** Dos razones,
+las dos declarables:
+
+1. **Con 62 barrios era defendible** —separaba zonas cuyo volumen difería en un orden de
+   magnitud—. **Con 8 municipios reparte ocho unidades en tres grupos dentro de un rango de
+   1,71 ×**: los cortes son arbitrarios y no describen ninguna diferencia real. La tabla de arriba
+   lo muestra: el estrato «baja» concentra el 29,2 % de los siniestros.
+2. Está calculada sobre **todo el período**, así que como predictora sería una **fuga**.
+
+`zona_activa` se retira por completo: era un umbral absoluto pensado para la grilla dispersa y con
+municipios es cierto para los ocho, es decir, no informa nada.
+
+**Consecuencia declarada: el panel exportado no lleva ninguna variable de nivel de zona.** Es
+deliberado. El diagnóstico (§5.3) midió que la tasa histórica del municipio es el bloque más útil
+fuera de muestra, pero **debe estimarse sólo con el tramo de entrenamiento**, y eso es trabajo del
+notebook de modelado. Ponerla acá filtraría información del test.
 
 ---
 
 ## 6. Variables exógenas
 
-Dos bloques, ambos deterministas o externos al objetivo. Ninguno aprende de los siniestros, así que
-pueden construirse en el ETL sin riesgo de fuga.
+Dos bloques, los dos deterministas o externos al objetivo: **calendario** y **clima**. Ninguno
+aprende nada de los siniestros, así que pueden construirse en el ETL sin riesgo de fuga.
 
 ### 6.1 Codificación del calendario: `tipo_dia` — `tablas/06_calendario.csv`
 
-En lugar de arrastrar `anio`, `mes`, `dia_mes`, `dia_semana`, `dia_anio`, `semana_iso` y `es_finde`,
-el calendario se resume en **una sola variable categórica de tres niveles**:
-
-| Nivel | Días | % del período |
+| Nivel | Días | % |
 | --- | --- | --- |
-| `entre_semana` | 1.232 | 67,5 % |
-| `fin_semana` | 504 | 27,6 % |
-| `feriado` | 90 | 4,9 % |
+| `entre_semana` | 1.114 | 67,7 % |
+| `fin_semana` | 454 | 27,6 % |
+| `feriado` | **77** | 4,7 % |
 
-El feriado tiene prioridad sobre el fin de semana.
+En lugar de arrastrar `anio`, `mes`, `dia_mes`, `dia_semana`, `dia_anio`, `semana_iso` y
+`es_finde`, el calendario se resume en **una sola categórica de tres niveles**. Por qué se van las
+otras:
 
-**Por qué se fueron las otras** — cada motivo es distinto y el informe debería recogerlos:
+- **`anio`** es la peor de todas con un corte cronológico: el año del test nunca aparece en
+  entrenamiento y un árbol extrapola a una constante.
+- **`mes`, `dia_anio`, `semana_iso`** son **cíclicas** y como enteros mienten: diciembre = 12 y
+  enero = 1 quedan máximamente distantes.
+- Todas son **recuperables desde `fecha`**, que es el índice del panel.
 
-- **`anio` es la peor con un corte cronológico:** el año del conjunto de prueba nunca aparece en
-  entrenamiento, y un árbol que parta por esa variable extrapola a una constante.
-- **`mes`, `dia_anio` y `semana_iso` son cíclicas** y como enteros mienten: diciembre (12) y enero
-  (1) son adyacentes en la realidad y quedan máximamente distantes para el modelo.
-- **Todas son recuperables desde `fecha`**, que es el índice del panel.
+**Feriados: `categories=("public", "bank")`.** Con la configuración por omisión de `holidays`
+aparecen **23** feriados en el período contra **77** con las dos categorías, y quedan afuera
+**Carnaval y Semana de Turismo**, los dos períodos de mayor cambio de movilidad del año en Uruguay
+(diagnóstico, `16_feriados` y `16b`). Por año: 5 en 2021 (medio año) y 18 en cada uno de 2022 a
+2025.
 
-**Feriados: `categories=("public", "bank")`.** La configuración por omisión de la biblioteca
-`holidays` para Uruguay reconoce sólo 25 feriados en el período y **omite Carnaval y Semana de
-Turismo**, los dos períodos de mayor alteración de la movilidad del año. Con las dos categorías son
-**90**.
-
-**Costo declarado:** se pierde la diferencia entre días de semana (un viernes no es un martes) y la
-estacionalidad anual. Es una simplificación deliberada; si el análisis de errores muestra estructura
-semanal o estacional sin capturar, se revisa.
+**Costo declarado, y ahora medido.** Se pierde la diferencia entre días de semana y la
+estacionalidad anual. Con la unidad agregada a municipios eso ya no es inocuo: el día de la semana
+explica un **20,8 %** de la varianza de la serie diaria del departamento, con el viernes en
+**25,74** siniestros/día contra **16,06** el domingo (diagnóstico, `20b` y `20c`). `tipo_dia`
+captura **22,3 %**, así que la simplificación sale barata **hoy**; si el análisis de errores
+muestra estructura semanal sin capturar, el día de la semana se recupera desde `fecha` **sin
+volver a correr el ETL**.
 
 ### 6.2 Clima — `tablas/07_clima.csv`
 
-Serie **diaria única para todo el departamento** (punto −34,87 / −56,17), de Open-Meteo (archivo
-histórico reanalizado), cacheada en `data/raw/clima_montevideo.csv`. **1.826 días, sin faltantes.**
+Adapta `etl/enrich/enriquecer_clima.py` del PID, que consultaba la API **por siniestro y por
+hora** y escribía a PostgreSQL. Acá la unidad es el día y no hay base de datos: se pide **una
+serie diaria única para Montevideo** y se cachea, de modo que el notebook vuelve a correr sin red.
 
-Variables: `temp_media`, `temp_max`, `temp_min`, `precipitacion_mm`, `lluvia_mm`, `viento_max_kmh`.
-Más dos construidas: `estado_clima` (código WMO agrupado en cinco niveles, reusando la tabla del
-PID) y `llovio` (precipitación > 0,1 mm).
+Variables: `temp_media`, `temp_max`, `temp_min`, `precipitacion_mm`, `lluvia_mm`,
+`viento_max_kmh`, más dos construidas: `estado_clima` (código WMO agrupado en cinco niveles,
+reusando la tabla del PID) y `llovio` (precipitación > 0,1 mm). **1.645 días, 0 faltantes → no
+corresponde imputar.**
 
-| Estado del clima | Días |
+| `estado_clima` | Días |
 | --- | --- |
-| lluvia | 825 |
-| nublado | 813 |
-| despejado | 188 |
+| nublado | 745 |
+| lluvia | 733 |
+| despejado | 167 |
 
-Rangos observados: temperatura media 4,9–31,7 °C (media 17,0); precipitación 0–105,3 mm
-(mediana 0); viento máximo 7,9–62,9 km/h.
+*(los niveles `niebla` y `tormenta` existen en la codificación pero no aparecen en el período)*
 
-**Supuesto declarado:** un solo punto para todo el departamento. A resolución diaria las variables
-meteorológicas son prácticamente uniformes sobre unos 200 km² urbanos, y pedir una serie por barrio
-multiplicaría por 62 las llamadas para devolver casi los mismos números. **Consecuencia importante:
-el clima no puede explicar ninguna diferencia entre barrios** — aporta sólo variación temporal, la
-misma para las 62 zonas.
+**Un solo punto para todo el departamento.** A resolución diaria las variables meteorológicas son
+prácticamente uniformes sobre unos 200 km² urbanos; pedir una serie por municipio multiplicaría
+por ocho las llamadas para devolver casi los mismos números. **Consecuencia que el informe debe
+recoger: el clima no puede explicar ninguna diferencia entre municipios**, sólo variación temporal
+común a los ocho.
+
+> ### ⚠️ Advertencia sobre la utilidad de este bloque
+>
+> El diagnóstico midió **fuera de muestra** que agregar el clima a la línea base **no mejora
+> nada**: −11,5 % con clima contra −11,8 % sin él (`21c`). Se conserva en el conjunto porque ya
+> está construido y no cuesta nada, pero **mantenerlo en el modelo final exige una justificación
+> mejor que «estaba disponible»**.
+
+**Clima observado, no pronosticado.** Se usa el archivo histórico reanalizado, que para una fecha
+pasada da la observación. Un sistema en producción tendría un **pronóstico**, con su propio error:
+el desempeño medido es una **cota optimista** del operativo.
 
 ---
 
@@ -338,137 +380,176 @@ misma para las 62 zonas.
 
 | Indicador | Valor |
 | --- | --- |
-| Zonificación | barrios |
-| Días del período | 1.826 |
-| Zonas | 62 |
-| **Filas del panel** | **113.212** |
-| Siniestros | 39.569 |
-| % de filas en cero | **71,96 %** |
-| Media del objetivo | 0,3495 |
-| Varianza del objetivo | 0,3957 |
-| **Índice de dispersión (var/media)** | **1,132** |
-| Máximo del objetivo | 7 |
-| Columnas | 12 |
+| Zonificación | municipios |
+| Días del período | 1.645 |
+| Zonas | 8 |
+| **Filas del panel** | **13.160** |
+| Siniestros | **36.612** |
+| **% de filas en cero** | **8,60 %** |
+| Media del objetivo | **2,7821** |
+| Varianza del objetivo | 3,5039 |
+| **Índice de dispersión (var/media)** | **1,259** |
+| Máximo del objetivo | 13 |
+| Columnas | 11 (+ índice) |
 
-**`fecha` es el índice.** No es único —hay una fila por zona en cada fecha— y eso es deliberado:
-permite cortar por tiempo directamente (`panel.loc["2024-03"]`), que es lo que hará el notebook de
-modelado al partir cronológicamente. Si hace falta una clave única, es
+Una fila por día y municipio, **con los ceros explícitos**: sin ellos el modelo sólo vería los
+días en que pasó algo y no podría aprender cuándo *no* pasa nada.
+
+**`fecha` queda como índice y no es único** —hay una fila por municipio en cada fecha—, a
+propósito: permite cortar por tiempo directamente (`panel.loc["2024-03"]`), que es lo que hará el
+notebook de modelado al partir cronológicamente. Si hace falta una clave única, es
 `set_index(["fecha", "zona_id"])`.
 
-### 7.2 Diccionario de datos
+**El calendario del panel es fijo** (`FECHA_INICIO` → último día observado), no el mínimo y el
+máximo de los datos, para que no cambie de tamaño si se agregan o quitan registros de los extremos.
 
-| Columna | Tipo | Rol |
-| --- | --- | --- |
-| `fecha` | datetime | **ÍNDICE** — día de la observación (no único) |
-| `zona_id` | str | Barrio. **Identificador, no usar como predictor** |
-| `n_siniestros` | int16 | **OBJETIVO** — siniestros en esa zona ese día |
-| `estrato_actividad` | category | Tercil de actividad. **DESCRIPTIVO**: calculado sobre todo el período |
-| `tipo_dia` | str | Codificación del calendario: entre_semana / fin_semana / feriado |
-| `temp_media`, `temp_max`, `temp_min` | float | Temperatura diaria (°C) — Open-Meteo |
-| `precipitacion_mm`, `lluvia_mm` | float | Precipitación diaria (mm) — Open-Meteo |
-| `viento_max_kmh` | float | Viento máximo a 10 m (km/h) — Open-Meteo |
-| `estado_clima` | str | Codificación del código WMO en 5 niveles |
-| `llovio` | int8 | 1 si la precipitación superó 0,1 mm |
+**Ninguna columna de gravedad.** `n_fatal + n_grave + n_leve + n_solo_danos` suman exactamente
+`n_siniestros`: como predictoras serían una fuga perfecta.
 
-Diccionario completo, incluidos los demás archivos: `data/processed/diccionario_datos.csv`.
+#### Comparación con las zonificaciones anteriores
 
-### 7.3 Archivos exportados — `tablas/11_exportacion.csv`
+| Zonificación | Zonas | Filas | % ceros | Media | Dispersión | Máx. |
+| --- | --- | --- | --- | --- | --- | --- |
+| Grilla de 1 km (superada) | 403 | 735.878 | 95,08 % | 0,0538 | 1,136 | 5 |
+| Barrios (superada) | 62 | 113.212 | 71,96 % | 0,3495 | 1,132 | 7 |
+| **Municipios (vigente)** | **8** | **13.160** | **8,60 %** | **2,7821** | **1,259** | **13** |
 
-| Archivo | Filas | Columnas | Tamaño | Para qué |
-| --- | --- | --- | --- | --- |
-| `panel_diario_montevideo.csv` | 113.212 | 13 | 9,4 MB | **Conjunto de modelado** |
-| `siniestros_montevideo.csv` | 39.569 | 6 | 2,5 MB | Capa limpia geolocalizada, para rearmar el panel con otra zonificación |
-| `zonas_montevideo.csv` | 62 | 9 | 34 kB | Catálogo de barrios: actividad, estrato, centroide |
-| `panel_zona_top.csv` | 1.826 | 13 | 0,1 MB | Serie de la zona más activa |
-| `panel_zona_contraste.csv` | 1.826 | 13 | 0,1 MB | Serie de control |
+> **Trazabilidad:** sólo la última fila sale de un artefacto vigente (`08_panel`). Las dos
+> primeras se conservan de corridas anteriores cuyos artefactos fueron borrados; su respaldo es
+> `HANDOFF.md`. Citarlas como **historial del proyecto**, no como resultado de esta ejecución.
 
-`data/` no se versiona (política del `.gitignore`): estos archivos se regeneran ejecutando el
-notebook.
+### 7.2 Balanceo: no corresponde con esta zonificación
 
-### 7.4 Las dos zonas exportadas — `tablas/09_zonas_seleccionadas.csv`
+**El objetivo ya no tiene exceso de ceros: son el 8,60 % de las filas.** Es una regresión de
+conteo ordinaria, con media cercana a tres siniestros por municipio y día.
 
-| Papel | Barrio | Siniestros | % de días en cero |
+- La familia natural sigue siendo **Poisson**, con **binomial negativa** como primera extensión
+  razonable por la sobredispersión leve (índice 1,259).
+- Las variantes ***zero-inflated*** y el **submuestreo de ceros** que se contemplaban con las
+  zonificaciones anteriores **quedan sin objeto**.
+- La **interpolación de ceros** que había pedido el docente también pierde sentido: se pensó para
+  un panel dominado por ceros estructurales, y con un 8,60 % no hay nada que interpolar.
+
+**Esto invalida el argumento que la versión anterior de este documento daba sobre el balanceo.**
+El informe no puede repetirlo: describiría un conjunto que ya no existe.
+
+### 7.3 Diccionario de datos
+
+`data/processed/diccionario_datos.csv` (50 filas, copia en `tablas/12_diccionario_datos.csv`).
+Columnas del panel:
+
+| Columna | Qué es |
+| --- | --- |
+| `fecha` | ÍNDICE — día de la observación (no único: una fila por municipio) |
+| `zona_id` | Municipio. **Identificador, no usar como predictor** |
+| `n_siniestros` | **OBJETIVO** — siniestros en ese municipio ese día |
+| `tipo_dia` | CODIFICACIÓN del calendario: entre_semana / fin_semana / feriado |
+| `temp_media`, `temp_max`, `temp_min` | Temperaturas diarias (°C) — Open-Meteo |
+| `precipitacion_mm`, `lluvia_mm` | Precipitación y lluvia diarias (mm) — Open-Meteo |
+| `viento_max_kmh` | Velocidad máxima del viento a 10 m (km/h) — Open-Meteo |
+| `estado_clima` | CODIFICACIÓN del código WMO en 5 niveles |
+| `llovio` | 1 si la precipitación superó 0,1 mm |
+
+### 7.4 Archivos exportados — `tablas/11_exportacion.csv`
+
+| Archivo | Filas | Columnas | Tamaño |
 | --- | --- | --- | --- |
-| Zona más activa (primer modelo) | **UNIÓN** | 1.939 | 36,64 % |
-| Zona de contraste (actividad mediana) | **TRES CRUCES** | 689 | 68,57 % |
+| `panel_diario_montevideo.csv` — **conjunto de modelado** | 13.160 | 12 | 1,0 MB |
+| `siniestros_montevideo.csv` — capa limpia geolocalizada | 36.612 | 6 | 2,2 MB |
+| `zonas_montevideo.csv` — catálogo | 8 | 8 | — |
+| `panel_zona_top.csv` | 1.645 | 12 | 0,1 MB |
+| `panel_zona_contraste.csv` | 1.645 | 12 | 0,1 MB |
+| `diccionario_datos.csv` | 50 | 4 | — |
 
-**Por qué dos y no una.** La zona más activa tiene la serie con más señal del departamento, así que
-sirve para poner a andar el pipeline; pero es la más densa y **no es representativa**: sus métricas
-no son las del proyecto. La zona de contraste da, sin costo adicional, la primera medida de cuánto
-se degrada un modelo al cambiar de zona — que es la pregunta del docente en versión reducida.
+Se exporta en CSV con separador `,` y fechas ISO (`%Y-%m-%d`). `siniestros_montevideo.csv` existe
+para poder **rearmar el panel con otra zonificación** sin volver a limpiar desde el CSV crudo.
 
-Dato ilustrativo: **ambas están en el estrato «alta»** y aun así una tiene 36,6 % de días en cero y
-la otra 68,6 %. El tercil superior va de 91 a 1.939 siniestros y es internamente muy heterogéneo.
+### 7.5 Las dos series por municipio — `tablas/09_zonas_seleccionadas.csv`
+
+| Papel | Municipio | Siniestros | % de días en cero |
+| --- | --- | --- | --- |
+| Más activo | **C** | 5.783 | 4,80 % |
+| Contraste (actividad mediana) | **A** | 5.016 | 5,84 % |
+
+> ### ⚠️ Su utilidad cambió con la zonificación
+>
+> Con 62 barrios este par medía algo real: la zona más densa y una mediana diferían en un orden de
+> magnitud (UNIÓN 1.939 contra TRES CRUCES 689, razón 2,8×), así que comparar el mismo modelo en
+> ambas daba una primera medida de cuánto se degradaba al cambiar de zona. Con municipios la razón
+> es **1,15×** y las dos series son casi indistinguibles (`figuras/series_zonas.png`).
+>
+> **El contraste ya casi no informa.** Se conservan por continuidad del pipeline y porque no
+> cuestan nada, pero **la evaluación seria es la del panel completo con métricas desagregadas por
+> municipio**. No presentar esta comparación en el informe como evidencia de generalización.
 
 ---
 
 ## 8. Verificaciones — `tablas/10_verificaciones.csv`
 
-El notebook incorpora **13 comprobaciones que detienen la ejecución** si fallan, para que ningún
-resultado del informe dependa de que alguien se acuerde de mirar una salida. **Las 13 en verde.**
+**Dieciséis comprobaciones que detienen la ejecución si fallan.** En la corrida del 2026-09-07,
+**las dieciséis en OK**.
 
-| Verificación | Detalle |
-| --- | --- |
-| El panel conserva todos los siniestros del recorte | 39.569 vs 39.569 |
-| El panel es el producto completo días × zonas | 113.212 filas |
-| La clave (fecha, zona) no se repite | clave única |
-| El índice es temporal y está ordenado | `DatetimeIndex` creciente |
-| No quedan faltantes en el panel | 0 celdas vacías → no corresponde imputar |
-| **Ninguna columna del panel es constante** | 12 columnas |
-| **No hay columnas de gravedad en el panel** | sin fuga por gravedad |
-| El calendario cubre todo el período sin huecos | 1.826 días |
-| El clima cubre todo el período sin huecos | 1.826 días |
-| `tipo_dia` tiene los tres niveles esperados | entre_semana / feriado / fin_semana |
-| El objetivo es entero y no negativo | `n_siniestros` |
-| Los eventos están ordenados cronológicamente | `sort_values` por fecha |
-| Los centroides de zona caen dentro de Uruguay | 62 zonas |
+| # | Verificación | Detalle |
+| --- | --- | --- |
+| 1 | El panel conserva todos los siniestros del recorte | 36.612 vs 36.612 |
+| 2 | El panel es el producto completo días × zonas | 13.160 filas |
+| 3 | La clave (fecha, zona) no se repite | clave única |
+| 4 | El índice es temporal y está ordenado | DatetimeIndex creciente |
+| 5 | **La serie empieza en la fecha declarada** | 2021-07-01 == 2021-07-01 |
+| 6 | **Todos los polígonos de la capa tienen siniestros** | 8 de 8 municipios |
+| 7 | No quedan faltantes en el panel | 0 celdas vacías → no corresponde imputar |
+| 8 | Ninguna columna del panel es constante | 11 columnas |
+| 9 | No hay columnas de gravedad en el panel | sin fuga por gravedad |
+| 10 | **El panel no lleva variables de nivel de zona** | sólo `zona_id` como identificador |
+| 11 | El calendario cubre todo el período sin huecos | 1.645 días |
+| 12 | El clima cubre todo el período sin huecos | 1.645 días |
+| 13 | `tipo_dia` tiene los tres niveles esperados | entre_semana, feriado, fin_semana |
+| 14 | El objetivo es entero y no negativo | `n_siniestros` |
+| 15 | Los eventos están ordenados cronológicamente | sort_values por fecha |
+| 16 | Los centroides de zona caen dentro de Uruguay | 8 zonas |
 
-**Dos de estas verificaciones existen porque una auditoría encontró los problemas que previenen**, y
-vale la pena contarlo en el informe como parte del proceso: «ninguna columna constante» y «no hay
-columnas de gravedad» se agregaron tras detectar columnas de varianza cero y la fuga por gravedad.
+Las verificaciones **5, 6 y 10 son nuevas** de esta versión y las tres nacen de errores concretos
+que se quieren impedir: que `FECHA_INICIO` se mueva sin releer el diagnóstico, que un polígono
+quede sin datos, y que vuelva a colarse al panel una variable de zona calculada sobre todo el
+período.
 
-**Y una de ellas ya sirvió:** al cambiar de la grilla a barrios, «ninguna columna constante» falló.
-El umbral fijo `zona_activa` (≥ 60 siniestros en el período) discriminaba 167 de 403 celdas en la
-grilla, pero con barrios —mínimo 225 siniestros— quedaba en `True` para las 62 zonas. Se retiró del
-panel (sigue en el catálogo de zonas) y la selección de la zona de contraste pasó a usar el estrato
-por terciles, que se adapta solo a la granularidad.
+### Verificación cruzada independiente — diagnóstico `tablas/23_coherencia_etl.csv`
 
-### Verificación cruzada independiente
+`diagnostico_datos.ipynb` **reconstruye el panel desde las fuentes crudas** con su propia
+implementación de la asignación punto-polígono, y compara:
 
-`notebooks/diagnostico_datos.ipynb` reconstruye el panel **desde las fuentes crudas**, con su propia
-implementación de la asignación punto-polígono, y compara. **Las cinco comprobaciones coinciden**
-(113.212 filas, 39.569 siniestros, 62 zonas, 1.826 días, máximo 7). Dos implementaciones
-independientes llegando al mismo resultado es evidencia real de que el pipeline es correcto, y es
-un argumento fuerte para la defensa.
+| Comprobación | Diagnóstico (recalculado) | ETL (`data/processed`) | Resultado |
+| --- | --- | --- | --- |
+| Filas del panel | 13.160 | 13.160 | ✅ coincide |
+| Siniestros totales | 36.612 | 36.612 | ✅ coincide |
+| Zonas | 8 | 8 | ✅ coincide |
+| Días | 1.645 | 1.645 | ✅ coincide |
+| Máximo del objetivo | 13 | 13 | ✅ coincide |
+
+**Las cinco comprobaciones coinciden.** Dos implementaciones independientes del recorte, la
+deduplicación, la asignación punto-polígono y el armado del panel llegan al mismo resultado. Es la
+evidencia más fuerte de que el conjunto está bien construido, y es citable en el informe.
 
 ---
 
 ## 9. Cobertura de la rúbrica de preparación
 
-La consigna pide *«limpieza, transformación, imputación, codificación, escalado, balanceo, selección
-o construcción de variables, reducción de dimensionalidad u otras acciones cuando correspondan»*.
-Ésta es la trazabilidad completa, incluido **lo que no corresponde y por qué** — que también hay que
-declarar, no omitir:
+La consigna pide *«limpieza, transformación, imputación, codificación, escalado, balanceo,
+selección o construcción de variables, reducción de dimensionalidad u otras acciones cuando
+correspondan»*. Ésta es la trazabilidad completa, incluido **lo que no corresponde y por qué** —
+que también hay que declarar, no omitir:
 
 | Acción | Estado | Dónde / por qué |
 | --- | --- | --- |
 | **Limpieza** | ✅ Hecha | Duplicados exactos, fecha verificada, coordenadas validadas (3) |
-| **Transformación** | ✅ Hecha | UTM → WGS84, agregación a (día, barrio) (3.4, 7.1) |
-| **Imputación** | ⬜ **No corresponde** | 0 faltantes en las columnas que sobreviven. Se documenta con el conteo, no se omite |
+| **Transformación** | ✅ Hecha | UTM → WGS84, agregación a (día, municipio) (3.4, 7.1) |
+| **Imputación** | ⬜ **No corresponde** | 0 faltantes en las columnas que sobreviven y 0 en el clima. Se documenta con el conteo, no se omite |
 | **Codificación** | ✅ Hecha | `tipo_dia` (3 niveles) y `estado_clima` (5 niveles) (6) |
 | **Escalado** | ⬜ **Fuera del ETL a propósito** | Debe ajustarse sólo con entrenamiento → notebook de modelado |
-| **Balanceo** | ⬜ **Fuera del ETL a propósito** | Depende del modelo. Se documenta la tasa de ceros para decidirlo |
-| **Construcción de variables** | ✅ Parcial | Zona, `tipo_dia`, clima, estrato. **Falta la tasa histórica del barrio** |
+| **Balanceo** | ⬜ **No corresponde** | 8,60 % de ceros: no hay clases que balancear (7.2) |
+| **Construcción de variables** | ✅ Parcial | Municipio, `tipo_dia`, clima. **La tasa histórica del municipio va en el modelado**, sólo con entrenamiento |
 | **Selección de variables** | ✅ Hecha | Se descartan constantes, no usadas y las de gravedad por fuga (3.1) |
 | **Reducción de dimensionalidad** | ⬜ **No corresponde** | El conjunto final tiene 12 columnas |
-
-**Sobre el balanceo**, que es la decisión abierta más importante: con **71,96 % de ceros** y
-dispersión 1,132, la primera opción a probar es una **pérdida de Poisson o Tweedie** (GLM,
-`HistGradientBoostingRegressor(loss="poisson")`, LightGBM `objective="poisson"`), que maneja el
-exceso de ceros nativamente y **no necesita balanceo**. Si se pasa a una formulación binaria
-(«¿hubo al menos un siniestro?») entran en juego los pesos por clase o el submuestreo, y hay que
-declarar cuál se usó. Balancear en el ETL obligaría a todos los modelos posteriores a heredar una
-decisión que sólo tiene sentido para algunos, y rompería la comparación con la línea base.
 
 ---
 
@@ -476,57 +557,70 @@ decisión que sólo tiene sentido para algunos, y rompería la comparación con 
 
 | Limitación | Sección | Cómo se trata |
 | --- | --- | --- |
-| Régimen de pandemia dentro del período | 4 | Se declara; alternativa: iniciar 2021-07-01 |
-| El clima no varía entre barrios | 6.2 | Declararlo: sólo aporta variación temporal |
+| **Sólo 8 zonas, muy parecidas entre sí (1,71×)** | 5 | Declarar el margen estrecho para ordenar zonas |
+| **El panel no lleva variable de nivel de zona** | 5 | **Deliberado**: se construye en el modelado, con entrenamiento |
+| **El clima no aporta fuera de muestra** | 6.2 | Reevaluarlo o quitarlo; no venderlo como explicativo |
+| El clima no varía entre municipios | 6.2 | Declararlo: sólo aporta variación temporal |
 | Clima observado, no pronosticado | 6.2 | El desempeño medido es una **cota optimista** del operativo |
-| Estrato calculado sobre todo el período | 5 | Recalcular sólo con entrenamiento antes de reservar zonas |
+| **Tendencia creciente no corregida** | 4 | +11,0 % entre mitades del período; la trata el modelado |
 | Sin gravedad ni franja horaria en el conjunto | 3.1 | Declarar que exige volver a ejecutar el ETL |
 | 11 siniestros fuera de todo polígono | 5 | Se descartan; se documenta el conteo |
 | Duplicados: criterio sin identificador de siniestro | 3.2 | Decisión conservadora, declarada |
-| Falta la variable de nivel de zona | 6 | **Pendiente prioritario** del notebook de modelado |
-| Código geográfico duplicado entre notebooks | — | Candidato a migrar a `src/` |
+| El par top/contraste ya casi no contrasta | 7.5 | No usarlo como evidencia de generalización |
+| Código geográfico duplicado entre notebooks | — | Candidato a migrar a `src/`; hoy es la base de la verificación cruzada |
 
 ### Frases que NO deben aparecer en el informe
 
-- ❌ «El ETL prepara los datos para el modelo.» → Prepara **parte**: escalado, balanceo,
-  particiones y variables con memoria quedan fuera **a propósito**, y hay que explicar por qué.
-- ❌ «Se imputaron los valores faltantes.» → **No se imputó nada**: no hay faltantes en las columnas
-  que sobreviven. Decir que no correspondió es la respuesta correcta.
-- ❌ «Los datos están balanceados.» → No se balanceó. La decisión es del notebook de modelado.
-- ❌ «El clima explica las diferencias entre barrios.» → Es una serie única para el departamento:
-  **no puede** explicar ninguna diferencia entre zonas.
-- ❌ «Se eliminaron los outliers.» → No se eliminaron outliers. Se eliminaron **duplicados exactos**,
-  que es otra cosa, y el efecto sobre la cola alta se explica en 3.2.
+- ❌ «El ETL prepara los datos para el modelo.» → Prepara **parte**: escalado, particiones y
+  variables con memoria quedan fuera **a propósito**, y hay que explicar por qué.
+- ❌ «Se imputaron los valores faltantes.» → **No se imputó nada**: no hay faltantes. Decir que no
+  correspondió es la respuesta correcta.
+- ❌ «Se balancearon las clases» / «se trató el exceso de ceros». → **No corresponde**: con 8,60 %
+  de ceros no hay exceso que tratar. *(Esta frase sí aparecía justificada en la versión por
+  barrios: no reciclarla.)*
+- ❌ «Se aplicó interpolación de ceros.» → Se descartó, y con esta zonificación **ya no tiene
+  objeto**.
+- ❌ «El clima explica las diferencias entre municipios.» → Es una serie única para el
+  departamento: **no puede** explicar ninguna diferencia entre zonas. Y fuera de muestra no mejora
+  nada.
+- ❌ «Se eliminaron los outliers.» → Se eliminaron **duplicados exactos**, que es otra cosa; el
+  efecto sobre la cola alta se explica en 3.2.
 - ❌ «El conjunto incluye la gravedad de los siniestros.» → Se retiró deliberadamente por fuga.
+- ❌ «El estrato de actividad clasifica los municipios por riesgo.» → Es descriptivo, calculado
+  sobre todo el período y sobre un rango de 1,71×: los cortes son arbitrarios y **no entra al
+  panel**.
+- ❌ «El modelo se validó comparando la zona más activa contra una de contraste.» → Con municipios
+  las dos series son casi iguales (razón 1,15×); esa comparación ya no mide generalización.
 
 ---
 
 ## 11. Índice de artefactos
 
-`experiments/etl_montevideo/` — 14 tablas, 1 mapa HTML, 1 figura PNG.
+`experiments/etl_montevideo/` — **15 tablas, 1 mapa HTML, 1 figura PNG**.
 
 | Artefacto | Qué respalda |
 | --- | --- |
-| `tablas/00_procedencia.csv` | sha256 y tamaño del CSV de siniestros |
+| `tablas/00_procedencia.csv` | sha256 y tamaño del CSV de siniestros (2) |
 | `tablas/01_duplicados.csv` | Conteo de duplicados y grupo mayor (3.2) |
 | `tablas/02_recorte.csv` | Cascada del recorte al alcance (4) |
-| `tablas/03_pandemia_residual.csv` | Efecto del filtro de 2021 (4) |
-| `tablas/03b_procedencia_capa_zonas.csv` | sha256 y polígonos de la capa de barrios (2) |
-| `tablas/04_zonas.csv` | Resumen de la zonificación (5) |
-| `tablas/05_estratos.csv` | Terciles de actividad (5) |
+| `tablas/03_inicio_serie.csv` | Verificación del corte en 2021-07-01 (4) |
+| `tablas/03b_procedencia_capa_zonas.csv` | sha256, polígonos y nombres de la capa de municipios (2) |
+| `tablas/03c_asignacion_zonas.csv` | Asignación punto-polígono y siniestros fuera de capa (5) |
+| `tablas/04_zonas.csv` | Resumen de la zonificación y razón máx/mín (5) |
+| `tablas/05_estratos.csv` | Terciles de actividad — evidencia de por qué se descartan (5) |
 | `tablas/06_calendario.csv` | Distribución de `tipo_dia` (6.1) |
 | `tablas/07_clima.csv` | Distribución de `estado_clima` (6.2) |
 | `tablas/08_panel.csv` | Dimensiones y estadísticos del panel (7.1) |
-| `tablas/09_zonas_seleccionadas.csv` | Zona top y de contraste (7.4) |
-| `tablas/10_verificaciones.csv` | Las 13 comprobaciones (8) |
-| `tablas/11_exportacion.csv` | Archivos exportados (7.3) |
-| `tablas/12_diccionario_datos.csv` | Diccionario completo (7.2) |
-| `figuras/mapa_zonas.html` | Mapa interactivo de barrios por actividad |
-| `figuras/series_zonas.png` | Series diarias de la zona top y la de contraste |
+| `tablas/09_zonas_seleccionadas.csv` | Municipio más activo y de contraste (7.5) |
+| `tablas/10_verificaciones.csv` | Las 16 comprobaciones (8) |
+| `tablas/11_exportacion.csv` | Archivos exportados (7.4) |
+| `tablas/12_diccionario_datos.csv` | Diccionario completo (7.3) |
+| `figuras/mapa_zonas.html` | Mapa interactivo de los 8 municipios por actividad |
+| `figuras/series_zonas.png` | Series diarias del municipio top y el de contraste |
 
 **Antes de citar cualquier cifra:** verificar que los `sha256` de `00_procedencia.csv` y
-`03b_procedencia_capa_zonas.csv` sigan siendo los de las fuentes vigentes. Si alguna cambió, hay que
-volver a ejecutar el notebook.
+`03b_procedencia_capa_zonas.csv` sigan siendo los de las fuentes vigentes. Si alguna cambió, hay
+que volver a ejecutar el notebook.
 
 ---
 
@@ -534,16 +628,28 @@ volver a ejecutar el notebook.
 
 Lo que este ETL deja planteado para el notebook de modelado:
 
-1. **Construir la tasa histórica del barrio**, ajustada sólo con el tramo de entrenamiento. Es el
-   pendiente prioritario: sin una variable de nivel de zona, el modelo predice lo mismo para los 62
-   barrios cada día. El diagnóstico lo cuantifica
-   ([`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md), sección 5.3).
-2. **Definir las particiones cronológicas** con el conjunto de prueba reservado.
-3. **Recalcular `estrato_actividad` sólo con entrenamiento** antes de reservar zonas.
-4. **Decidir el escalado y el balanceo**, y declarar ambas decisiones.
-5. **Decidir el filtro de 2021**: mantener y declarar el sesgo, o mover el inicio a 2021-07-01.
-6. **Interpolación de ceros** — la técnica que pidió el docente. Se implementó y se descartó de esta
-   versión porque **mira días posteriores**: sólo puede usarse como objetivo alternativo de
-   entrenamiento y hay que calcularla dentro de cada partición. Se revisa ahora que la zonificación
-   por barrios está fijada.
-7. **Migrar a `src/`** el código geográfico duplicado entre este notebook y el de diagnóstico.
+1. **Construir la tasa histórica del municipio**, ajustada sólo con el tramo de entrenamiento. Es
+   el pendiente prioritario: el panel **no lleva ninguna variable de nivel de zona**, a propósito.
+   El diagnóstico midió que es el bloque más útil fuera de muestra —−7,5 % contra −4,3 % del
+   calendario— ([`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md), §5.3).
+2. **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario), que
+   el diagnóstico midió en −11,8 % fuera de muestra, y verificar que **la forma saturada no se
+   usa**: cruzar municipio y calendario en celdas independientes empeora el resultado (+10,4 %).
+3. **Definir las particiones cronológicas** con el conjunto de prueba reservado.
+4. **Tratar la tendencia creciente** (+11,0 % entre mitades): recalibrar nivel, incluir tendencia
+   o ponderar los datos recientes. Decisión abierta.
+5. **Decidir el escalado** y declararlo.
+6. **Evaluar el rezago de un día** como variable candidata: el diagnóstico detecta persistencia
+   genuina en 5 de 8 municipios, de magnitud pequeña (§5.2).
+7. **Reconsiderar el clima**: fuera de muestra no aporta nada.
+8. **Rediseñar el hold-out de zonas**: con 8 municipios, dejar uno afuera por vez y promediar las
+   ocho corridas es lo único defendible, y su poder estadístico es bajo.
+9. **Migrar a `src/`** el código geográfico duplicado entre este notebook y el de diagnóstico.
+   Hoy la duplicación es deliberada —es lo que hace independiente a la verificación cruzada—, así
+   que al unificarlos hay que reemplazarla por otra forma de contraste.
+
+**Dos pendientes que salieron de la lista porque ya no aplican:**
+
+- **Decidir el filtro de 2021** — resuelto: `FECHA_INICIO = "2021-07-01"`, justificado en el
+  diagnóstico (§4).
+- **Balanceo e interpolación de ceros** — no corresponden con esta zonificación (§7.2).
