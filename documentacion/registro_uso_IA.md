@@ -1038,3 +1038,131 @@ lectura del panel del ETL), `documentacion/resumen_diagnostico_datos.md` (secci�
 `experiments/etl_montevideo/` (15 tablas, 2 figuras), `experiments/diagnostico_datos/`
 (reejecutado), `data/processed/` (6 archivos regenerados), `HANDOFF.md`,
 `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-10 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** creación de `notebooks/base.ipynb` —el modelo base del proyecto— sobre la serie
+diaria de un municipio (`data/processed/panel_zona_top.csv`). Cubre los tres puntos del
+Entregable 2: protocolo de evaluación (particiones, validación, métricas, sin fugas), conjunto
+de prueba reservado, y línea base con interpretación preliminar. Se dejó como referencia de
+estilo el notebook del curso `notebooks/Ejemplos/Series_temporales_y_pronóstico_ejemplo.ipynb`.
+Documento acompañante nuevo: `documentacion/resumen_base.md`.
+
+### Prompt 1
+
+> Claude, lee el claude.md y handoff para que tengas mejor contexto del proyecto. Luego vamos a
+> proceder a hacer lo siguiente:
+> En esta carpeta cree un notebook que esta vacio que se llama "base.ipynb". La idea de este
+> notebook es ya crear el modelo base para nuestro proyecto. El dataset que vamos a utilizar esta
+> en "data/processed/panel_zona_top.csv".
+> Los puntos que debe cubrir este notebook son:
+> - Un protocolo de evaluación válido: particiones, validación y métricas apropiadas, sin fugas
+> de información.
+> - Un conjunto de prueba reservado y no utilizado para ajustar procedimientos ni seleccionar
+> modelos.
+> - Una línea base adecuada y una interpretación de los resultados preliminares.
+> deje un ejemplo de notebook de series temporales que nuestro profesor hizo el año pasado. el
+> ejemplo esta en notebooks/ejemplos. Lo subi para que veas masomenos la estructura de lenguaje
+> que quiero que utilices
+
+**Respuesta (extracto relevante):**
+
+Notebook de 44 celdas, en el registro y la estructura del ejemplo del curso (español, primera
+persona del plural, markdown explicativo antes de cada bloque de código). Decisiones tomadas y su
+origen:
+
+| Decisión | Origen |
+| --- | --- |
+| Métrica principal **desvianza de Poisson media** + MAE, RMSE, razón total predicho/observado, sesgo medio | `resumen_diagnostico_datos.md` §5.1 |
+| Partición cronológica **80 % desarrollo / 20 % prueba reservada** (últimos 329 días); dentro de desarrollo, **backtesting de ventana deslizante** (origen móvil, expansiva, horizonte 7 días, 47 cortes) | Ejemplo del curso (`backtesting_forecaster`, `TimeSeriesFold`); guía 6.2 |
+| Línea base = **tasa × factor de calendario** (media del entrenamiento por `tipo_dia`); contrastada con media constante, naive estacional (t−7), media móvil 56 d × calendario, y una regresión de Poisson de referencia (rezagos t−7/14/21 + calendario + tendencia) | `resumen_diagnostico_datos.md` §5.3 |
+| Backtesting **implementado a mano** (no `skforecast`), para que sea auditable y sin dependencia nueva | criterio del equipo |
+| **`y(t−1)` no se usa** (exigiría recursión; aporte pequeño según el diagnóstico) | `resumen_diagnostico_datos.md` §5.2 |
+
+Resultados (artefactos en `experiments/base/`): en desarrollo la regresión de Poisson tiene la
+menor desvianza (1,364; −10,1 % vs media constante), con la línea base muy cerca (1,378, −9,2 %);
+el naive estacional (t−7) queda descartado (desvianza 7,90). En el **test** (una sola vez): la
+regresión de Poisson 1,030, mejor que la línea base (1,085, −5,0 %) y la media constante (1,263,
+−18,4 %). Los tres finalistas **infra-predicen** el test (razón total 0,88–0,95), lo que confirma
+que la tendencia creciente hay que tratarla explícitamente en el notebook del panel.
+
+**Uso y verificación:** utilizado con adaptaciones (el borrador se reescribió para reemplazar los
+marcadores de interpretación por los números reales de la corrida). Verificaciones realizadas:
+
+1. **Ejecución completa** con `jupyter nbconvert --to notebook --execute --inplace`: 44 celdas,
+   **0 celdas con error**, 11 tablas y 6 figuras escritas en `experiments/base/`. Entorno: se
+   creó un `.venv` (gitignored) sobre Python 3.14.7 con las versiones de `requirements.txt`
+   (`pandas 3.0.5`, `numpy 2.5.2`, `scikit-learn 1.9.0`, `scipy 1.18.1`, `matplotlib 3.11.1`,
+   `statsmodels 0.14.6`, `jupyter 1.1.1`). El notebook usa sólo pandas/numpy/matplotlib/
+   scikit-learn: **no se agregó ninguna dependencia a `requirements.txt`**.
+2. **Verificación de ausencia de fugas**, revisada por lectura del código: medias y coeficientes
+   se estiman con la ventana de entrenamiento de cada corte (`ajuste = historia`); en el test el
+   ajuste queda congelado en el desarrollo (`ajuste_fijo = serie_desarrollo`) y sólo la historia
+   para los rezagos avanza; el modelo de referencia usa rezagos `t−7/14/21` (todos observados
+   para horizonte 7), **sin recursión**; `serie_test` no aparece en el código entre §5 y §9.
+3. **Contraste de cada cifra del documento acompañante contra su artefacto CSV** — todas las
+   tablas de `resumen_base.md` salen de `experiments/base/tablas/`.
+4. **Verificación de la métrica:** `evaluar()` devuelve desvianza 0 para una predicción perfecta;
+   la desvianza de Poisson exige predicciones > 0, resuelto con un recorte a 1e-6.
+5. **Revisión del formato de fecha:** se parsea con `format="%Y-%m-%d"` explícito, no con
+   `dayfirst` ni detección automática, por el error registrado en la sesión 2026-09-07.
+
+**Archivos afectados:** `notebooks/base.ipynb` (nuevo), `documentacion/resumen_base.md` (nuevo),
+`experiments/base/` (11 tablas, 6 figuras, nuevo), `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`, `.venv/` (entorno local, no versionado).
+
+### Prompt 2
+
+> Quisiera que el modelo base sea un desicion tree basico
+
+**Respuesta (extracto relevante):**
+
+Se reemplazó el modelo aprendido del notebook: la regresión de Poisson pasó a ser un
+**árbol de decisión básico** (`DecisionTreeRegressor`, `max_depth=4`, `min_samples_leaf=20`),
+con las mismas variables (rezagos `t−7/14/21`, indicadoras de fin de semana y feriado,
+tiempo en años). Se mantiene `Tasa × calendario` como **línea base del proyecto** porque es
+la que el diagnóstico exige metodológicamente y la que mejor rinde fuera de muestra;
+reemplazarla contradiría `resumen_diagnostico_datos.md`.
+
+Se agregó una **corrida de comparación de profundidad** (§7, `04c_arbol_profundidad.csv`):
+árbol sin podar → profundidad 31, 943 hojas, desvianza de Poisson **12,65**; árbol
+`max_depth=4` (13 hojas) → **1,40**. Justifica el límite de profundidad con evidencia.
+
+Resultado, y es un hallazgo útil para el informe:
+
+- **Desarrollo** (`04_desarrollo_backtesting`): el árbol base (desvianza 1,401) supera a la
+  media constante (1,518, −7,7 %) pero queda por debajo de la línea base `Tasa × calendario`
+  (1,378). Calibración en muestra casi perfecta (razón total 0,998).
+- Importancias (`05_importancias_arbol`): `es_fin_semana` 53 %, `t_anios` 23 %,
+  `es_feriado` 17 %; los tres rezagos juntos < 8 %, `y_lag14` exactamente 0.
+- **Test** (`06_evaluacion_test`, una sola vez): **el árbol es el peor de los tres** —
+  desvianza **1,679**, contra 1,085 de la línea base y 1,263 de la media constante. Razón
+  total 0,723 (infra-predice 28 %, sesgo −1,07/día); el detalle mensual baja a 0,64 en
+  agosto–septiembre.
+- **Causa:** un árbol **no extrapola** — fuera del rango de entrenamiento devuelve el valor
+  de la última hoja. El diagnóstico lo había anticipado para `anio`
+  (`resumen_diagnostico_datos.md`, §5.3). El conjunto de prueba reservado hizo su trabajo:
+  un modelo competitivo en desarrollo se cae en el test.
+
+**Uso y verificación:** utilizado con adaptaciones (el borrador se reescribió para
+reemplazar los números de la regresión de Poisson por los del árbol tras ejecutar).
+Verificaciones:
+
+1. **Reejecución completa** con `nbconvert --execute --inplace`: 46 celdas, 0 errores,
+   12 tablas y 7 figuras en `experiments/base/`. Sin dependencias nuevas
+   (`DecisionTreeRegressor` es de `scikit-learn`, ya en `requirements.txt`).
+2. **Ausencia de fugas revisada de nuevo:** el árbol se entrena con `ajuste` (la ventana de
+   cada corte en desarrollo; el desarrollo completo y congelado en el test); las variables
+   de rezago se construyen sólo con `historia` observada; los rezagos `t−7/14/21` caen
+   todos dentro de la ventana observada para un horizonte de 7 días, sin recursión.
+3. **Contraste de cada cifra del notebook y de `resumen_base.md` contra los CSV de
+   `experiments/base/tablas/`.**
+4. **Lectura de las figuras ejecutadas:** `fig5` muestra el árbol sistemáticamente por
+   debajo del nivel observado del test; `fig4b` la jerarquía de importancias.
+
+**Archivos afectados:** `notebooks/base.ipynb` (regenerado, ahora 46 celdas),
+`documentacion/resumen_base.md` (§1, §4, §5.1–5.4, §6, §7, §8 reescritas),
+`experiments/base/` (12 tablas —nueva `04c`, `05` renombrada de `05_coeficientes_poisson`—, 7 figuras —nueva `fig4b`—),
+`HANDOFF.md`, `documentacion/registro_uso_IA.md`.

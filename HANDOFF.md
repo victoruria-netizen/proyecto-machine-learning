@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-07_
+_Última actualización: 2026-09-10_
 
 ---
 
@@ -712,6 +712,60 @@ las dos series son casi indistinguibles (`figuras/series_zonas.png`). Se conserv
 del pipeline, pero **no sirven como evidencia de generalización**: la evaluación seria es la del
 panel completo con métricas desagregadas por municipio.
 
+### Notebook base: protocolo de evaluación + línea base (2026-09-10)
+
+`notebooks/base.ipynb` creado y **ejecutado de punta a punta sin errores** (44 celdas).
+Trabaja **una sola serie** —`data/processed/panel_zona_top.csv`, MUNICIPIO C, 1.645 días—
+para fijar el protocolo sobre un caso simple antes del panel. Deja **12 tablas y 7
+figuras** en `experiments/base/` y el documento acompañante
+`documentacion/resumen_base.md`.
+
+**Qué fija (los tres puntos del Entregable 2):**
+
+| Punto | Decisión |
+| --- | --- |
+| Protocolo de evaluación | Partición cronológica **80 / 20**; validación interna por **ventana deslizante** (origen móvil, ventana expansiva, horizonte 7 días, 47 cortes); métrica principal **desvianza de Poisson** + MAE, RMSE, razón total predicho/observado y sesgo medio |
+| Conjunto de prueba reservado | Últimos **329 días (20 %)**, 2025-02-06 → 2025-12-31. Congelado entre §5 y §9; usado una sola vez |
+| Línea base del proyecto | **Tasa × factor de calendario** (media del entrenamiento por `tipo_dia`) — la forma multiplicativa que el diagnóstico recomienda |
+| Modelo base aprendido | **Árbol de decisión básico** (`DecisionTreeRegressor`, `max_depth=4`, `min_samples_leaf=20`) con rezagos t−7/14/21, calendario y tendencia. Contrastado con media constante, naive estacional (t−7) y media móvil 56 d × calendario |
+
+**Sin fugas:** medias y árbol se ajustan con la ventana de entrenamiento de cada corte; en
+el test el ajuste queda fijo en el desarrollo; el árbol usa sólo rezagos observados
+(t−7/14/21), sin recursión; backtesting implementado a mano (~15 líneas, sin `skforecast`)
+para que sea auditable.
+
+**Resultados (artefactos en `experiments/base/tablas/`):**
+
+- **Poda obligatoria** (`04c_arbol_profundidad`): árbol sin podar → profundidad 31, 943
+  hojas, desvianza **12,65**; árbol `max_depth=4` (13 hojas) → **1,40**.
+- **Desarrollo** (`04_desarrollo_backtesting`): el árbol base (1,401) **supera a la media
+  constante** (1,518, −7,7 %) pero **queda por debajo de la línea base** `Tasa × calendario`
+  (1,378). Calibración en muestra del árbol casi perfecta (razón 0,998). `Naive estacional
+  (t−7)` **descartada** (desvianza 7,90).
+- Importancias del árbol (`05_importancias_arbol`): `es_fin_semana` 53 %, `t_anios` 23 %,
+  `es_feriado` 17 %; rezagos < 8 % (`y_lag14` = 0).
+- **Test** (`06_evaluacion_test`, una sola vez): **el árbol es el peor de los tres** —
+  desvianza **1,679**, contra 1,085 de la línea base y 1,263 de la media constante. Razón
+  total 0,723 (infra-predice 28 %, sesgo −1,07/día). **Causa: el árbol no extrapola la
+  tendencia** (el diagnóstico lo anticipó para `anio`). La línea base también infra-predice
+  (0,884) pero mucho menos.
+- **Conclusión:** la línea base del proyecto sigue siendo `Tasa × calendario`; un árbol
+  básico no es un modelo final adecuado para una serie con tendencia. **El protocolo hizo
+  su trabajo:** un modelo competitivo en desarrollo se cayó en el test reservado.
+
+**Entorno:** no había `.venv` en la máquina. Se creó uno (`python -m venv .venv`,
+gitignored) con `pandas 3.0.5 / numpy 2.5.2 / scikit-learn 1.9.0 / scipy 1.18.1 /
+matplotlib 3.11.1 / statsmodels 0.14.6 / jupyter 1.1.1` sobre **Python 3.14.7** (el
+sistema; `requirements.txt` dice 3.13). El notebook usa sólo pandas/numpy/matplotlib/
+scikit-learn: **no se agregó ninguna dependencia a `requirements.txt`**.
+
+**Lo que este notebook NO hace y queda para el del panel:** métricas desagregadas por
+municipio, tasa histórica por municipio (sólo con entrenamiento), rezago de 1 día como
+candidato, tratamiento explícito de la tendencia, destino del clima, hold-out de zonas, y
+comparar el árbol base contra familias apropiadas para conteo (Poisson, boosting con
+pérdida Poisson, RandomForest) con ajuste de hiperparámetros. El par top/contraste sigue
+sin servir como evidencia de generalización.
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
@@ -740,14 +794,19 @@ de 2026)**. En orden de prioridad.
 - [ ] **Borrar los artefactos huérfanos**: `experiments/preparacion_montevideo/`,
       `data/processed/montevideo/` y los Parquet nacionales de `data/processed/`. Ninguno lo
       genera código vigente. Ya no hay razón para esperar: el ETL vigente está validado.
-- [ ] **Fijar las métricas** del protocolo de evaluación: **desvianza de Poisson** como principal
-      más calibración. *Ojo:* la redacción anterior hablaba de «objetivo Poisson con exceso de
+- [x] ~~**Fijar las métricas** del protocolo de evaluación~~ — hecho en `notebooks/base.ipynb`
+      (§4): **desvianza de Poisson** como principal, más MAE, RMSE, razón total predicho/observado
+      y sesgo medio. *Ojo:* la redacción anterior hablaba de «objetivo Poisson con exceso de
       ceros» y **ya no aplica** — con municipios los ceros son el 8,60 %.
 - [x] ~~Decidir el balanceo~~ — **no corresponde**: con 8,60 % de ceros no hay clases que
       balancear. Las notas anteriores sobre exceso de ceros y Tweedie están superadas.
-- [ ] **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario) y
-      evaluarla con el protocolo definitivo. El diagnóstico ya midió que es la mejor forma
-      disponible (−11,8 % fuera de muestra) y que **la forma saturada empeora** el resultado.
+- [~] **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario) y
+      evaluarla con el protocolo definitivo. **Hecho sobre una sola serie** en
+      `notebooks/base.ipynb` (§7): `Tasa × calendario` mejora la desvianza un −9,2 % vs la media
+      constante en desarrollo y un −14,1 % en el test. **Falta llevarlo al panel de 8 municipios**
+      con la tasa histórica por municipio ajustada sólo con entrenamiento. El diagnóstico ya midió
+      que es la mejor forma disponible (−11,8 % fuera de muestra) y que **la forma saturada
+      empeora** el resultado.
 
 **Metodología abierta**
 
@@ -764,14 +823,20 @@ de 2026)**. En orden de prioridad.
       entrenamiento). Sigue siendo el bloque más útil fuera de muestra (−7,5 %) y hoy no está en
       el panel.
 - [ ] **Tratar la tendencia creciente** (+11,0 % entre mitades): recalibrar nivel, incluir
-      tendencia o ponderar los datos recientes. Decisión abierta.
+      tendencia o ponderar los datos recientes. Decisión abierta. **`base.ipynb` lo confirmó como
+      problema real:** en el test los tres finalistas infra-predicen (razón total 0,72–0,88);
+      el árbol de decisión, que **no extrapola**, es el que peor rinde (razón 0,72, desvianza
+      1,68 contra 1,08 de la línea base). La ventana móvil de 56 d corrige la calibración en
+      desarrollo sin bajar la desvianza.
 - [ ] **Evaluar el rezago de un día** como variable candidata, contra la línea base y bajo el
       mismo protocolo. Ya no se lo descarta de entrada: hay señal en 5 de 8 municipios.
 - [ ] **Rediseñar el hold-out de zonas del «megamodelo».** Con 8 municipios, dejar uno afuera por
       vez y promediar las ocho corridas es lo único defendible; declarar que su poder estadístico
       es bajo y que no puede ser la evidencia principal de la generalización.
-- [ ] **Definir las particiones cronológicas** con el conjunto de prueba reservado. La partición
-      por la mitad que usa el diagnóstico es **sólo instrumental** y no sustituye al protocolo.
+- [~] **Definir las particiones cronológicas** con el conjunto de prueba reservado. **Definidas
+      en `base.ipynb` (§5):** 80 % desarrollo / 20 % prueba reservada; dentro de desarrollo,
+      ventana deslizante con origen móvil (75 % entrenamiento inicial, 47 cortes de 7 días). La
+      partición por la mitad del diagnóstico era sólo instrumental. **Falta aplicarlo al panel.**
 - [ ] **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y
       todos con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
 

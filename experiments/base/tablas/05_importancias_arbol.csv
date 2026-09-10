@@ -1,0 +1,7 @@
+variable,importancia
+es_fin_semana,0.5253
+t_anios,0.2259
+es_feriado,0.1714
+y_lag21,0.0644
+y_lag7,0.013
+y_lag14,0.0
