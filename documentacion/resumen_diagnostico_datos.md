@@ -1,8 +1,9 @@
 # Resumen del diagnóstico de datos — Montevideo por municipios
 
 **Notebook:** [`notebooks/diagnostico_datos.ipynb`](../notebooks/diagnostico_datos.ipynb)
-**Artefactos:** `experiments/diagnostico_datos/` (43 tablas CSV y 3 figuras PNG)
-**Fecha de ejecución:** 2026-09-07
+**Artefactos:** `experiments/diagnostico_datos/` (48 tablas CSV y 4 figuras PNG)
+**Fecha de ejecución:** 2026-09-14 (reejecución que agrega la sección 2.8, *Análisis de outliers*, con
+sus dos criterios; el resto de las cifras no cambió respecto de la corrida del 2026-09-07)
 **Alcance:** Montevideo, **2021-07-01 a 2025-12-31**, unidad de análisis **(día, municipio)**
 
 ---
@@ -38,6 +39,12 @@ cifra.
 > | 2026-08-30 | País entero, celdas de 1 km, 2018–2025 | **superada** |
 > | 2026-09-04 | Montevideo, 62 barrios, desde 2021-01-01 | **superada** |
 > | **2026-09-07** | **Montevideo, 8 municipios, desde 2021-07-01** | **vigente** |
+> | 2026-09-14 | Mismo alcance + sección de outliers (§3.8) | **vigente — ampliación, no reemplazo** |
+>
+> La corrida del 2026-09-14 **no cambió ninguna cifra existente**: en `experiments/diagnostico_datos/`
+> sólo aparecieron las tablas `10c_outliers_diarios` a `10g_comparacion_criterios` y la figura `fig0_outliers_diarios.png`,
+> y se actualizaron `00b_entorno.csv` (fecha de ejecución) y `25_artefactos.csv` (listado). Las
+> demás tablas y figuras quedaron idénticas byte a byte (verificado con `git status`).
 >
 > No es un cambio cosmético. Al pasar de barrios a municipios el porcentaje de ceros del panel
 > cae de 71,96 % a **8,60 %**, y **dos conclusiones centrales cambian de signo**: ahora *sí* se
@@ -217,7 +224,8 @@ porte: la cantidad de casos ambiguos por borde es, por construcción, mucho meno
 
 No hay días vacíos ni saltos en el calendario: la serie diaria del departamento está completa. Un
 día sin registros habría sido sospechoso de falla del sistema de carga más que de ausencia real de
-siniestros, y no ocurre.
+siniestros, y no ocurre. Si el mínimo y el máximo son o no valores atípicos se evalúa con una regla
+explícita en §3.8.
 
 ### 3.6 Calidad de la asignación a municipios — `tablas/09_calidad_capa_municipios.csv`
 
@@ -257,6 +265,171 @@ resolución diaria las variables meteorológicas son prácticamente uniformes so
 urbanos, de modo que el supuesto es razonable, pero significa que el clima **no puede explicar
 ninguna diferencia entre municipios**: aporta sólo variación temporal, la misma para las ocho
 zonas. Tiene consecuencias directas en §5.3.
+
+### 3.8 Valores atípicos de la serie diaria — `tablas/10c_outliers_diarios.csv` a `10g_comparacion_criterios.csv`, `figuras/fig0_outliers_diarios.png`
+
+> **Sección agregada el 2026-09-14** (sección 2.8 del notebook, *Análisis de outliers*). El mismo
+> día se amplió con el criterio por grupo de calendario, la comparación entre criterios, una figura
+> que coincide con las tablas y la celda de interpretación. **La figura de la primera versión
+> (cajas por día de la semana, con feriados mezclados) quedó reemplazada.**
+
+**Qué se mide.** §3.5 informa el mínimo, la mediana y el máximo de la serie diaria; esta sección
+reemplaza la lectura a ojo por una **regla explícita: el criterio de Tukey**, que marca como
+atípico todo día fuera de [Q1 − 1,5·IQR, Q3 + 1,5·IQR]. La desigualdad es estricta: un día
+exactamente en el límite **no** es atípico.
+
+**Sobre qué serie.** La serie diaria **del departamento**: siniestros por fecha del recorte ya
+**deduplicado** (36.623 registros, antes de la asignación a municipios), 1.645 días. **No** es la
+variable objetivo, que se cuenta por (día, municipio); su distribución está en §5.1.
+
+**Propósito declarado en el notebook:** de *calidad*, no de modelado — separar los días que se
+apartan por una razón de proceso (como los artefactos de carga de §3.2) de los que simplemente
+tuvieron actividad alta o baja real.
+
+**En dos pasos**, porque los tipos de día tienen niveles muy distintos (24,33 entre semana, 18,31
+fin de semana, 15,64 feriado; `15_cobertura_calendario`) y un criterio global confunde calendario
+con anomalía:
+
+1. **Criterio global** — todos los días juntos (`10c`, `10d`).
+2. **Criterio por grupo de calendario** — el mismo criterio dentro de cada día de la semana, con los
+   **feriados como grupo propio** (`10e`, `10f`). Los feriados se construyen igual que en §4.4
+   (`categories=("public","bank")`); el grupo tiene 77 días, los mismos de `15_cobertura_calendario`.
+
+Los dos resultados se comparan en `10g`.
+
+#### Paso 1 — criterio global (`10c_outliers_diarios`)
+
+| Indicador | Valor |
+| --- | --- |
+| Q1 (percentil 25) | 18 |
+| Q3 (percentil 75) | 27 |
+| Rango intercuartílico (IQR) | 9 |
+| Límite inferior (Q1 − 1,5·IQR) | 4,5 |
+| Límite superior (Q3 + 1,5·IQR) | 40,5 |
+| Días por debajo del límite inferior | **1** |
+| Días por encima del límite superior | **7** |
+| **Total de días atípicos** | **8 (0,49 % del período)** |
+
+El detalle de los ocho días está en `10d_dias_atipicos` y, con su contexto de calendario, en la
+tabla de `10f` más abajo (columna «Global»).
+
+#### Paso 2 — criterio por grupo de calendario (`10e_outliers_por_calendario`)
+
+| Grupo | Días | Media diaria | Q1 | Q3 | IQR | Límite inf. | Límite sup. | Atíp. abajo | Atíp. arriba |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| lunes | 212 | 24,08 | 20 | 27 | 7 | 9,5 | 37,5 | 1 | 2 |
+| martes | 225 | 23,77 | 20 | 28 | 8 | 8,0 | 40,0 | 0 | 0 |
+| miércoles | 225 | 23,80 | 20 | 28 | 8 | 8,0 | 40,0 | 0 | 0 |
+| jueves | 224 | 23,86 | 19 | 28 | 9 | 5,5 | 41,5 | 0 | 1 |
+| viernes | 228 | 26,11 | 22 | 30 | 8 | 10,0 | 42,0 | 0 | 1 |
+| sábado | 228 | 20,49 | 16 | 24 | 8 | 4,0 | 36,0 | 0 | 1 |
+| domingo | 226 | 16,12 | 13 | 19 | 6 | 4,0 | 28,0 | 0 | 3 |
+| feriado | 77 | 15,64 | 12 | 19 | 7 | 1,5 | 29,5 | 0 | 0 |
+
+> **Cuidado al citar las medias:** las de los días de la semana de esta tabla **excluyen los
+> feriados**, y por eso difieren de las de `20c_perfil_semanal` (§4.4), que los incluyen. Por
+> ejemplo, viernes 26,11 aquí contra 25,74 allí.
+
+#### Comparación de los dos criterios (`10g_comparacion_criterios`)
+
+| Criterio | Días |
+| --- | --- |
+| Atípicos con el criterio global | 8 |
+| Atípicos dentro de su grupo de calendario | **9** |
+| Atípicos con ambos criterios | 3 |
+| Sólo con el criterio global | 5 |
+| Sólo dentro de su grupo de calendario | 6 |
+
+#### Los catorce días que marca algún criterio (`10f_dias_atipicos_por_calendario`)
+
+«Días hasta el feriado» es positivo si el feriado más cercano es posterior y negativo si es anterior.
+
+| Fecha | Siniestros | Grupo | Media del grupo | Lado | Global | En su grupo | Feriado más cercano | Días hasta el feriado |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2021-10-22 | 42 | viernes | 26,11 | encima | ✔ | — | Día de la Diversidad Cultural | −11 |
+| 2022-01-16 | 4 | domingo | 16,12 | debajo | ✔ | — | Día de los Niños | −10 |
+| 2022-01-17 | 8 | lunes | 24,08 | debajo | — | ✔ | Día de los Niños | −11 |
+| 2023-05-06 | 38 | sábado | 20,49 | encima | — | ✔ | Día de los Trabajadores | −5 |
+| 2023-06-09 | 41 | viernes | 26,11 | encima | ✔ | — | Natalicio de Artigas | +10 |
+| 2023-12-22 | 41 | viernes | 26,11 | encima | ✔ | — | Día de la Familia | +3 |
+| 2024-05-10 | 43 | viernes | 26,11 | encima | ✔ | ✔ | Batalla de Las Piedras | +8 |
+| 2024-10-14 | 41 | lunes | 24,08 | encima | ✔ | ✔ | Día de la Diversidad Cultural | −2 |
+| 2024-11-24 | 31 | domingo | 16,12 | encima | — | ✔ | Día de los Difuntos | −22 |
+| 2025-04-11 | 42 | viernes | 26,11 | encima | ✔ | — | Semana de Turismo | +3 |
+| 2025-05-04 | 32 | domingo | 16,12 | encima | — | ✔ | Día de los Trabajadores | −3 |
+| 2025-05-11 | 29 | domingo | 16,12 | encima | — | ✔ | Batalla de Las Piedras | +7 |
+| 2025-12-11 | 44 | jueves | 23,86 | encima | ✔ | ✔ | Día de la Familia | +14 |
+| 2025-12-22 | 40 | lunes | 24,08 | encima | — | ✔ | Día de la Familia | +3 |
+
+*(«Lado» se mide contra la mediana del grupo. En el CSV los días de la semana coinciden con el
+grupo en las 14 filas, porque ninguno es feriado; aquí se omitió esa columna.)*
+
+**Evidencia — lo que las tablas muestran:**
+
+- **El calendario explica la mayoría de lo que marca el criterio global.** De sus 8 días, **5 dejan
+  de ser atípicos dentro de su grupo**: cuatro viernes de 41 y 42 (límite superior del viernes:
+  42,0) y el mínimo del período, domingo 2022-01-16 con 4 (límite inferior del domingo: 4,0).
+- **Tres de esos cinco están exactamente en el límite** de su grupo (los dos viernes de 42 y el
+  domingo de 4). Con la desigualdad estricta no son atípicos; con otra convención podrían serlo.
+- **Dentro de su grupo quedan 9 de 1.645 días**, 8 por encima y 1 por debajo. Tres ya eran atípicos
+  globales: el **máximo** del período (jueves 2025-12-11, 44), viernes 2024-05-10 (43) y lunes
+  2024-10-14 (41). Seis sólo aparecen al descontar el calendario: tres domingos (29, 31 y 32), un
+  sábado (38), un lunes alto (40) y un lunes bajo (8).
+- **Ningún feriado es atípico** dentro de su grupo.
+- **Los ocho atípicos altos dentro de su grupo son de 2023 en adelante**, siete de ellos de 2024–2025.
+- **Tres días de la lista están a +3 días de un feriado**: viernes 2023-12-22 y lunes 2025-12-22
+  (Día de la Familia, 25 de diciembre) y viernes 2025-04-11 (Semana de Turismo). Dos de ellos sólo
+  los marca el criterio global.
+- **El único atípico bajo dentro de su grupo (lunes 2022-01-17, 8) es el día siguiente al mínimo**
+  del período (domingo 2022-01-16, 4).
+- **Dos de los tres domingos altos son de mayo de 2025** (días 4 y 11).
+
+**Inferencia** (celda de interpretación del notebook, redactada con Claude a pedido del equipo;
+**el equipo debe validarla**):
+
+- **No se detectan artefactos de carga.** La serie ya está deduplicada (§3.2) y no tiene días
+  vacíos (§3.5); nada en la fuente distingue estos días de los demás salvo el conteo. No prueba que
+  todos los registros sean correctos: dice que el diagnóstico no detecta ninguno anómalo.
+- **Los atípicos altos concentrados en 2024–2025 son lo esperable con la tendencia creciente**
+  (§4.1): el criterio por grupo descuenta el calendario, pero no el nivel de cada año.
+- **La cercanía a feriados de fin de año y Turismo es compatible con más movimiento en esas
+  fechas**, pero con tres casos es una observación, no un efecto medido. La variable de calendario
+  vigente marca el feriado, no los días previos.
+- **Hipótesis externa, no verificada con los datos del proyecto:** el domingo 2024-11-24 coincide
+  con la segunda vuelta de las elecciones nacionales y el 2025-05-11 con las elecciones
+  departamentales y municipales. **Para usarla en el informe hay que citar una fuente**; el
+  repositorio no la respalda.
+
+**Decisión: no se elimina ni se corrige ningún día**, con ninguno de los dos criterios. Las
+variables `atipicos`, `atipico_global` y `atipico_grupo` no se usan fuera de la sección 2.8 del
+notebook. Justificación escrita en el notebook: ningún atípico tiene señal de error, son pocos, y
+recortarlos haría que el entrenamiento subestime la variabilidad real. Como los límites no alimentan
+ninguna transformación, calcularlos sobre el período completo **no introduce fuga**.
+
+**Consecuencia para el modelado:** coherente con §5.3, el calendario (día de la semana + feriado)
+explica la mayoría de los días que un criterio global marca como extremos. Lo que queda son días
+aislados, concentrados en los años de mayor nivel.
+
+#### La figura — `figuras/fig0_outliers_diarios.png`
+
+Una caja por grupo de calendario (lunes a domingo y feriado). **Puntos rellenos:** atípicos
+dentro de su grupo (`10e`, `10f`). **Anillos:** atípicos con el criterio global (`10d`). **Líneas
+punteadas:** límites globales (4,5 y 40,5).
+
+**La figura coincide con las tablas, y está verificado.** La celda que la dibuja comprueba con
+`assert` que los puntos de cada caja sean exactamente los días de `10f` marcados en su grupo, y que
+los anillos sean exactamente los de `10d`; si no coincidieran, la ejecución se detendría. Por eso la
+figura se puede citar junto con las tablas. Se ve, por ejemplo, que tres de los anillos del viernes
+caen dentro del bigote de su caja.
+
+**Limitaciones que siguen abiertas:**
+
+1. **El análisis es sobre la serie del departamento**, no sobre el objetivo por (día, municipio),
+   cuya distribución está en §5.1.
+2. **El umbral 1,5·IQR es una convención.** Tres días están exactamente en el límite de su grupo;
+   con otro multiplicador el conjunto cambia en el borde.
+3. **El criterio por grupo no descuenta la tendencia**: los años de mayor nivel producen más
+   atípicos altos.
 
 ---
 
@@ -658,6 +831,20 @@ tres tienen que estar en el informe**.
   bajo; se puede reportar, no se puede usar como evidencia principal.
 - ❌ «Se eliminó el efecto de la pandemia.» → Se excluyó el semestre afectado. **Queda una
   tendencia creciente** que el corte no elimina, y noviembre de 2021 sigue siendo atípico.
+- ❌ «Se eliminaron / trataron los outliers.» → **No se eliminó ni se modificó ningún día**, con
+  ninguno de los dos criterios de §3.8.
+- ❌ «Los días atípicos son errores de carga» / «se verificó que no hay errores». → Lo que se puede
+  decir es que el diagnóstico **no detecta** artefactos; no se contrastó día por día con la fuente.
+- ❌ «La variable objetivo tiene N outliers» / «el objetivo no tiene outliers». → El criterio se
+  aplicó a la serie **del departamento**, no al conteo por (día, municipio). Sobre el objetivo no se
+  hizo análisis de atípicos.
+- ❌ «Hay 8 días atípicos» sin decir el criterio. → Son **8 con Tukey global y 9 dentro de su grupo
+  de calendario, y sólo 3 en común** (`10g`). El criterio que responde la pregunta de calidad es el
+  segundo.
+- ❌ «Las vísperas de feriado aumentan la siniestralidad.» → Son **tres días** a +3 de un feriado.
+  Es una observación, no un efecto medido.
+- ❌ «Las elecciones aumentaron los siniestros.» → Es una **hipótesis externa** sobre dos domingos,
+  sin fuente en el repositorio ni medición.
 
 ### Sobre el subregistro
 
@@ -704,13 +891,14 @@ informe.
 
 ## 8. Índice de artefactos
 
-`experiments/diagnostico_datos/` — **43 tablas y 3 figuras**. `tablas/25_artefactos.csv` lista
+`experiments/diagnostico_datos/` — **48 tablas y 4 figuras**. `tablas/25_artefactos.csv` lista
 todas con su tamaño.
 
 **Figuras:**
 
 | Figura | Qué muestra | Sección |
 | --- | --- | --- |
+| `fig0_outliers_diarios.png` | Cajas de la serie diaria por grupo de calendario (lunes a domingo y feriado). Puntos = atípicos en su grupo (`10f`); anillos = atípicos globales (`10d`); líneas = límites globales. Coincidencia con las tablas verificada con `assert` | 3.8 |
 | `fig1_cobertura_temporal.png` | Serie mensual, con el 1.er semestre de 2021 sombreado como excluido | 4.1 |
 | `fig2_cobertura_territorial.png` | Mapa coroplético de los 8 municipios, etiquetados, por siniestros acumulados | 4.2 |
 | `fig3_senal_temporal.png` | ACF por municipio — observada, residuo y banda nula (izq.); ACF de la serie agregada, cruda y sin calendario (der.) | 5.2 |
@@ -721,7 +909,7 @@ todas con su tamaño.
 | --- | --- |
 | Trazabilidad | `00_procedencia`, `00b_entorno`, `01_esquema_crudo`, `02_recorte_alcance` |
 | Disponibilidad | `03_disponibilidad_variables`, `03b_disponibilidad_exogenas` |
-| Calidad | `04_completitud`, `05_duplicados`, `06_consistencia`, `06b_consistencia_otros`, `07_precision_espacial`, `08_validez_temporal`, `09_calidad_capa_municipios`, `09b_siniestros_sin_municipio`, `10_calidad_clima`, `10b_clima_resumen` |
+| Calidad | `04_completitud`, `05_duplicados`, `06_consistencia`, `06b_consistencia_otros`, `07_precision_espacial`, `08_validez_temporal`, `09_calidad_capa_municipios`, `09b_siniestros_sin_municipio`, `10_calidad_clima`, `10b_clima_resumen`, `10c_outliers_diarios`, `10d_dias_atipicos`, `10e_outliers_por_calendario`, `10f_dias_atipicos_por_calendario`, `10g_comparacion_criterios` |
 | **Corte de pandemia** | `12_pandemia_paso1_nivel`, `12b_pandemia_paso2_indice_estacional`, `12c_pandemia_paso3_jul_dic`, `12d_pandemia_paso3_forma`, `12e_costo_del_corte` |
 | Cobertura | `11_cobertura_temporal_anual`, `11b_cobertura_mensual`, `13_cobertura_municipios`, `13b_concentracion_territorial`, `14_panel_dia_municipio`, `15_cobertura_calendario`, `16_feriados`, `16b_feriados_omitidos_por_defecto` |
 | Adecuación | `17_distribucion_objetivo`, `18_dispersion_objetivo`, `19_senal_temporal_municipios`, `20_senal_serie_agregada`, `20b_varianza_calendario`, `20c_perfil_semanal`, `22_adecuacion_objetivo` |
@@ -762,3 +950,8 @@ Lo que este diagnóstico **deja planteado** y corresponde a los notebooks siguie
    de exceso de ceros están superadas.
 10. **Decidir el diseño del hold-out de zonas** (§5.4): con 8 municipios, dejar uno afuera por vez
     y promediar es lo único defendible.
+11. ~~Cerrar el análisis de outliers~~ — **hecho** (2026-09-14): celda de interpretación, criterio
+    por grupo de calendario (`10e`–`10g`), cruce con el feriado más cercano y figura verificada
+    contra las tablas (§3.8). Queda: **validar la interpretación** (fue redactada con Claude);
+    **conseguir una fuente** si se quiere usar la hipótesis electoral de los domingos; y,
+    opcionalmente, repetir el criterio sobre el objetivo por (día, municipio).

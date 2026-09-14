@@ -1,0 +1,10 @@
+indicador,valor
+Q1 (percentil 25),18.0
+Q3 (percentil 75),27.0
+rango intercuartílico (IQR),9.0
+límite inferior (Q1 − 1.5·IQR),4.5
+límite superior (Q3 + 1.5·IQR),40.5
+días atípicos por debajo del límite inferior,1.0
+días atípicos por encima del límite superior,7.0
+total de días atípicos,8.0
+… como % del período,0.49

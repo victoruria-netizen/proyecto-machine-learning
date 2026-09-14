@@ -1166,3 +1166,124 @@ Verificaciones:
 `documentacion/resumen_base.md` (§1, §4, §5.1–5.4, §6, §7, §8 reescritas),
 `experiments/base/` (12 tablas —nueva `04c`, `05` renombrada de `05_coeficientes_poisson`—, 7 figuras —nueva `fig4b`—),
 `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-09-14 — Victor Uria — Claude Code (Anthropic, Claude Opus 5)
+
+**Contexto:** el equipo agregó a mano la sección 2.8 *Análisis de outliers* en
+`notebooks/diagnostico_datos.ipynb` y lo reejecutó. Se pidió documentarla en `HANDOFF.md` y en el
+documento acompañante del notebook. Claude **no modificó el notebook ni lo ejecutó**: documentó la
+corrida que ya estaba guardada.
+
+### Prompt 1
+
+> claude, hice una nueva seccion en diagnostico de datos, 2.8 outliers. Documentalo en handoff y resumen diagnostico de datos con su respectiva fecha
+
+**Respuesta (extracto relevante):**
+
+Se agregó la **§3.8** a `resumen_diagnostico_datos.md` (la numeración del resumen va una sección
+por delante de la del notebook) y una sección fechada en `HANDOFF.md`. Contenido central, tomado
+de `10c_outliers_diarios.csv` y `10d_dias_atipicos.csv`:
+
+- Criterio de Tukey sobre la serie diaria del departamento: Q1 18, Q3 27, IQR 9, límites **4,5** y
+  **40,5**; **8 días atípicos (0,49 %)**, 1 inferior (2022-01-16, 4) y 7 superiores (41–44).
+- De los 7 superiores, **5 son viernes** y 6 son de 2023 en adelante.
+- El notebook **no elimina ningún día**; la sección es descriptiva.
+
+Observaciones señaladas al equipo, no resueltas:
+
+1. La sección 2.8 **no tiene celda de interpretación**: termina en la figura.
+2. El criterio global **no descuenta el calendario**, lo que explica la concentración en viernes.
+3. En `fig0_outliers_diarios.png` **los puntos no son los atípicos de `10d`**: `matplotlib`
+   calcula los atípicos por caja (por día de la semana), mientras que las líneas horizontales son
+   los límites globales. Se recomendó una tabla por día de la semana antes de citar esa diferencia.
+
+La lectura «el patrón es compatible con actividad real (calendario + tendencia), no con fallas de
+carga» se dejó marcada explícitamente como **inferencia de Claude a validar por el equipo**, porque
+el notebook no la escribe ni la verifica.
+
+**Uso y verificación:** utilizado tal cual en la documentación; la interpretación queda sujeta a
+revisión del equipo. Verificaciones:
+
+1. **Cada cifra de §3.8 y del HANDOFF contrastada contra `10c_outliers_diarios.csv` y
+   `10d_dias_atipicos.csv`**; los días de la semana y la cuenta por año se contaron sobre `10d`. Las
+   medias por `tipo_dia` y la del viernes se tomaron de §4.4 del resumen (`15_cobertura_calendario`,
+   `20c_perfil_semanal`), que no cambiaron.
+2. **Que no cambió ninguna cifra previa:** `git status` / `git diff` sobre
+   `experiments/diagnostico_datos/` muestran sólo 3 archivos nuevos y 2 modificados (`00b_entorno`:
+   fecha de ejecución; `25_artefactos`: listado). Conteo en disco: 45 tablas y 4 figuras.
+3. **Que la corrida no tiene errores:** recorrido con Python de las salidas del `.ipynb`
+   (0 salidas de tipo error, 80 celdas).
+4. **Que no hay eliminación de atípicos ni fuga:** búsqueda de `atipicos`, `LIM_INF` y `LIM_SUP` en
+   todas las celdas; sólo aparecen en las dos celdas de la sección 2.8.
+5. **Qué serie se analiza:** `por_dia = df_dedup.groupby("Fecha").size()`, es decir el recorte ya
+   deduplicado, antes de asignar municipios.
+6. **Referencias internas del markdown de la 2.8** (a 2.2, 2.5 y 4.1) contrastadas contra los
+   encabezados del notebook: son correctas.
+7. **Lectura de la figura** para describir qué representan puntos y líneas; la diferencia entre
+   figura y tabla se describe sólo cualitativamente, por no tener artefacto tabular.
+
+**Archivos afectados:** `documentacion/resumen_diagnostico_datos.md` (encabezado, tabla de
+versiones, §3.5, §3.8 nueva, §6, §8, §9), `HANDOFF.md` (fecha, §3, sección nueva, pendientes),
+`documentacion/registro_uso_IA.md`.
+
+### Prompt 2
+
+*(Los tres puntos refieren a las tres observaciones de la respuesta anterior: falta de celda de
+interpretación, figura y tabla que no marcaban los mismos días, y criterio global que mezcla
+calendario.)*
+
+> 1. Agrega la celda
+> 2. Soluciona esto, si no podes, le hacemos caso a los valores calculados en la tabla y dejamos la grafica para visualizar. 
+> 3. Resolve.
+
+**Respuesta (extracto relevante):**
+
+Se editó la sección 2.8 del notebook (con `nbformat`, desde un script; el notebook excede el
+tamaño que admite la herramienta de edición de celdas) y se reejecutó completo:
+
+1. **Criterio por grupo de calendario** (resuelve el punto 3). Celda nueva que aplica Tukey dentro
+   de cada día de la semana, con los feriados como grupo propio (construidos igual que en la
+   sección 3.4, `categories=("public","bank")`). Genera `10e_outliers_por_calendario`,
+   `10f_dias_atipicos_por_calendario` (incluye el feriado más cercano y la distancia en días) y
+   `10g_comparacion_criterios`.
+2. **Figura rehecha** (resuelve el punto 2 sin tener que recurrir a la alternativa del equipo): una
+   caja por grupo; puntos rellenos = atípicos en su grupo, anillos = atípicos globales. Verificación
+   dentro de la celda:
+
+   ```python
+   for g, puntos in zip(GRUPOS_CAL, caja["fliers"]):
+       esperado = sorted(por_dia[(grupo_cal == g) & atipico_grupo].tolist())
+       assert sorted(puntos.get_ydata().tolist()) == esperado, f"figura y 10f difieren en «{g}»"
+   assert glob.index.equals(atipicos.sort_index().index), "anillos de la figura y 10d difieren"
+   ```
+3. **Celda de interpretación** (punto 1), escrita después de ejecutar y con las cifras de las
+   tablas: 8 atípicos globales, 9 dentro de su grupo, 3 en común; 5 de los 8 globales son normales
+   para su grupo; los 8 atípicos altos por grupo son de 2023 en adelante; 3 días a +3 de un feriado;
+   decisión de no eliminar ningún día. La coincidencia de dos domingos con jornadas electorales
+   (2024-11-24 y 2025-05-11) se escribió como **hipótesis externa no verificada**, que requiere
+   fuente para usarse en el informe.
+
+**Uso y verificación:** utilizado; la interpretación del notebook queda pendiente de validación del
+equipo, y así quedó señalado en `HANDOFF.md` y en el resumen. Verificaciones:
+
+1. **Respaldo** del notebook antes de editar (copia en el scratchpad de la sesión, no versionada).
+2. **Round-trip de `nbformat`** comprobado idéntico al archivo original antes de escribir, para no
+   reformatear el resto del notebook.
+3. **Ejecución completa** con `jupyter nbconvert --execute --inplace` en el `.venv` (Python 3.13.2,
+   el mismo entorno de la corrida del equipo): 0 salidas de error, ninguna celda de código sin
+   ejecutar. Los `assert` de la figura pasaron (la celda imprime la confirmación).
+4. **Ninguna cifra previa cambió:** `git status`/`git diff --stat` sobre
+   `experiments/diagnostico_datos/` sólo muestran `00b_entorno` y `25_artefactos` modificados,
+   además de los archivos nuevos.
+5. **Coherencia con otras tablas:** el grupo «feriado» tiene 77 días, igual que
+   `15_cobertura_calendario.csv`; los días por grupo suman 1.645.
+6. **Lectura de la figura generada** y contraste de cada cifra de la celda de interpretación, del
+   resumen y del HANDOFF contra `10c`, `10e`, `10f` y `10g`.
+7. Las fechas electorales son **conocimiento del modelo, no del repositorio**; por eso se marcaron
+   como hipótesis a verificar y no como hallazgo.
+
+**Archivos afectados:** `notebooks/diagnostico_datos.ipynb` (import `Line2D`, markdown de la 2.8
+ampliado, 1 celda de código nueva, celda de figura reemplazada, 1 celda markdown nueva),
+`experiments/diagnostico_datos/` (`10e`, `10f`, `10g` nuevas; `fig0` regenerada; `00b`, `25`
+actualizadas), `documentacion/resumen_diagnostico_datos.md` (§3.8 reescrita, encabezado, §6, §8,
+§9), `HANDOFF.md`, `documentacion/registro_uso_IA.md`.

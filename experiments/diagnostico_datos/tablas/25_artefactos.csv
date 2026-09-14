@@ -15,6 +15,11 @@ tablas/09_calidad_capa_municipios.csv,0.2 kB
 tablas/09b_siniestros_sin_municipio.csv,0.7 kB
 tablas/10_calidad_clima.csv,0.2 kB
 tablas/10b_clima_resumen.csv,0.4 kB
+tablas/10c_outliers_diarios.csv,0.3 kB
+tablas/10d_dias_atipicos.csv,0.2 kB
+tablas/10e_outliers_por_calendario.csv,0.5 kB
+tablas/10f_dias_atipicos_por_calendario.csv,1.3 kB
+tablas/10g_comparacion_criterios.csv,0.2 kB
 tablas/11_cobertura_temporal_anual.csv,0.2 kB
 tablas/11b_cobertura_mensual.csv,0.4 kB
 tablas/12_pandemia_paso1_nivel.csv,0.1 kB
@@ -41,6 +46,8 @@ tablas/21d_deriva_entre_mitades.csv,0.1 kB
 tablas/22_adecuacion_objetivo.csv,1.2 kB
 tablas/23_coherencia_etl.csv,0.2 kB
 tablas/24_limitaciones.csv,2.8 kB
+tablas/25_artefactos.csv,2.0 kB
+figuras/fig0_outliers_diarios.png,48.3 kB
 figuras/fig1_cobertura_temporal.png,71.1 kB
 figuras/fig2_cobertura_territorial.png,76.9 kB
 figuras/fig3_senal_temporal.png,69.5 kB

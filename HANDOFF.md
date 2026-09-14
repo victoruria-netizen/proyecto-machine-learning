@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-10_
+_Última actualización: 2026-09-14_
 
 ---
 
@@ -72,6 +72,11 @@ _Última actualización: 2026-09-10_
       **16 verificaciones en verde**, y `data/processed/` regenerado. La **verificación cruzada
       entre los dos notebooks pasa con las cinco comprobaciones en verde**: `data/processed/` ya
       es citable en el informe. `resumen_preparacion_montevideo.md` reescrito.
+- [x] **Análisis de outliers en el diagnóstico** (2026-09-14): sección **2.8** nueva en
+      `diagnostico_datos.ipynb` (criterio de Tukey global y por grupo de calendario, con celda de
+      interpretación). Reejecutado sin errores; suma 5 tablas y 1 figura (48 tablas y 4 figuras en total) **sin cambiar ninguna cifra
+      anterior**. Documentado en `resumen_diagnostico_datos.md`, §3.8. Detalle en la sección
+      correspondiente, más abajo.
 
 ### Hallazgos del diagnóstico que condicionan lo que sigue
 
@@ -766,6 +771,59 @@ comparar el árbol base contra familias apropiadas para conteo (Poisson, boostin
 pérdida Poisson, RandomForest) con ajuste de hiperparámetros. El par top/contraste sigue
 sin servir como evidencia de generalización.
 
+### Análisis de outliers en el diagnóstico (2026-09-14)
+
+El equipo agregó a `notebooks/diagnostico_datos.ipynb` la sección **2.8 — Análisis de outliers**,
+entre 2.7 *Calidad de la serie climática* y 3 *Cobertura*. Aplica el **criterio de Tukey**
+(1,5·IQR fuera de Q1 y Q3) a la serie diaria **del departamento** —siniestros por fecha del recorte
+deduplicado, 1.645 días—, para formalizar la lectura de mínimo/máximo de la sección 2.5. Propósito
+declarado: de calidad, no de modelado.
+
+**Primera parte (equipo):** criterio global → `10c_outliers_diarios`, `10d_dias_atipicos` y una
+figura por día de la semana. Al documentarla, Claude señaló tres problemas, y el equipo pidió
+resolverlos en la misma sesión:
+
+| Problema | Resolución (segunda parte, Claude a pedido del equipo) |
+| --- | --- |
+| No había celda de interpretación | Celda markdown agregada al final de la 2.8 |
+| Figura y tabla marcaban días distintos (los puntos de `matplotlib` eran atípicos por caja; las líneas, globales) | Figura rehecha: una caja por grupo de calendario; **puntos = `10f`, anillos = `10d`**; un `assert` verifica que coincidan y detiene la ejecución si no |
+| Tukey global mezcla calendario | **Paso 2:** el mismo criterio dentro de cada grupo (lunes…domingo + feriado) → `10e`, `10f` (con el feriado más cercano a cada día) y `10g` (comparación) |
+
+**Estado de la corrida:** notebook editado con `nbformat` (demasiado grande para la herramienta de
+edición de celdas), reejecutado completo con `nbconvert --execute` en el `.venv` (Python 3.13.2),
+**0 errores**. Tiene 82 celdas y deja 48 tablas y 4 figuras. Entre los artefactos versionados sólo
+cambiaron `00b_entorno.csv` (fecha) y `25_artefactos.csv` (listado): **ninguna cifra ya documentada
+se movió**. Se agregó `from matplotlib.lines import Line2D` a la celda de imports.
+
+**Resultados** (`10c`, `10e`, `10f`, `10g`):
+
+| Indicador | Valor |
+| --- | --- |
+| Límites globales | 4,5 y 40,5 (Q1 18, Q3 27) |
+| Atípicos con criterio global | **8 días** (0,49 %) |
+| Atípicos dentro de su grupo | **9 días**: 8 arriba, 1 abajo; ningún feriado |
+| En ambos | 3: jueves 2025-12-11 (44, máximo), viernes 2024-05-10 (43), lunes 2024-10-14 (41) |
+| Sólo global | 5: cuatro viernes de 41–42 y el domingo 2022-01-16 (4). **Normales para su grupo**; tres están exactamente en el límite |
+| Sólo en su grupo | 6: domingos de 29, 31 y 32; sábado de 38; lunes de 40; lunes de 8 |
+
+**Hallazgos:**
+
+- **El calendario explica la mayoría de lo que marca el criterio global** (5 de 8).
+- Los **8 atípicos altos dentro de su grupo son de 2023 en adelante**, 7 de ellos de 2024–2025:
+  coherente con la tendencia creciente.
+- **3 días a +3 de un feriado de fin de año o Turismo** (2023-12-22, 2025-12-22, 2025-04-11).
+  Observación, no efecto: son tres casos.
+- El único atípico bajo (lunes 2022-01-17) es el **día siguiente al mínimo** del período.
+- **Hipótesis externa, sin fuente en el repo:** los domingos 2024-11-24 y 2025-05-11 coinciden con
+  el balotaje nacional y las elecciones departamentales. Si se usa en el informe, citar fuente.
+- **Decisión: no se elimina ni se corrige ningún día.** No hay fuga: los límites no alimentan
+  ninguna transformación.
+
+> La interpretación escrita en el notebook **la redactó Claude**: el equipo tiene que leerla y
+> validarla antes de citarla. Hay respaldo del notebook previo a esta edición en el scratchpad de la
+> sesión (no versionado); la versión con sólo el criterio global se recupera de ahí o rehaciendo
+> la 2.8 a mano, porque nunca se commiteó.
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
@@ -839,6 +897,14 @@ de 2026)**. En orden de prioridad.
       partición por la mitad del diagnóstico era sólo instrumental. **Falta aplicarlo al panel.**
 - [ ] **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y
       todos con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
+- [x] ~~Cerrar la sección 2.8 de outliers del diagnóstico~~ — hecho (2026-09-14): celda de
+      interpretación, criterio por grupo de calendario (`10e`–`10g`) y figura verificada contra
+      las tablas.
+- [ ] **Validar la interpretación de la 2.8** (redactada con Claude) y, si se quiere usar la
+      hipótesis electoral de los domingos, conseguir una fuente citable. Opcional: el mismo
+      criterio sobre el objetivo por (día, municipio).
+- [ ] **Commitear la sección 2.8** junto con sus artefactos (`10c`–`10g`, `fig0`), el resumen y
+      este registro: hoy nada de eso está en git.
 
 **Entrega**
 
