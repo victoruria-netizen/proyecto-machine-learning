@@ -1,0 +1,5 @@
+paso,registros,pct_del_archivo
+registros del archivo,224694,100.0
+tras filtrar MONTEVIDEO,62427,27.78
+tras filtrar fecha >= 2021-07-01,36713,16.34
+tras eliminar duplicados exactos,36623,16.3

@@ -1,0 +1,24 @@
+tipo,archivo,tamaño
+tabla,experiments\diagnostico_datos_municipio\tablas\00_procedencia.csv,0.3 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\00b_entorno.csv,0.2 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\01_recorte_alcance.csv,0.2 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\02_asignacion_municipios.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\03_verificacion_cruzada.csv,0.3 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\04_resumen_serie_municipio_c.csv,0.3 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\05_tendencia_anual.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\06_perfil_semanal.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\07_indice_estacional_mensual.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\08_acf_pacf_crudo.csv,0.8 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\09_acf_residuo_calendario.csv,1.0 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\10_ljung_box.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\11_dispersion_por_rezago.csv,0.1 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\12_estacionariedad_adf_kpss.csv,0.2 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\13_efecto_diferenciacion.csv,0.2 kB
+tabla,experiments\diagnostico_datos_municipio\tablas\14_diagnostico_transformacion.csv,0.4 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig1_tendencia_municipio_c.png,141.7 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig2a_perfil_semanal_municipio_c.png,31.1 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig2b_estacionalidad_anual_municipio_c.png,78.4 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig3a_acf_pacf_crudo_municipio_c.png,44.2 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig3b_acf_residuo_calendario_municipio_c.png,31.5 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig4_dispersion_lags_municipio_c.png,198.9 kB
+figura,experiments\diagnostico_datos_municipio\figuras\fig5_transformaciones_municipio_c.png,88.9 kB

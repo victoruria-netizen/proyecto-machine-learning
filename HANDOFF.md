@@ -896,6 +896,86 @@ entrenamiento, y la línea base predice el 88,4 % del total.
 ⚠️ **La corrida usó pandas 2.3.3** (queda en `00_entorno.csv`); sigue abierta la decisión sobre
 pandas 3 y `skforecast`.
 
+### Diagnóstico de series temporales — Municipio C (2026-09-14, sesión de Claude)
+
+Notebook nuevo, `notebooks/diagnostico_datos_municipio.ipynb`, a pedido del equipo: complementar
+`diagnostico_datos.ipynb` con lo que ese notebook no cubre — tendencia, estacionalidad
+(diaria/semanal/anual), ACF/PACF y dispersión por rezago de la serie diaria de un municipio, y la
+decisión, apoyada en la ACF/PACF, de si corresponde diferenciar o transformar
+(logaritmo/Box-Cox) el objetivo. Se eligió **Municipio C** (el de más siniestros, 5.783, 15,80 %
+del total) por ser la serie con más soporte para que estos análisis sean legibles. Documentado en
+`documentacion/resumen_diagnostico_datos_municipio.md`.
+
+**Bloqueante inicial y cómo se resolvió — falta de datos crudos en esta máquina.**
+`data/raw/` estaba vacío (sólo `.gitkeep`): ni el CSV de siniestros ni la capa de municipios
+estaban presentes, y por la regla del proyecto de no versionar datos restringidos, git no los
+tenía. Antes de calcular cualquier cifra se verificó lo siguiente, en vez de simular o inventar
+datos:
+
+- El CSV `uru_siniestros_unificado.csv` se encontró en `C:\Users\Lucas\Downloads\` (copia del
+  1.º de septiembre). Su `sha256` (`48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2`)
+  **coincide exactamente** con el documentado en `resumen_diagnostico_datos.md` §2: es el mismo
+  archivo, no una versión distinta. Se copió a `data/raw/` (gitignored, no se commitea).
+- La capa de municipios se volvió a descargar con la misma consulta WFS documentada (GeoServer de
+  la Intendencia, `mapstore-tematicas:zon_v_sig_municipios`). Su contenido coincide (8 polígonos,
+  A–G y CH) pero el `sha256` **no** coincide con el de la descarga anterior — es una respuesta de
+  servidor nueva, no el mismo archivo; se documentó como fuente propia de este notebook en vez de
+  asumir la procedencia del otro.
+- El clima **no hizo falta**: los cuatro análisis pedidos son sobre la serie univariada del
+  objetivo.
+
+**Entorno:** tampoco había `.venv` en la máquina (Python 3.13.9 del sistema, con
+`pandas 3.0.3 / numpy 2.4.6 / geopandas 1.1.4 / scipy 1.17.1` ya instalados). Faltaban
+`statsmodels` y `holidays` — se instalaron con las versiones fijadas en `requirements.txt`
+(`0.14.6` y `0.103`) directamente en el entorno del sistema, sin crear un venv nuevo. **No se
+tocó `requirements.txt`**: las dos dependencias ya estaban declaradas ahí desde antes, sin usar.
+
+**Verificación independiente de la asignación a municipios.** La asignación punto-polígono se
+reimplementó con `geopandas` (en vez de reutilizar la implementación manual con `matplotlib.path`
+de `diagnostico_datos.ipynb`), deliberadamente: sirve como segunda implementación independiente.
+Los ocho conteos por municipio coinciden **exactamente** con `resumen_diagnostico_datos.md` §4.2
+(C=5.783, B=5.377, D=5.319, A=5.016, F=4.424, G=3.701, E=3.615, CH=3.377) — verificado con un
+`assert` en el propio notebook.
+
+**Resultados de la serie de Municipio C** (1.645 días, 2021-07-01 a 2025-12-31; tablas en
+`experiments/diagnostico_datos_municipio/tablas/`):
+
+| Bloque | Hallazgo |
+| --- | --- |
+| Resumen | media 3,5155 · varianza 4,4297 · dispersión 1,260 (≈ la del panel completo, 1,259) · 4,80 % de días en cero |
+| Tendencia | **no monótona**, a diferencia del agregado departamental: 3,44 (2021) → 3,33 (2023, mínimo) → 3,76 (2025) |
+| Estacionalidad semanal | viernes máximo (4,27), domingo mínimo (2,04), razón 2,09× — mismo orden que el departamento |
+| Estacionalidad anual | mínimo en **enero** (índice 0,71), máximo en **junio** (1,11) — no hay patrón verano-alto/invierno-bajo |
+| ACF/PACF cruda | múltiplos de 7 fuera de banda (±0,048), pico en rezago 14 (0,17) |
+| ACF residuo (sin calendario) | rezagos 7/21/28 caen dentro de banda (eran calendario); **rezago 1 sobrevive** (0,075, coherente con 5/8 municipios del diagnóstico principal); rezago 14 sobrevive más débil (0,066), señalado sin corrección por comparaciones múltiples |
+| ADF vs. KPSS | ADF rechaza raíz unitaria (`p≈5×10⁻¹⁰`); KPSS rechaza estacionariedad (`p≤0,01`) — tensión explicada por la deriva lenta de nivel entre años, no por raíz unitaria |
+| Diferenciación | d=1 vuelve la ACF fuertemente negativa en rezago 1 (−0,46): **sobrediferenciación**, no ayuda |
+| Media-varianza | relación **lineal** (var≈1,33·media−0,38), no cuadrática — patrón de conteo, no de proceso multiplicativo |
+| Box-Cox | λ estimado por MLE ≈ **0,47** (cerca de raíz cuadrada, lejos de logaritmo) |
+
+**Decisión (evidencia, no convención de manual):** no corresponde diferenciar ni aplicar
+log/Box-Cox clásico al objetivo — consistente con tratarlo como variable de conteo
+(Poisson/binomial negativa), la familia que `resumen_diagnostico_datos.md` §5.1 ya recomienda. Si
+algún método del modelado exigiera estabilizar varianza, la raíz cuadrada está respaldada por el
+propio λ de Box-Cox; el logaritmo, no.
+
+**Estado de la ejecución:** notebook construido con `nbformat` (47 celdas) y ejecutado de punta a
+punta con `jupyter nbconvert --execute`, **0 errores**. Deja 16 tablas y 7 figuras en
+`experiments/diagnostico_datos_municipio/`.
+
+**Limitaciones declaradas en el propio notebook:** el análisis es sobre un solo municipio (no
+verificado en los otros siete); la banda de ACF/PACF es analítica, no simulada como en el
+notebook principal (razonable a esta escala, pero no exacta); el rezago 14 queda señalado, no
+explicado.
+
+**Pendiente que deja esta sesión:**
+
+- [ ] Repetir el diagnóstico de estacionariedad (ADF/KPSS/Box-Cox) en 2-3 municipios más de
+      actividad distinta, para saber si la decisión de no transformar generaliza al panel.
+- [ ] Si el modelado necesita estabilizar varianza, evaluar raíz cuadrada antes que logaritmo.
+- [ ] Commitear este notebook junto con sus artefactos, el resumen y este registro.
+- [ ] Registrar la sesión en `documentacion/registro_uso_IA.md` (hecho en esta misma sesión).
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
