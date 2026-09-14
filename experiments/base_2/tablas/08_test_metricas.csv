@@ -1,0 +1,5 @@
+modelo,MAE,RMSE,total_predicho_sobre_observado,MAE_vs_linea_base_pct
+Promedio por tipo de día (línea base),1.592,1.967,0.884,0.0
+Media constante,1.741,2.12,0.884,9.4
+Árbol de decisión,2.206,2.784,0.931,38.6
+Repetir semana anterior,2.228,2.866,0.996,40.0

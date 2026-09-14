@@ -1,0 +1,5 @@
+tipo_dia,dias_entrenamiento,promedio_siniestros
+entre_semana,891,3.879
+fin_semana,364,2.505
+feriado,61,2.295
+todos (media constante),1316,3.426

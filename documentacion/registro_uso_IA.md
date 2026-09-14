@@ -1287,3 +1287,119 @@ ampliado, 1 celda de código nueva, celda de figura reemplazada, 1 celda markdow
 `experiments/diagnostico_datos/` (`10e`, `10f`, `10g` nuevas; `fig0` regenerada; `00b`, `25`
 actualizadas), `documentacion/resumen_diagnostico_datos.md` (§3.8 reescrita, encabezado, §6, §8,
 §9), `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-09-14 (tarde) — Victor Uria — Claude Code (Claude Opus 5)
+
+**Contexto:** auditoría de `notebooks/base_2.ipynb`, notebook de modelo base hecho a mano por el
+equipo como alternativa a `base.ipynb` (que resultó demasiado técnico). Sólo lectura: **no se
+modificó el notebook** ni ningún dato.
+
+### Prompt 1
+> Claude. para empezar esta sesion quiero que leas el claude.md y el handoff.md para tener un mejor contexto de todo.
+> Hice un nuevo notebook a mano llamado "base_2.ipynb". ya que el notebook "base.ipynb" no me convencio, tiene demasiado tecnisismo y se graficaron cosas las cuales no entendi muy bien. Por eso ahora te pido una auditoria de el nuevo notebook. "base_2.ipynb"
+
+**Respuesta (extracto relevante):**
+
+Hallazgos, en orden de gravedad:
+
+1. **El notebook no corre hoy.** `data/processed/panel_zona_top.csv` fue sobrescrito a las 13:00 del
+   2026-09-14, después de la corrida (12:45), con separador `;` y fechas `dd/mm/aaaa` (formato de
+   Excel en español). `pd.read_csv(..., index_col=0)` ya no lo lee; `base.ipynb` tampoco. Los otros
+   CSV de `data/processed/` siguen con el formato del ETL (2026-09-07).
+2. **El `.venv` quedó con pandas 2.3.3**: `skforecast 0.25` exige `pandas<3` y el `!pip install`
+   lo bajó. La celda de versiones imprime 3.0.5 porque el kernel lo había importado antes.
+   `requirements.txt` fija 3.0.5 y `skforecast` no figura.
+3. **No hay línea base.** El MAE de 2,65 no tiene contra qué compararse. Sobre los mismos 7 días:
+   media constante 1,754; tasa × calendario 1,556; naive t−7 1,714. El árbol es el peor.
+4. **Se evalúa sobre 7 días de 329.** Repetido sobre todo el test (47 semanas, sin reentrenar): árbol
+   `max_depth=15` MAE 2,206; `max_depth=4` 1,772; `max_depth=2` 1,738; media constante 1,741;
+   **tasa × calendario 1,592**. El MAE semanal del árbol va de 0,88 a 3,86; le gana a la línea base
+   en 8 de 47 semanas.
+5. **El árbol memoriza:** profundidad 15, 527 hojas para 1.309 filas; el 46,8 % de sus predicciones
+   del test son enteros exactos (hojas de una sola observación). Predice 8 un sábado cuya media de
+   entrenamiento es 2,5.
+6. **El modelo sólo ve rezagos (`lags=7`)**, sin calendario, que es la señal principal según el
+   diagnóstico.
+7. **El análisis exploratorio mira el test**: descomposición, ACF y PACF sobre la serie completa (ACF
+   a rezago 1: 0,079 con todo, 0,056 sólo con entrenamiento).
+8. Restos del ejemplo del curso: «bicicletas alquiladas» en el eje Y de la figura, `cnt`, «demanda»,
+   «Colab»; partición repetida (celdas 4 y 11); imports sin uso; cero celdas markdown; sin artefactos
+   en `experiments/`; sin documento acompañante; métricas distintas de las fijadas en `base.ipynb`
+   (falta la desvianza de Poisson).
+
+**Uso y verificación:** informe entregado al equipo; ningún archivo del proyecto modificado salvo
+este registro y `HANDOFF.md`. Verificado así:
+
+1. Se reprodujeron las predicciones y métricas del notebook en un script aparte con el mismo `.venv`:
+   predicciones `[3, 3,469, 8, 3, 6, 1, 3]`, MAE 2,647 y RMSE 3,387, idénticas a las salidas guardadas.
+2. Para leer el CSV actual se usó `sep=";"` y `format="%d/%m/%Y"`, con un control: todos los días
+   no feriados marcados `fin_semana` caen en sábado o domingo (resultado `True`). Los valores
+   coinciden con las primeras filas que muestra el notebook.
+3. Las líneas base sobre todo el test coinciden con `experiments/base/tablas/06_evaluacion_test.csv`
+   (desvianza 1,085 y 1,262; MAE 1,592 y 1,741): la comparación es consistente entre notebooks.
+4. Fechas de modificación con `stat`; versiones con `import` en el `.venv`; restricción de pandas en
+   la salida de `pip` guardada en el propio notebook.
+5. `git show HEAD`: la versión commiteada tenía `max_depth=5`. Sobre los 7 días, `max_depth` 3, 5, 10,
+   15 y sin límite dan MAE 1,657, 1,653, 1,571, 2,647 y 2,000: el 15 no minimiza el error del test,
+   así que no hay indicio de ajuste mirando el test, pero la elección queda sin justificar.
+6. Figuras extraídas de las salidas del notebook y revisadas una por una.
+
+**Archivos afectados:** `documentacion/registro_uso_IA.md`, `HANDOFF.md`.
+
+### Prompt 2
+> Perfecto, apliquemos esos tres cambios en el notebook y hay que generar el resumen del notebook
+
+*(Los «tres cambios» son los recomendados al final de la respuesta anterior: agregar la línea base
+del promedio por tipo de día, evaluar sobre todo el conjunto de prueba con una tabla comparativa, y
+agregar celdas de texto que expliquen cada resultado.)*
+
+**Respuesta (extracto relevante):**
+
+1. **Restauración del CSV.** `panel_zona_top.csv` se reconstruyó desde `panel_diario_montevideo.csv`
+   (salida del ETL del 2026-09-07), filtrando MUNICIPIO C y exportando con `to_csv(index=False,
+   lineterminator="\r\n")`, sin reejecutar el ETL.
+2. **Notebook reconstruido** con un script `nbformat` (no versionado). Se conservaron el código, los
+   gráficos y la configuración del equipo (`max_depth=15`, `lags=7`), con estos cambios:
+   - Línea base «promedio por tipo de día» y dos referencias, todas calculadas solo con entrenamiento.
+   - Evaluación semana a semana sobre las 47 semanas de prueba, sin reentrenar:
+     ```python
+     posicion = serie_completa.index.get_loc(fechas[0])
+     ultimos_dias = serie_completa.iloc[posicion - forecaster.window_size:posicion]
+     pred = forecaster.predict(steps=len(fechas), last_window=ultimos_dias)
+     ```
+   - Análisis exploratorio (descomposición, ACF, PACF) solo con entrenamiento.
+   - Tamaño del árbol, efecto de cada día de la semana y control cruzado contra
+     `experiments/base/tablas/06_evaluacion_test.csv`.
+   - 12 tablas y 10 figuras en `experiments/base_2/`.
+   - 23 celdas markdown: explicaciones, lecturas con cifras y conclusiones que separan evidencia de
+     inferencia.
+   - Limpieza de los restos del ejemplo del curso («bicicletas alquiladas», `cnt`, «Colab»).
+3. **Resultado en el test completo** (`08_test_metricas`): línea base MAE 1,592; media constante
+   1,741; árbol 2,206 (+38,6 %); repetir semana anterior 2,228. El árbol supera a la línea base en 8
+   de 47 semanas (`10_test_variabilidad_semanal`).
+4. **`documentacion/resumen_base_2.md`** con la estructura de la convención de notebooks, incluida
+   la lista de frases que no deben aparecer en el informe.
+
+**Uso y verificación:** utilizado; **las lecturas y conclusiones están pendientes de validación del
+equipo** (señalado en el resumen y en `HANDOFF.md`). Verificaciones:
+
+1. **CSV:** el mismo procedimiento aplicado a MUNICIPIO A reproduce **byte a byte**
+   `panel_zona_contraste.csv`. El archivo restaurado, leído con formato ISO, es igual (`DataFrame.equals`)
+   al que había guardado Excel leído con `sep=";"` y `%d/%m/%Y`: 1.645 filas y 5.783 siniestros.
+   Respaldos de ambos archivos en el scratchpad de la sesión.
+2. **Ejecución:** dos corridas completas con `jupyter nbconvert --execute --inplace` en el `.venv`,
+   con 0 errores. En la segunda, 0 salidas por stderr (en la primera había 47 `DeprecationWarning` de
+   aritmética con `Timedelta`, corregidas). Todas las celdas de código ejecutadas en orden (1 a 26).
+3. **Estabilidad entre corridas:** `cmp` de las tablas de la primera y la segunda corrida. Solo
+   cambiaron `00_entorno` (fecha), `01_particion` (columna agregada) y `04_tamano_arbol` (formato).
+4. **Control cruzado dentro del notebook:** línea base MAE 1,5920 contra 1,5919 en `base.ipynb`;
+   media constante 1,7410 contra 1,7411.
+5. **Coherencia con la auditoría:** las métricas coinciden con las del script independiente de la
+   consulta anterior (MAE del árbol 2,206; media constante 1,741; línea base 1,592).
+6. **Lecturas:** cada cifra de las celdas markdown y del resumen se tomó de las salidas y tablas de
+   la segunda corrida. Las figuras 3 a 10 se revisaron visualmente antes de describirlas. El
+   script verificó que no quedara ninguna celda con el marcador de lectura pendiente.
+
+**Archivos afectados:** `notebooks/base_2.ipynb`, `experiments/base_2/` (nuevo: 12 tablas, 10
+figuras), `documentacion/resumen_base_2.md` (nuevo), `data/processed/panel_zona_top.csv` (restaurado,
+no versionado), `HANDOFF.md`, `documentacion/registro_uso_IA.md`.

@@ -824,6 +824,78 @@ se movió**. Se agregó `from matplotlib.lines import Line2D` a la celda de impo
 > sesión (no versionado); la versión con sólo el criterio global se recupera de ahí o rehaciendo
 > la 2.8 a mano, porque nunca se commiteó.
 
+### Auditoría de `base_2.ipynb` (2026-09-14, tarde)
+
+El equipo hizo a mano `notebooks/base_2.ipynb` (17 celdas, sin markdown) como alternativa más
+simple a `base.ipynb`. Aplica `skforecast.ForecasterRecursive` con un `DecisionTreeRegressor`
+(`max_depth=15`, `lags=7`) sobre MUNICIPIO C, con la misma partición 80/20 que `base.ipynb`, y
+evalúa los **primeros 7 días** del test: MAE 2,65, RMSE 3,39. Auditoría de sólo lectura: **no se
+modificó nada**. Las cifras salen de un script de verificación de la sesión (no versionado), cuya
+reproducción del notebook dio los mismos valores.
+
+**Bloqueantes**
+
+- ⚠️ **`data/processed/panel_zona_top.csv` fue sobrescrito** (2026-09-14 13:00) con `;` y fechas
+  `dd/mm/aaaa`, probablemente al guardarlo desde Excel. **Rompe `base_2.ipynb` y `base.ipynb`**. El
+  resto de `data/processed/` está intacto. Hay que regenerarlo con el ETL y no volver a guardarlo
+  desde Excel.
+- ⚠️ **El `.venv` tiene pandas 2.3.3**, no 3.0.5: lo bajó `!pip install skforecast` (exige
+  `pandas<3`). Diagnóstico y ETL se validaron con 3.0.5. Hay que decidir: `skforecast` + pandas 2.x
+  (y actualizar `requirements.txt`) o sacar `skforecast`.
+
+**Hallazgos de metodología** (sobre todo el test, 47 semanas, sin reentrenar)
+
+| Modelo | MAE test completo | MAE primeros 7 días |
+| --- | --- | --- |
+| Árbol `max_depth=15`, `lags=7` (el del notebook) | 2,206 | 2,647 |
+| Árbol `max_depth=4` | 1,772 | — |
+| Media constante | 1,741 | 1,754 |
+| **Tasa × calendario** | **1,592** | **1,556** |
+
+- **Falta la línea base**: sin ella el MAE de 2,65 no se puede interpretar. El árbol queda por debajo
+  incluso de la media constante.
+- **7 días no alcanzan para evaluar**: el MAE semanal del árbol va de 0,88 a 3,86 según la semana.
+- **El árbol memoriza**: 527 hojas para 1.309 filas.
+- Sólo usa rezagos, sin calendario; la EDA (descomposición, ACF, PACF) usa el test; métricas
+  distintas de las de `base.ipynb`; restos del ejemplo del curso («bicicletas alquiladas» en el eje
+  de una figura); sin artefactos ni documento acompañante.
+
+### Arreglos aplicados a `base_2.ipynb` (2026-09-14, tarde)
+
+A pedido del equipo, con Claude Code. **Las celdas de lectura y conclusiones las redactó Claude:
+el equipo tiene que validarlas.** Respaldo del notebook anterior en el scratchpad de la sesión (no
+versionado).
+
+- **CSV restaurado.** `panel_zona_top.csv` se reconstruyó desde `panel_diario_montevideo.csv`
+  (filtro MUNICIPIO C), **sin reejecutar el ETL**. El mismo procedimiento reproduce byte a byte
+  `panel_zona_contraste.csv`, y el contenido es idéntico al archivo guardado por Excel. `base.ipynb`
+  vuelve a poder leerlo.
+- **Notebook reconstruido** (49 celdas, 23 markdown), respetando el código y los gráficos del equipo,
+  con `max_depth=15` y `lags=7` sin cambios. Se agregaron: línea base y dos referencias (media
+  constante, repetir semana anterior); evaluación sobre las 47 semanas del test sin reentrenar;
+  lectura después de cada resultado y conclusiones con evidencia e inferencia separadas; análisis
+  exploratorio solo con entrenamiento; figura del efecto de cada día de la semana; tamaño del árbol;
+  control cruzado con `base.ipynb`; artefactos en `experiments/base_2/` (12 tablas, 10 figuras).
+  Además se limpiaron los restos del ejemplo del curso y la partición duplicada.
+- **Ejecución:** `jupyter nbconvert --execute` en el `.venv`, 0 errores y 0 advertencias. **Control
+  cruzado OK:** línea base MAE 1,5920 contra 1,5919 en `base.ipynb`.
+- **Documento:** `documentacion/resumen_base_2.md`.
+
+| Modelo (test completo, `08_test_metricas`) | MAE | vs línea base |
+| --- | --- | --- |
+| **Promedio por tipo de día (línea base)** | **1,592** | — |
+| Media constante | 1,741 | +9,4 % |
+| Árbol `max_depth=15`, `lags=7` | 2,206 | +38,6 % |
+| Repetir semana anterior | 2,228 | +40,0 % |
+
+Otros resultados: el árbol le gana a la línea base en 8 de 47 semanas y tiene 527 hojas para 1.309
+filas. El residuo de la descomposición concentra el 73,7 % de la variación. Los domingos promedian
+1,96 siniestros y los viernes 4,19. La prueba promedia 3,875 siniestros por día contra 3,426 en
+entrenamiento, y la línea base predice el 88,4 % del total.
+
+⚠️ **La corrida usó pandas 2.3.3** (queda en `00_entorno.csv`); sigue abierta la decisión sobre
+pandas 3 y `skforecast`.
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
@@ -905,6 +977,16 @@ de 2026)**. En orden de prioridad.
       criterio sobre el objetivo por (día, municipio).
 - [ ] **Commitear la sección 2.8** junto con sus artefactos (`10c`–`10g`, `fig0`), el resumen y
       este registro: hoy nada de eso está en git.
+- [x] ~~Regenerar `data/processed/panel_zona_top.csv`~~ — restaurado el 2026-09-14 desde
+      `panel_diario_montevideo.csv`, verificado byte a byte. **No volver a guardarlo desde Excel.**
+- [ ] **Decidir pandas 3 vs `skforecast`**: el `.venv` quedó con pandas 2.3.3, y `base_2.ipynb` corrió
+      con esa versión. Actualizar `requirements.txt` según lo que se decida.
+- [~] **Decidir qué notebook base se entrega** (`base.ipynb`, `base_2.ipynb` o ambos). `base_2` ya
+      tiene línea base, evaluación sobre todo el test, lecturas, artefactos y
+      `resumen_base_2.md`; las cifras compartidas coinciden con `base`.
+- [ ] **Validar las lecturas y conclusiones de `base_2.ipynb`** (redactadas con Claude).
+- [ ] **Commitear** `base_2.ipynb`, `experiments/base_2/`, `resumen_base_2.md`, este HANDOFF y el
+      registro de IA.
 
 **Entrega**
 
