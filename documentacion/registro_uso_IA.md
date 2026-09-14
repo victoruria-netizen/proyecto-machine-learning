@@ -1287,3 +1287,74 @@ ampliado, 1 celda de código nueva, celda de figura reemplazada, 1 celda markdow
 `experiments/diagnostico_datos/` (`10e`, `10f`, `10g` nuevas; `fig0` regenerada; `00b`, `25`
 actualizadas), `documentacion/resumen_diagnostico_datos.md` (§3.8 reescrita, encabezado, §6, §8,
 §9), `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-14 (segunda) — Juan Lucas Pimentel Barreto — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** el equipo pidió un nuevo diagnóstico, limitado al municipio con más siniestros
+(Municipio C), tomando `diagnostico_datos.ipynb` como referencia pero con adiciones que ese
+notebook no tiene: gráficos de tendencia, estacionalidad (diaria/semanal/anual), ACF/PACF y
+dispersión por rezago; y, a partir de esos gráficos, la decisión de si corresponde diferenciar o
+transformar (logaritmo/Box-Cox) el objetivo. Claude creó el notebook, lo ejecutó de punta a punta
+y escribió su documento acompañante.
+
+### Prompt 1
+
+> Claude, necesito hacer otro diagnostico de los datos, pero limitado solo al Municipio con mas
+> siniestros (Municipio C). Toma como referencia el notebook "diagnostico_datos.ipynb" pero
+> necesito que hagas algunas adiciones.
+>
+> Adiciones:
+> [ ]Gráficos exploratorios: ¿Se analizaron patrones de tendencia, estacionalidad
+> (diaria/semanal/anual), autocorrelación (ACF/PACF) y dispersión por lags?
+>
+> A partir de los graficos de ACF y PACF
+> [ ] Transformaciones del objetivo: Se deberian aplicar diferencias o transformaciones
+> logarítmicas/Box-Cox para estabilizar la varianza/tendencia?
+>
+> Lee el claude.md y comencemos.
+
+**Respuesta (extracto relevante):** antes de escribir una sola cifra, Claude verificó que
+`data/raw/` estaba vacío en esta máquina (sin CSV de siniestros ni capa de municipios) y, en vez de
+simular datos, ubicó el CSV original en `C:\Users\Lucas\Downloads\uru_siniestros_unificado.csv` y
+confirmó por `sha256` que es el mismo archivo que documenta `resumen_diagnostico_datos.md`
+(`48a8a7e8…`); volvió a descargar la capa de municipios con la misma consulta WFS documentada. Con
+eso, construyó `notebooks/diagnostico_datos_municipio.ipynb` (47 celdas, vía `nbformat`) con:
+
+- Recorte heredado (Montevideo, desde 2021-07-01) y asignación a municipios reimplementada con
+  `geopandas` (independiente de la implementación manual del notebook principal), verificada contra
+  las ocho cifras de `resumen_diagnostico_datos.md` §4.2 (coincidencia exacta, con `assert`).
+- Serie diaria de Municipio C: media 3,5155, dispersión 1,260, 4,80 % de días en cero.
+- Tendencia (media móvil 30/90 d y media anual), estacionalidad semanal (perfil por día) y anual
+  (índice mensual + `seasonal_decompose`), ACF/PACF crudas y del residuo tras descontar calendario,
+  dispersión por rezago (scatter k=1,7,14,30).
+- Diagnóstico de transformación: ADF (rechaza raíz unitaria, `p≈5×10⁻¹⁰`) vs. KPSS (rechaza
+  estacionariedad, `p≤0,01`); diferenciar d=1 vuelve la ACF fuertemente negativa en rezago 1
+  (sobrediferenciación); relación media-varianza mensual lineal, no cuadrática; λ de Box-Cox
+  estimado por MLE ≈ 0,47 (cerca de raíz cuadrada, lejos de logaritmo). **Conclusión: no
+  corresponde diferenciar ni transformar con log/Box-Cox el objetivo**, consistente con tratarlo
+  como conteo (Poisson/binomial negativa), la familia que el diagnóstico principal ya recomienda.
+
+**Uso y verificación:**
+
+1. **Integridad del dato de entrada:** el CSV encontrado se verificó por `sha256` completo (no
+   sólo tamaño) contra el valor documentado antes de usarlo.
+2. **Verificación cruzada de la asignación espacial:** implementación independiente (`geopandas`
+   vs. `matplotlib.path` del notebook principal) con `assert` en el propio notebook que detiene la
+   ejecución si alguna de las ocho cifras no coincide.
+3. **Ejecución completa** con `jupyter nbconvert --execute --inplace`: 0 errores, 47 celdas, 16
+   tablas y 7 figuras generadas y verificadas contra sus valores en el notebook resultante (no se
+   citó ninguna cifra sin confirmarla en el CSV correspondiente).
+4. **Corrección de un desliz de redacción** («meaningfully» en una celda markdown) detectado al
+   revisar el notebook exportado y corregido antes de darlo por cerrado.
+5. La interpretación de la sección de transformaciones (adaptada al pie de las cuatro pruebas
+   estadísticas) **queda pendiente de validación del equipo**, como toda inferencia redactada por
+   Claude en este proyecto.
+
+**Archivos afectados:** `notebooks/diagnostico_datos_municipio.ipynb` (nuevo),
+`experiments/diagnostico_datos_municipio/` (nuevo, 16 tablas + 7 figuras),
+`documentacion/resumen_diagnostico_datos_municipio.md` (nuevo), `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`. `data/raw/uru_siniestros_unificado.csv` y
+`data/raw/municipios_montevideo.geojson` se restauraron localmente para poder ejecutar el
+notebook; ambos quedan fuera de git por `.gitignore` (`data/raw/`).

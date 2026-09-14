@@ -1,0 +1,3 @@
+prueba,hipótesis nula,estadístico,p-valor,"resultado (α=0,05)"
+ADF,H0: hay raíz unitaria (no estacionaria),-7.0716,4.92e-10,rechaza H0 (estacionaria)
+KPSS,H0: la serie es estacionaria,1.2915,≤ 0.01,rechaza H0 (no estacionaria)
