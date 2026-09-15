@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-14_
+_Última actualización: 2026-09-15_
 
 ---
 
@@ -862,6 +862,10 @@ reproducción del notebook dio los mismos valores.
 
 ### Arreglos aplicados a `base_2.ipynb` (2026-09-14, tarde)
 
+> ⚠️ **Superado el 2026-09-15** (sección siguiente sobre `base_2.ipynb`): la línea base usaba
+> `tipo_dia` y el árbol `lags=7`. Las cifras de modelos de este bloque (1,592; 2,206; 527 hojas) y las
+> tablas `02`–`10` con esos nombres **ya no existen** en `experiments/base_2/`: no citarlas.
+
 A pedido del equipo, con Claude Code. **Las celdas de lectura y conclusiones las redactó Claude:
 el equipo tiene que validarlas.** Respaldo del notebook anterior en el scratchpad de la sesión (no
 versionado).
@@ -895,6 +899,72 @@ entrenamiento, y la línea base predice el 88,4 % del total.
 
 ⚠️ **La corrida usó pandas 2.3.3** (queda en `00_entorno.csv`); sigue abierta la decisión sobre
 pandas 3 y `skforecast`.
+
+### `base_2.ipynb` sin variables exógenas y sin repetir el diagnóstico (2026-09-15)
+
+A pedido del equipo, con Claude Code: (1) que el notebook no repita lo que ya hace
+`diagnostico_datos_municipio.ipynb`, y (2) que **ningún modelo use variables exógenas** en esta
+entrega (calendario y clima quedan para después). Pedido adicional: código simple, con la misma
+estructura del notebook. Respaldo del notebook previo en el scratchpad de la sesión (no versionado).
+
+- **Repetición eliminada:** fuera la serie completa (§2), la descomposición y el patrón semanal (§4) y
+  la ACF/PACF (§5). La nueva §2 es solo texto: una tabla con los resultados del diagnóstico que usa el
+  modelo, cada uno con su tabla de `experiments/diagnostico_datos_municipio/`.
+- **Sin exógenas:** el CSV se lee con `usecols=["fecha", "zona_id", "n_siniestros"]`. El árbol imprime
+  sus variables (`lag_1`, `lag_7`, `lag_14`, `lag_21`) y `exog_in_ = False`. No queda `tipo_dia` en
+  ninguna celda de código.
+- **Línea base nueva, fijada antes de ejecutar:** *promedio de las últimas 4 semanas* (valores de 7, 14,
+  21 y 28 días antes). Reemplaza al promedio por `tipo_dia`. Referencias: media constante y repetir
+  semana anterior.
+- **Rezagos del árbol `[1, 7, 14, 21]`:** cambio que el equipo ya tenía en la copia local, sin
+  ejecutar. Se respetó; `max_depth=15` sin cambios.
+- **Artefactos renumerados:** 8 tablas (`00`–`07`) y 4 figuras (`fig1`–`fig4`). Se vaciaron las
+  anteriores antes de ejecutar.
+- **Ejecución:** `jupyter nbconvert --execute --inplace` en el `.venv`: 0 errores, 0 salidas por
+  stderr. Control cruzado con `base.ipynb`: media constante MAE 1,7410 contra 1,7411, **OK**.
+- **Documento:** `documentacion/resumen_base_2.md` reescrito.
+
+| Modelo (test completo, `05_test_metricas`) | MAE | Total pred./obs. | vs línea base |
+| --- | --- | --- | --- |
+| Media constante | **1,741** | 0,884 | −0,8 % |
+| **Promedio de las últimas 4 semanas (línea base)** | 1,755 | **0,981** | — |
+| Árbol `max_depth=15`, `lags=[1, 7, 14, 21]` | 2,137 | 0,967 | +21,8 % |
+| Repetir semana anterior | 2,228 | 0,996 | +27,0 % |
+
+⚠️ **La línea base no es la referencia de menor MAE:** la media constante le gana por 0,8 % (28 de 47
+semanas), aunque predice solo el 88,4 % del volumen. No se cambió, porque cambiarla ahora sería
+elegir con el test. Se revisa con validación en el Entregable 3. El árbol tiene 716 hojas para 1.295
+filas.
+
+⚠️ **Fuga leve declarada:** los rezagos se apoyan en la ACF del diagnóstico, que usa la serie completa
+(test incluido).
+
+⚠️ **`base.ipynb` usa calendario** (exógenas). Si la regla «sin exógenas» vale para toda la entrega,
+ese notebook no la cumple.
+
+**Segunda parte de la sesión — desvianza de Poisson como métrica principal.** El equipo fijó la
+**desvianza de Poisson media** como métrica principal para comparar y seleccionar modelos. `base_2`
+no la calculaba (usaba el MAE); se agregó con el mismo cálculo que `base.ipynb`: las predicciones
+iguales a 0 se recortan a `EPS = 1e-6` solo para esta métrica. Tablas ordenadas por desvianza; la
+variabilidad semanal y la figura 4 (`fig4_test_desvianza_semanal.png`) pasaron a desvianza. Se
+agregaron una columna con los días con predicción 0 y una celda de una línea que lista esos días
+para el árbol. Control cruzado: desvianza 1,2620 contra 1,2625 y MAE 1,7410 contra 1,7411, **OK**.
+El informe del proyecto no está en el repositorio.
+
+| Modelo (test completo, `05_test_metricas`) | Desvianza | vs línea base | MAE | Días con pred. 0 |
+| --- | --- | --- | --- | --- |
+| Media constante | **1,262** | −5,2 % | **1,741** | 0 |
+| **Promedio de las últimas 4 semanas (línea base)** | 1,332 | — | 1,755 | 0 |
+| Árbol `max_depth=15`, `lags=[1, 7, 14, 21]` | 3,462 | +159,9 % | 2,137 | 7 |
+| Repetir semana anterior | 5,007 | +275,8 % | 2,228 | 10 |
+
+- **Cambió la jerarquía:** en la primera semana el árbol tiene la menor desvianza (0,957), pero en el
+  test completo queda tercero.
+- **La desvianza del árbol la dominan pocos días:** predijo 0 en 7 días, 5 de ellos con siniestros, y
+  esas 5 semanas son sus picos de desvianza (9,64 a 19,34). Por eso su desvianza depende del valor de
+  `EPS`.
+- **Crece la distancia con la media constante:** con la métrica principal le gana a la línea base por
+  5,2 % (con MAE era 0,8 %).
 
 ### Diagnóstico de series temporales — Municipio C (2026-09-14, sesión de Claude)
 
@@ -1061,12 +1131,20 @@ de 2026)**. En orden de prioridad.
       `panel_diario_montevideo.csv`, verificado byte a byte. **No volver a guardarlo desde Excel.**
 - [ ] **Decidir pandas 3 vs `skforecast`**: el `.venv` quedó con pandas 2.3.3, y `base_2.ipynb` corrió
       con esa versión. Actualizar `requirements.txt` según lo que se decida.
-- [~] **Decidir qué notebook base se entrega** (`base.ipynb`, `base_2.ipynb` o ambos). `base_2` ya
-      tiene línea base, evaluación sobre todo el test, lecturas, artefactos y
-      `resumen_base_2.md`; las cifras compartidas coinciden con `base`.
-- [ ] **Validar las lecturas y conclusiones de `base_2.ipynb`** (redactadas con Claude).
-- [ ] **Commitear** `base_2.ipynb`, `experiments/base_2/`, `resumen_base_2.md`, este HANDOFF y el
-      registro de IA.
+- [~] **Decidir qué notebook base se entrega** (`base.ipynb`, `base_2.ipynb` o ambos). Desde el
+      2026-09-15, `base_2` **no usa exógenas** y `base` sí (calendario y tendencia): si la regla vale
+      para toda la entrega, `base` no la cumple. Solo la media constante es común a los dos
+      (control cruzado OK).
+- [ ] **Validar las lecturas y conclusiones de `base_2.ipynb`** (redactadas con Claude, reescritas
+      el 2026-09-15).
+- [ ] **Decidir si se mantiene la línea base «promedio de las últimas 4 semanas»**: en test la media
+      constante tiene 5,2 % menos desvianza de Poisson (0,8 % menos MAE). Revisarlo **con
+      validación**, no con el test.
+- [ ] **Fijar el tratamiento de las predicciones 0** en la desvianza de Poisson (hoy `EPS = 1e-6`,
+      igual en `base` y `base_2`) y declararlo en el informe: la desvianza del árbol depende de ese
+      valor.
+- [ ] **Commitear** `base_2.ipynb`, `experiments/base_2/` (incluidas las tablas y figuras borradas de
+      la versión anterior), `resumen_base_2.md`, este HANDOFF y el registro de IA.
 
 **Entrega**
 

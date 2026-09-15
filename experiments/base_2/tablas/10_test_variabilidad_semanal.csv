@@ -1,5 +1,0 @@
-modelo,MAE_semanal_minimo,MAE_semanal_mediana,MAE_semanal_maximo,semanas_con_menor_MAE_que_linea_base,semanas
-Árbol de decisión,0.882,2.028,3.857,8,47
-Media constante,0.875,1.754,2.632,14,47
-Promedio por tipo de día (línea base),0.703,1.59,2.695,,47
-Repetir semana anterior,0.714,2.0,3.714,9,47

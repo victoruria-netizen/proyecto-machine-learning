@@ -1476,3 +1476,146 @@ eso, construyó `notebooks/diagnostico_datos_municipio.ipynb` (47 celdas, vía `
 `documentacion/registro_uso_IA.md`. `data/raw/uru_siniestros_unificado.csv` y
 `data/raw/municipios_montevideo.geojson` se restauraron localmente para poder ejecutar el
 notebook; ambos quedan fuera de git por `.gitignore` (`data/raw/`).
+
+---
+
+## Sesión 2026-09-15 — Victor Uria — Claude Code (Anthropic, Claude Opus 5)
+
+**Contexto:** ajuste de `notebooks/base_2.ipynb` para que no repita lo que ya hace
+`notebooks/diagnostico_datos_municipio.ipynb` y para que ningún modelo use variables exógenas en esta
+entrega. Se reejecutó el notebook y se reescribió su documento acompañante.
+
+### Prompt 1
+> Lee el claude.md para que tengas un mejor contexto.
+> Claude, en el notebook "base_2.ipynb" entrenamos los primeros modelos. Pero hay coss las cuales ajustar. Se repiten informaciones del "diagnostico_datos_municipio.ipynb" y se estan utilizando la variable exogena "tipo_dia".
+> Lo que quiero que hagas es lo siguiente:
+> - Arregla el notebook para que no se repita lo mismo que en el diagnostico de datos
+> - Que los modelos no utilicen ningun tipo de variables exogenas. Las vamos a utilizar mas adelante pero no para esta entrega
+
+### Prompt 2 (enviado mientras se trabajaba en el anterior)
+> Necesito que el codigo sea sencillo. que se pueda entender. Sigue la misma estructura de codigo que ya esta en el notebook
+
+**Respuesta (extracto relevante, ambos prompts):**
+
+1. **Diagnóstico.** Repetían el diagnóstico la §2 (serie completa), la §4 (descomposición y patrón
+   semanal) y la §5 (ACF y PACF). El árbol ya usaba solo rezagos: `tipo_dia` lo usaba la **línea
+   base** («promedio por tipo de día»). En la copia local había un cambio del equipo sin commitear ni
+   ejecutar, `lags=[1, 7, 14, 21]`, que se respetó.
+2. **Cambios**, con un script `nbformat` que conserva las celdas del equipo por id (no versionado):
+   - Se eliminaron las tres secciones repetidas. En su lugar, una §2 **solo de texto**: una tabla con
+     los resultados del diagnóstico que usa el modelo, cada uno con su tabla de
+     `experiments/diagnostico_datos_municipio/`.
+   - El CSV se lee con `usecols=["fecha", "zona_id", "n_siniestros"]`.
+   - Línea base nueva, sin exógenas, **fijada antes de la primera ejecución**:
+     ```python
+     promedio_4_semanas = (serie_completa.shift(7) + serie_completa.shift(14)
+                           + serie_completa.shift(21) + serie_completa.shift(28)) / 4
+     ```
+     Justificación: usa solo la serie; recoge el patrón semanal; promedia el ruido de una sola
+     semana; sigue los cambios de nivel. Referencias: media constante y repetir semana anterior.
+   - El control cruzado con `base.ipynb` quedó solo para la media constante, porque la línea base de
+     ese notebook usa calendario.
+   - Artefactos renumerados (8 tablas y 4 figuras); los 22 anteriores se borraron antes de ejecutar.
+   - Por el Prompt 2 no se agregaron mecanismos nuevos: se descartó meter en el notebook una
+     comprobación automática contra el diagnóstico y una tabla de variables por modelo. La
+     coincidencia con el diagnóstico se verificó fuera del notebook.
+3. **Resultados en todo el test** (`05_test_metricas`): media constante MAE 1,741; **línea base
+   1,755**; árbol 2,137 (+21,8 %); repetir semana anterior 2,228. Totales predicho / observado: 0,884,
+   0,981, 0,967 y 0,996. El árbol tiene 716 hojas para 1.295 filas.
+4. **Advertencias entregadas:**
+   - La línea base no es la referencia de menor MAE (la media constante le gana por 0,8 %). No se
+     cambia, porque sería elegir con el test.
+   - Los rezagos se apoyan en una ACF calculada con la serie completa: es una fuga leve.
+   - `base.ipynb` usa calendario.
+
+**Uso y verificación:** utilizado. **Lecturas, conclusiones y elección de la línea base pendientes
+de validación del equipo.** Verificaciones:
+
+1. **Ejecución:** `jupyter nbconvert --execute --inplace` en el `.venv`: 0 errores y 0 salidas por
+   stderr; las 21 celdas de código se ejecutaron en orden. `nbformat.validate` sin errores.
+2. **Sin exógenas:** la salida del notebook muestra que las variables del árbol son `lag_1`,
+   `lag_7`, `lag_14` y `lag_21`, con `exog_in_ = False`. Una búsqueda en el notebook no encuentra
+   `tipo_dia` en ninguna celda de código (solo en dos celdas de texto que lo explican).
+3. **Misma serie que el diagnóstico:** script aparte sobre `panel_zona_top.csv`: 1.645 días, 5.783
+   siniestros, 79 ceros, máximo 13 y media 3,5155. Coincide con
+   `diagnostico_datos_municipio/tablas/04_resumen_serie_municipio_c.csv`.
+4. **Control cruzado:** media constante MAE 1,7410 contra 1,7411 en `base.ipynb`, **OK**.
+5. **Protocolo sin cambios:** con `git show 6fbb3ca` se comprobó que la media constante (1,741) y
+   repetir semana anterior (2,228) dan lo mismo que en la versión anterior. Las cifras superadas que
+   cita el resumen (1,592; 2,206; 527 hojas; ACF 0,056) se leyeron del mismo commit.
+6. **Cifras del diagnóstico:** leídas de sus CSV (`05`, `06`, `08`, `09`, `12`, `13`, `14`), no del
+   resumen.
+7. **Lecturas:** cada cifra se tomó de las tablas de esta corrida; las cuatro figuras se revisaron
+   visualmente antes de describirlas. El script de lecturas verifica que no quede ningún marcador
+   pendiente.
+
+**Archivos afectados:** `notebooks/base_2.ipynb`, `experiments/base_2/` (8 tablas y 4 figuras
+nuevas; 22 artefactos anteriores borrados), `documentacion/resumen_base_2.md` (reescrito),
+`HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 3
+> Bien. Necesito que hagas lo siguiente.
+> Vamos a utilizar estas metricas para evaluar nuestros modelos:
+> 1. Métrica Principal
+> Desvianza de Poisson media (Mean Poisson Deviance): Es la función de pérdida y métrica principal adoptada para la selección y comparación de modelos
+> . Es la medida idónea para variables de conteo, ya que pondera el error en función del nivel esperado del conteo.
+> Se utiliza la metrica principal que menciona el informe?, Si no se esta utilizando, agregala.
+
+*(El prompt se envió dos veces por una interrupción; el texto es el mismo.)*
+
+### Prompt 4 (enviado mientras se trabajaba en el anterior)
+> Hablamos de el informe del proyecto, actualmente no esta en el repo
+
+**Respuesta (extracto relevante, prompts 3 y 4):**
+
+1. **No se usaba.** `base_2.ipynb` tenía el MAE como métrica principal, y el notebook y su resumen
+   decían explícitamente que no calculaban la desvianza de Poisson. `base.ipynb` sí la usa. Como el
+   informe no está en el repositorio, se tomó como referencia la definición del prompt.
+2. **Se agregó** con el mismo cálculo que `base.ipynb`, para que las cifras sean comparables:
+   ```python
+   EPS = 1e-6
+
+   def calcular_metricas(real, prediccion):
+       return {
+           "desvianza_poisson": mean_poisson_deviance(real, prediccion.clip(lower=EPS)),
+           "MAE": mean_absolute_error(real, prediccion),
+           ...
+   ```
+   Se hizo con scripts `nbformat` que reemplazan texto exacto en las celdas existentes (no
+   versionados):
+   - Las tablas quedaron ordenadas por desvianza, con la diferencia porcentual contra la línea base.
+   - La variabilidad semanal y la figura 4 pasaron a desvianza.
+   - El control cruzado con `base.ipynb` compara la desvianza y el MAE.
+   - Se agregaron la columna `dias_con_prediccion_cero` y una celda de una línea que lista los días
+     en que el árbol predijo 0.
+3. **Resultados** (`05_test_metricas`): desvianza de la media constante 1,262; de la línea base
+   1,332; del árbol 3,462 (+159,9 %); de repetir semana anterior 5,007. El árbol predijo 0 en 7 días,
+   5 de ellos con siniestros, y esas semanas son sus picos de desvianza. En la primera semana el árbol
+   tenía la menor desvianza (0,957).
+4. **Advertencias entregadas:**
+   - La media constante supera a la línea base por 5,2 % con la métrica principal. No se cambia la
+     línea base, porque sería elegir con el test.
+   - La desvianza de los modelos que predicen 0 depende de `EPS`.
+
+**Uso y verificación:** utilizado; lecturas pendientes de validación del equipo. Verificaciones:
+
+1. **Ejecución:** tres corridas con `jupyter nbconvert --execute --inplace` (métrica, columna de
+   ceros y celda nueva): 0 errores, 0 salidas por stderr, celdas ejecutadas en orden;
+   `nbformat.validate` sin errores.
+2. **Control cruzado:** media constante, desvianza 1,2620 contra 1,2625 y MAE 1,7410 contra 1,7411
+   en `experiments/base/tablas/06_evaluacion_test.csv`, **OK**. También se contrastó el cálculo con
+   la función `evaluar` de `base.ipynb` (`np.clip(..., EPS, None)` con `EPS = 1e-6`).
+3. **El recorte no altera las demás métricas:** MAE, RMSE y totales de `05_test_metricas` son iguales
+   a los de la corrida anterior de la misma sesión.
+4. **Réplica independiente** (script aparte con el mismo `.venv`): el árbol vuelve a dar desvianza
+   3,4625 y 7 días con predicción 0 (2025-02-16, 02-27, 06-22, 07-24, 08-03, 08-31 y 09-07; 5 con
+   siniestros), en las semanas 4, 20, 25, 26 y 31, que son sus cinco semanas con desvianza > 9 en
+   `06_test_semanal`. La misma réplica da desvianza 2,0521 sin esos 7 días (322 días): es solo una
+   comprobación de que «buena parte» es correcto, no se cita en ningún documento. La celda nueva del
+   notebook muestra los mismos 7 días.
+5. **Lecturas:** cifras tomadas de `04`, `05`, `06` y `07`; la figura 4 nueva se revisó visualmente.
+
+**Archivos afectados:** `notebooks/base_2.ipynb`, `experiments/base_2/tablas/` (`04` a `07`
+regeneradas), `experiments/base_2/figuras/fig4_test_desvianza_semanal.png` (reemplaza a
+`fig4_test_mae_semanal.png`), `documentacion/resumen_base_2.md`, `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`.
