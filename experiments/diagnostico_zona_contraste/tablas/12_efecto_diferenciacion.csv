@@ -1,0 +1,4 @@
+serie,acf_rezago_1,acf_rezago_2,acf_rezago_7,varianza
+cruda,0.0396,0.0487,0.0266,3.4231
+diferenciada (d=1),-0.5044,0.0022,0.0006,6.5785
+"diferenciada estacional (D=1, s=7)",0.0131,0.0241,-0.5104,6.6679

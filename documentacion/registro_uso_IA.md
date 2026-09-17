@@ -1619,3 +1619,80 @@ nuevas; 22 artefactos anteriores borrados), `documentacion/resumen_base_2.md` (r
 regeneradas), `experiments/base_2/figuras/fig4_test_desvianza_semanal.png` (reemplaza a
 `fig4_test_mae_semanal.png`), `documentacion/resumen_base_2.md`, `HANDOFF.md`,
 `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-17 — Victor Uria — Claude Code (Anthropic, Claude Opus 5 / Claude Sonnet 5)
+
+**Contexto:** diagnóstico de series temporales para Municipio A (`data/processed/panel_zona_contraste.csv`),
+espejando `notebooks/diagnostico_datos_municipio.ipynb` (que hace lo mismo para Municipio C). El
+notebook `notebooks/diagnostico_zona_contraste.ipynb` ya existía, vacío.
+
+### Prompt 1
+> Claude. Para empezar lee el claude.md para que tengas mejor contexto de nuestro proyecto.
+> Tenemos que hacer un diagnostico de datos para el dataset que esta en
+> "data/processed/panel_zona_contraste.csv". Ya esta el notebook creado en
+> "notebooks/diagnostico_zona_contraste.ipynb". Lo que quiero que hagas es que hagas exactamente
+> lo mismo que el "diagnostico_datos_municipio.ipynb". El mismo codigo, con el mismo orden, lo
+> unico que cambia es el csv analizado
+
+**Respuesta (extracto relevante):**
+
+1. **Decisión de diseño, no pedida explícitamente y no consultada por escrito con el equipo antes
+   de ejecutar (registrada acá para que se revise):** `diagnostico_datos_municipio.ipynb` no
+   analiza un CSV directamente — reconstruye la serie de Municipio C desde el CSV crudo
+   (`uru_siniestros_unificado.csv`) y la capa de municipios con `geopandas.sjoin`, como
+   verificación cruzada independiente de la asignación espacial. Ese código no es aplicable a
+   `panel_zona_contraste.csv`, que ya es un panel (fecha, zona, objetivo, clima) con otras
+   columnas, producido por `preparacion_montevideo.ipynb` y ya verificado por su ETL (dieciséis
+   comprobaciones en OK, cruzado contra `diagnostico_datos.ipynb`; `resumen_preparacion_montevideo.md`
+   §8). Se interpretó "el mismo código, el mismo orden" a nivel de las **secciones analíticas**
+   (tendencia, estacionalidad diaria/semanal/anual, ACF/PACF, estacionariedad ADF/KPSS,
+   diferenciación, Box-Cox, limitaciones, índice de artefactos), que sí se reprodujeron
+   prácticamente línea por línea cambiando `serie_c`→`serie_a` y los sufijos de archivo. La sección
+   1 (antes "recorte, asignación punto-polígono y verificación cruzada") se reescribió como "carga
+   del panel ya preparado y verificación cruzada numérica" contra `resumen_diagnostico_datos.md`
+   (§4.2) y `resumen_preparacion_montevideo.md` (§7.5), en vez de repetir el `sjoin` sobre datos que
+   no lo requieren.
+2. **Construcción:** notebook armado con `nbformat` (43 celdas), ejecutado con
+   `jupyter nbconvert --execute --inplace` en el `.venv` del proyecto (0 errores). Las 15 tablas y
+   7 figuras resultantes se leyeron una por una antes de escribir ninguna celda de interpretación,
+   seguido la regla del proyecto de "ninguna cifra sin artefacto": los textos de "Evidencia",
+   "Inferencia del equipo" y "Frases que estos datos NO sostienen" se escribieron **después** de
+   ver los números reales de Municipio A, no copiando el patrón de Municipio C. Varios resultados
+   difieren de forma sustantiva de los de Municipio C y así se documentaron: la ACF cruda de
+   Municipio A **no** muestra la firma de múltiplos de 7 que sí domina en Municipio C (el rezago 7
+   mismo queda dentro de banda), la razón viernes/domingo es más chica (1,43× contra 2,09×), el mes
+   de mayor actividad es mayo y no junio, y la relación varianza-media mensual es más débil
+   (r=0,46) con pendiente más cercana a la referencia Poisson pura. Coinciden, en cambio: el mínimo
+   estacional en enero, la tensión ADF-estacionaria/KPSS-no-estacionaria, que diferenciar
+   sobrecorrige, y un λ de Box-Cox (~0,475) casi idéntico al de Municipio C (~0,473).
+3. **Documentación creada:** `documentacion/resumen_diagnostico_zona_contraste.md`, siguiendo la
+   estructura y las reglas de `resumen_diagnostico_datos_municipio.md` (evidencia vs. inferencia,
+   ninguna cifra sin artefacto, frases que no deben aparecer en el informe, comparación explícita
+   con Municipio C sin usarla como evidencia de generalización).
+
+**Uso y verificación:** utilizado. Verificaciones:
+
+1. **Ejecución:** `jupyter nbconvert --to notebook --execute --inplace`: 0 celdas con error;
+   `nbformat.validate` sin errores; 0 marcadores `PENDIENTE` restantes en el notebook (verificado
+   con `grep`).
+2. **Verificación cruzada dentro del propio notebook:** el total de siniestros (5.016) y el % de
+   días en cero (5,84 %) recalculados sobre el panel coinciden exactamente con
+   `resumen_diagnostico_datos.md` (§4.2) y `resumen_preparacion_montevideo.md` (§7.5) — assert en
+   la celda `02_verificacion_cruzada`, no solo lectura visual.
+3. **Cifras del documento acompañante:** cada número de `resumen_diagnostico_zona_contraste.md` se
+   copió de las tablas CSV de `experiments/diagnostico_zona_contraste/tablas/` (leídas con `cat`),
+   no del notebook renderizado ni de memoria; las comparaciones con Municipio C se releyeron de
+   `resumen_diagnostico_datos_municipio.md`, no se citaron de memoria.
+4. **Revisión visual:** las 7 figuras se abrieron y se revisó que los títulos, ejes y leyendas
+   dijeran "Municipio A" y no arrastraran texto de la plantilla de Municipio C.
+5. **Pendiente de validación del equipo:** la interpretación de por qué el patrón semanal y de
+   calendario de Municipio A es más débil que el de Municipio C no se investigó (queda como
+   pregunta abierta en la sección 8 del documento); y la decisión de partir del panel ya preparado
+   en lugar de reconstruir la asignación espacial (punto 1 de esta entrada) conviene que el equipo
+   la confirme antes de reutilizar este notebook como plantilla para otro municipio.
+
+**Archivos afectados:** `notebooks/diagnostico_zona_contraste.ipynb` (nuevo, 43 celdas, ejecutado),
+`experiments/diagnostico_zona_contraste/` (15 tablas CSV y 7 figuras PNG, nuevo),
+`documentacion/resumen_diagnostico_zona_contraste.md` (nuevo), `documentacion/registro_uso_IA.md`.

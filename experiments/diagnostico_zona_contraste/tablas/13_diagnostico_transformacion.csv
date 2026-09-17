@@ -1,0 +1,8 @@
+indicador,valor
+"ajuste lineal var~media (pendiente, intercepto)","0.900, 0.568"
+"ajuste cuadrático var~media² (pendiente, intercepto)","0.143, 1.955"
+correlación media–varianza mensual,0.4597
+λ de Box-Cox estimado por máxima verosimilitud (sobre serie+1),0.475
+λ=0 equivaldría a,logaritmo
+"λ=0,5 equivaldría a",raíz cuadrada (transformación de Anscombe para Poisson)
+λ=1 equivaldría a,sin transformar

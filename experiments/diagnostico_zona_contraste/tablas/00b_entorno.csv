@@ -1,0 +1,10 @@
+clave,valor
+ejecutado,2026-09-17 08:50
+python,3.13.2 · Windows 10
+municipio analizado,A
+pandas,2.3.3
+numpy,2.5.2
+statsmodels,0.14.6
+scipy,1.18.1
+matplotlib,3.11.1
+holidays,0.103

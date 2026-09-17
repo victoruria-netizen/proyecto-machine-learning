@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-15_
+_Última actualización: 2026-09-17_
 
 ---
 
@@ -1045,6 +1045,66 @@ explicado.
 - [ ] Si el modelado necesita estabilizar varianza, evaluar raíz cuadrada antes que logaritmo.
 - [ ] Commitear este notebook junto con sus artefactos, el resumen y este registro.
 - [ ] Registrar la sesión en `documentacion/registro_uso_IA.md` (hecho en esta misma sesión).
+
+### Diagnóstico de series temporales — Municipio A, zona de contraste (2026-09-17, sesión de Claude)
+
+Notebook nuevo, `notebooks/diagnostico_zona_contraste.ipynb`, a pedido del equipo: mismo análisis
+que `diagnostico_datos_municipio.ipynb` (tendencia, estacionalidad, ACF/PACF, dispersión por
+rezago, decisión de diferenciar/transformar el objetivo), aplicado a **Municipio A** — la zona de
+"contraste" (actividad mediana, 5.016 siniestros, 13,70 % del total) que reserva
+`preparacion_montevideo.ipynb`. Documentado en
+`documentacion/resumen_diagnostico_zona_contraste.md`.
+
+**Diferencia deliberada frente a Municipio C:** este notebook **no** reconstruye la asignación
+punto-polígono desde el CSV crudo con `geopandas` — parte directamente de
+`data/processed/panel_zona_contraste.csv`, el panel de Municipio A ya preparado y verificado por
+el ETL (dieciséis comprobaciones en OK; `resumen_preparacion_montevideo.md` §8). En su lugar, hace
+una verificación cruzada numérica (total de siniestros y % de días en cero) contra
+`resumen_diagnostico_datos.md` y `resumen_preparacion_montevideo.md`, con `assert` en el propio
+notebook — ambas coinciden exactamente.
+
+**Resultados de la serie de Municipio A** (1.645 días, 2021-07-01 a 2025-12-31; tablas en
+`experiments/diagnostico_zona_contraste/tablas/`), comparados con Municipio C:
+
+| Bloque | Municipio A | Municipio C |
+| --- | --- | --- |
+| Resumen | media 3,0492 · varianza 3,4231 · dispersión **1,1226** · 5,84 % días en cero | media 3,5155 · dispersión 1,260 · 4,80 % días en cero |
+| Tendencia | cae sólo 2021→2022, sube cada año hasta 2025 (+17,7 % mín-máx) | no monótona (baja 2021-2023, sube 2024-2025) |
+| Semanal | viernes máx (3,52), domingo mín (2,47), razón **1,43×** | viernes máx (4,27), domingo mín (2,04), razón 2,09× |
+| Anual | mínimo enero (0,80), **máximo mayo** (1,08) | mínimo enero (0,71), máximo **junio** (1,11) |
+| ACF cruda | **no** hay firma de múltiplos de 7 (rezago 7 y 21 dentro de banda) | múltiplos de 7 claramente fuera de banda, pico en rezago 14 |
+| Ljung-Box | rechaza en los 3 horizontes, `p<0,05` (menos margen que C) | rechaza en los 3 horizontes, `p<0,001` |
+| ADF vs. KPSS | misma tensión, margen ADF aún mayor (`p≈3×10⁻³⁰`) | ADF rechaza raíz unitaria (`p≈5×10⁻¹⁰`); KPSS rechaza estacionariedad |
+| Diferenciación | sobrediferenciación (acf rezago 1 = −0,50), no ayuda | sobrediferenciación (−0,46), no ayuda |
+| Media-varianza | más débil (r=0,46), pendiente ≈1 (cerca de Poisson puro) | lineal, pendiente ≈1,33 |
+| Box-Cox | λ ≈ **0,475** (casi igual a C) | λ ≈ 0,473 |
+
+**Decisión:** igual que en Municipio C, no corresponde diferenciar ni transformar (log/Box-Cox) el
+objetivo — el argumento es, si acaso, más fuerte en A (relación media-varianza más débil, más
+cerca de Poisson puro). El λ de Box-Cox casi idéntico en las dos zonas (~0,47-0,48) refuerza que,
+si hiciera falta estabilizar varianza, es raíz cuadrada y no logaritmo.
+
+**Hallazgo que NO estaba en el pedido original y vale la pena que el equipo revise:** el patrón
+semanal y de calendario de Municipio A es sistemáticamente más débil y más difuso que el de
+Municipio C (razón viernes/domingo más chica, ACF cruda sin firma de múltiplos de 7, Ljung-Box con
+menos margen). No se investigó la causa — queda como pregunta abierta para el análisis crítico del
+informe (`resumen_diagnostico_zona_contraste.md`, sección 8).
+
+**Estado de la ejecución:** notebook construido con `nbformat` (43 celdas) y ejecutado de punta a
+punta con `jupyter nbconvert --execute`, **0 errores**, 0 marcadores `PENDIENTE` restantes. Deja 15
+tablas y 7 figuras en `experiments/diagnostico_zona_contraste/`.
+
+**Pendiente que deja esta sesión:**
+
+- [ ] Repetir el diagnóstico de estacionariedad en un tercer municipio de actividad distinta (p.
+      ej. G o CH) para saber si la decisión de no transformar generaliza a todo el panel.
+- [ ] Investigar por qué el patrón semanal/calendario es más débil en Municipio A que en C (ver
+      hallazgo de arriba).
+- [ ] Commitear `notebooks/diagnostico_zona_contraste.ipynb`, `experiments/diagnostico_zona_contraste/`,
+      `documentacion/resumen_diagnostico_zona_contraste.md`, este HANDOFF y el registro de IA.
+- [ ] Confirmar con el equipo la decisión de partir del panel ya preparado (sin reconstruir la
+      asignación espacial) en vez de reimplementarla como en Municipio C — está documentada y
+      justificada, pero no fue un pedido explícito del prompt.
 
 ## 4. Pendiente (próximos pasos)
 

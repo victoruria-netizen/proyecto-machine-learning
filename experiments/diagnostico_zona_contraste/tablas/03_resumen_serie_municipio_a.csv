@@ -1,0 +1,11 @@
+indicador,valor
+municipio,A
+días del período,1645
+siniestros totales,5016
+días en cero,96
+% de días en cero,5.84
+media diaria,3.0492
+varianza diaria (ddof=0),3.4231
+índice de dispersión (var/media),1.1226
+máximo diario,11
+mediana diaria,3.0

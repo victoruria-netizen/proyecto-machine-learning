@@ -1,0 +1,23 @@
+tipo,archivo,tamaño
+tabla,experiments\diagnostico_zona_contraste\tablas\00_procedencia.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\00b_entorno.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\01_carga_panel.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\02_verificacion_cruzada.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\03_resumen_serie_municipio_a.csv,0.3 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\04_tendencia_anual.csv,0.1 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\05_perfil_semanal.csv,0.1 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\06_indice_estacional_mensual.csv,0.1 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\07_acf_pacf_crudo.csv,0.8 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\08_acf_residuo_calendario.csv,1.0 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\09_ljung_box.csv,0.1 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\10_dispersion_por_rezago.csv,0.1 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\11_estacionariedad_adf_kpss.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\12_efecto_diferenciacion.csv,0.2 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\13_diagnostico_transformacion.csv,0.4 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig1_tendencia_municipio_a.png,141.8 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig2a_perfil_semanal_municipio_a.png,29.5 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig2b_estacionalidad_anual_municipio_a.png,69.7 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig3a_acf_pacf_crudo_municipio_a.png,43.2 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig3b_acf_residuo_calendario_municipio_a.png,31.1 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig4_dispersion_lags_municipio_a.png,187.9 kB
+figura,experiments\diagnostico_zona_contraste\figuras\fig5_transformaciones_municipio_a.png,85.5 kB
