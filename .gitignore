@@ -24,6 +24,10 @@ models/*.joblib
 models/*.h5
 !models/.gitkeep
 
+# Salidas locales de prueba de los scripts de train/ (fallback cuando /outputs no existe;
+# en el servidor los resultados van a /outputs, fuera del repositorio)
+train/outputs_local/
+
 # Credenciales y secretos
 *.env
 .env

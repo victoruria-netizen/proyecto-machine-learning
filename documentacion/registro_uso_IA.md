@@ -1696,3 +1696,224 @@ notebook `notebooks/diagnostico_zona_contraste.ipynb` ya existía, vacío.
 **Archivos afectados:** `notebooks/diagnostico_zona_contraste.ipynb` (nuevo, 43 celdas, ejecutado),
 `experiments/diagnostico_zona_contraste/` (15 tablas CSV y 7 figuras PNG, nuevo),
 `documentacion/resumen_diagnostico_zona_contraste.md` (nuevo), `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-18 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** convertir `notebooks/base.ipynb` y `notebooks/base_2.ipynb` a scripts `.py`
+enviables a la cola del servidor (`documentacion/Guia_entrenamientos_CPU_GPU.md`), siguiendo la
+estructura de los tres ejemplos en `notebooks/Ejemplos/` (`train_cpu_test.py`,
+`train_cpu_stress_matmul.py`, `train_keras_test.py`).
+
+### Prompt 1
+> Claude, necesito que adaptes "base.ipynb" y "base_2.ipynb" a .py, crea dos archivos nuevos que
+> sean .py uno para cada cuaderno. Tambien es necesario que se utilice la GPU del servidor para
+> el entrenamiento. En la carpeta "documentacion/Guia_entrenamientos_CPU_GPU.md" hay un
+> instructivo de como utilizar los componentes del servidor y tambien en la carpeta
+> "notebooks/ejemplos" hay 3 .py como ejemplo. Crea los .py para "base.ipynb" y "base_2.ipynb"
+> siguiendo estas estructuras
+
+**Respuesta (extracto relevante):**
+
+1. **Conflicto detectado antes de escribir código, y consultado con el equipo en vez de resolverlo
+   por cuenta propia:** los dos notebooks entrenan un único `DecisionTreeRegressor` de
+   scikit-learn (`base_2.ipynb` lo envuelve con `skforecast.ForecasterRecursive`). Ese algoritmo
+   no tiene implementación GPU en scikit-learn, y con ~1.300-1.600 filas de entrenamiento tampoco
+   habría cómputo que acelerar. Se preguntó explícitamente cómo priorizar "usar GPU" frente a
+   "no cambiar el modelo sin que el equipo lo decida". **Respuesta del equipo: mantener el árbol
+   tal cual y enviarlo por `submit_cpu`**, documentando por qué no corresponde `submit_gpu` (la
+   propia guía, §14 punto 8, pide reservarlo para trabajos que sí aprovechan la GPU).
+2. **Scripts creados:** `train/train_base.py` (de `base.ipynb`) y `train/train_base_2.py` (de
+   `base_2.ipynb`), con la misma lógica y el mismo orden de secciones que cada notebook. Cambios,
+   todos de infraestructura, no de modelo ni de resultados:
+   - `RUN_ID`, `OUTPUT_DIR = /outputs/runs/<RUN_ID>/{tablas,figuras}`, `run_info.txt` con las
+     variables de Slurm (`SLURM_JOB_ID`, `SLURM_CPUS_PER_TASK`, `CUDA_VISIBLE_DEVICES`) — igual
+     que los tres ejemplos de `notebooks/Ejemplos/` y la sección 9-11 de la guía.
+   - Backend de matplotlib `Agg` (sin pantalla en el servidor); se guardan figuras, no se llama
+     `plt.show()`.
+   - `display()`, `.head()`, `.info()` y expresiones sueltas de celda (que en Jupyter se
+     autoimprimen) reemplazados por `print(..., flush=True)` explícitos, como pide la guía §12.
+   - `%pip install skforecast==0.25.0` (sólo funciona como *magic* de Jupyter) reemplazado por un
+     `try/except ImportError` con un mensaje que indica instalarlo de antemano en el entorno que
+     usa `submit_cpu`.
+   - Búsqueda de la raíz del repo basada en `Path(__file__)` en vez de `Path.cwd()`: en un trabajo
+     de Slurm el directorio de trabajo puede no ser el del repositorio.
+   - `sys.stdout.reconfigure(encoding="utf-8")`: sin esto, un log no-UTF-8 corta el trabajo con
+     `UnicodeEncodeError` al imprimir tildes o "→" (encontrado al probar en Windows).
+   - Cada script documenta, al final, cómo copiar `/outputs/runs/<RUN_ID>/{tablas,figuras}` a
+     `experiments/base/` o `experiments/base_2/` para que los resúmenes existentes
+     (`resumen_base.md`, `resumen_base_2.md`) sigan citando las mismas rutas.
+3. **`train/README.md`** nuevo: qué script va con qué notebook, comando de envío, por qué CPU y
+   no GPU, y la dependencia de `skforecast`.
+
+**Uso y verificación:** utilizado. Verificaciones:
+
+1. **Ejecución local completa de los dos scripts** (`.venv`, con `/outputs` inexistente: cae al
+   fallback local documentado en el propio script) — los dos terminan con código de salida 0, sin
+   excepciones.
+2. **Primer intento con un bug real, corregido antes de dar el script por bueno:** la detección
+   de "¿existe `/outputs`?" comprobaba `Path("/outputs").parent.exists()`, que en Windows es la
+   raíz de la unidad actual y siempre existe — el script escribió por error en `C:\outputs\...`
+   en la primera corrida. Se corrigió a comprobar la ruta misma (más `platform.system() ==
+   "Windows"` como señal adicional) y se borró la carpeta creada por error.
+3. **Coincidencia exacta con las cifras ya documentadas** (no sólo "corre sin errores"):
+   - `train_base.py`, test: desvianza de Poisson 1,2625 (media constante), 1,0848 (tasa ×
+     calendario), 1,6789 (árbol) — coincide con `resumen_base.md` / `HANDOFF.md` (1,085 y 1,679
+     redondeados a 3 cifras).
+   - `train_base_2.py`, test: 1,262 / 1,332 / 3,462 / 5,007 para media constante, línea base,
+     árbol y repetir semana anterior — coincide exactamente con `resumen_base_2.md`.
+   - Control cruzado interno de `train_base_2.py` contra `experiments/base/tablas/06_evaluacion_test.csv`:
+     `OK` en desvianza (1,2620 vs 1,2625) y MAE (1,7410 vs 1,7411) — igual que el control ya
+     documentado entre los dos notebooks.
+   - Los 7 días con predicción 0 del árbol en `train_base_2.py` (2025-02-16, 02-27, 06-22, 07-24,
+     08-03, 08-31, 09-07) coinciden uno a uno con los que cita `registro_uso_IA.md` (sesión
+     2026-09-15) para `base_2.ipynb`.
+4. **No verificado (pendiente, requiere el servidor):** el envío real con `submit_cpu` y la
+   lectura del log `.out` correspondiente. Lo probado es la lógica del script, no la integración
+   con Slurm.
+
+**Archivos afectados:** `train/train_base.py` (nuevo), `train/train_base_2.py` (nuevo),
+`train/README.md` (nuevo), `.gitignore` (se agrega `train/outputs_local/`),
+`documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-18 (segunda) — Victor Uria — Claude Code (Anthropic, Claude Opus 5)
+
+**Contexto:** `train_base_2.py` (sesión anterior) falló en el servidor real por un
+`ImportError: Falta skforecast`, a pesar de que el equipo ya lo había instalado con `pip` según
+la indicación de esa sesión. Se investigó por qué, con acceso solamente a lo que el equipo pegó
+del servidor (esta sesión no tiene acceso directo al servidor).
+
+### Prompt 1
+> Me dio este error en el servidor: ImportError: Falta skforecast en este entorno. [...] Solo paso
+> con el base_2, el otro base si corrio
+
+**Respuesta (extracto relevante):** se ofrecieron dos hipótesis (terminal/entorno equivocado, o
+instalación con errores no revisados) antes de tocar código, preguntando primero qué había
+mostrado el `pip install`.
+
+### Prompt 2
+> Me volvio a aparecer el mismo error
+
+**Respuesta:** en vez de seguir adivinando sin datos del servidor, se creó
+`train/diagnostico_entorno.py` (imprime `sys.executable`, `sys.path`, variables de entorno,
+intento de `import skforecast` y `pip show skforecast` con el mismo intérprete) y se pidió
+correrlo con `submit_cpu` y pegar el log.
+
+### Prompt 3 (pegó el log completo de `diagnostico_entorno.py`)
+> [log de Slurm: grupo grp04, host lidia, imagen
+> `/opt/apptainer-images/tensorflow_ngc_24.04_tf2_py3_mlcv.sif`, `sys.executable=/usr/bin/python`
+> (3.10.12), `sys.path` sin ninguna carpeta de usuario, `skforecast` no encontrado, `pip show`
+> vacío]
+
+**Respuesta (extracto relevante, diagnóstico a partir del log):**
+
+1. **Causa real, distinta de la asumida en la sesión anterior:** `submit_cpu` no corre en el
+   entorno de la terminal de Jupyter — corre **dentro de un contenedor Apptainer fijo**
+   (`tensorflow_ngc_24.04_tf2_py3_mlcv.sif`, Python 3.10 del sistema, paquetes en
+   `/usr/local/lib/python3.10/dist-packages`). Son dos entornos completamente separados; instalar
+   en uno no afecta al otro, sin importar `--user` ni permisos. La sesión anterior asumió que
+   compartían entorno porque el `%pip install` del notebook sí "funciona" — pero eso corre en el
+   kernel de Jupyter, nunca en el contenedor de Slurm.
+2. **Dato aprovechable del propio log:** `sys.path` incluye `/work/train` (la carpeta `train/`
+   del repo, montada dentro del contenedor) y persiste entre trabajos, a diferencia del resto del
+   contenedor que es de solo lectura.
+3. **Solución implementada:** `train/instalar_dependencias.py`, un script de un solo uso
+   (`submit_cpu instalar_dependencias.py`) que instala `skforecast==0.25.0` con
+   `pip install --target=train/vendor` usando el mismo `sys.executable` que después usará
+   `train_base_2.py` — garantizando que el binario instalado es compatible con ese contenedor
+   exacto (instalar localmente en Windows, por ejemplo, habría generado wheels inútiles ahí).
+   `train_base_2.py` se modificó para agregar `train/vendor/` al **final** de `sys.path` (no al
+   principio, para no tapar paquetes que el contenedor ya trae con versiones probablemente más
+   compatibles con TensorFlow) antes de intentar el `import skforecast`, y el mensaje de error se
+   actualizó para apuntar a `instalar_dependencias.py` en vez de a "instalar en el entorno".
+4. **`train/vendor/` no se versiona** (se agregó a `.gitignore`): son binarios de Linux/Python
+   3.10 específicos de esa imagen, inútiles en cualquier otra máquina.
+
+**Uso y verificación:** utilizado. Verificaciones:
+
+1. **`train_base_2.py` sigue corriendo igual en local** tras el cambio (no hay `train/vendor/`
+   localmente, así que cae al `import skforecast` normal del `.venv`): mismo código de salida 0 y
+   mismas cifras que la sesión anterior.
+2. **No verificado (depende del servidor, fuera del alcance de esta sesión):** que
+   `instalar_dependencias.py` efectivamente instale y que `train_base_2.py` corra después sin el
+   `ImportError`. Pendiente que el equipo lo corra y confirme con el `.out`.
+3. **Diagnóstico basado en evidencia pegada por el equipo, no en documentación del servidor**:
+   ni la guía ni ningún archivo del repo mencionan Apptainer/contenedores; toda la lectura de la
+   arquitectura del servidor sale del log real que pegó el equipo, citado en el punto 3 de la
+   respuesta.
+
+**Archivos afectados:** `train/diagnostico_entorno.py` (nuevo), `train/instalar_dependencias.py`
+(nuevo), `train/train_base_2.py` (modificado: import de skforecast vía `train/vendor/`),
+`train/README.md`, `.gitignore` (se agrega `train/vendor/`), `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-09-18 (tercera) — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** continuación de la entrada anterior. El intento de vendorizar `skforecast` en
+`train/vendor/` (entrada "segunda") **falló en el servidor y se descartó**; `train_base_2.py` se
+reescribió sin `skforecast`. Esta entrada corrige lo que la anterior daba por bueno.
+
+### Prompt 1 (pegó el log del job 107, `instalar_dependencias.py`)
+> [...] Instalando dependencias para train_base_2.py dentro del contenedor de submit_cpu...
+> Intérprete usado: /usr/bin/python [...] PermissionError: [Errno 13] Permission denied:
+> '/work/train/vendor'
+
+### Prompt 2
+> Se puede arreglar en el script "train_base_2.py"?, porque me parece raro que haya funcionado el
+> "train_base.py" sin problemas
+
+**Respuesta (extracto relevante):**
+
+1. **Por qué no era raro:** `train_base.py` nunca escribe en `/work` (sólo lee el CSV de ahí y
+   escribe en `/outputs`), mientras que `instalar_dependencias.py` intentaba crear una carpeta en
+   `/work/train`. Conclusión: `/work` es de sólo lectura dentro del contenedor y `/outputs` es el
+   único mount escribible — lo que ya decía la guía (§9) y que la entrada anterior aplicó mal al
+   suponer que `train/` era escribible porque aparecía en `sys.path`.
+2. **Primer arreglo intentado (descartado):** mover el vendor a `/outputs/vendor`. Al probarlo en
+   local aparecieron dos problemas de fondo, que invalidan el enfoque de vendorizar:
+   - `pip install --target` no reutiliza lo ya instalado: bajó el stack científico completo
+     (numpy, scipy, pandas, scikit-learn, numba…), **512 MB**.
+   - El contenedor trae `numpy 1.24.4 / pandas 1.5.3 / scikit-learn 1.2.0` (del log de
+     `diagnostico_entorno.py`) y `skforecast 0.25.0` exige `numpy>=1.26 / pandas>=2.1 /
+     scikit-learn>=1.4` (leído de su `METADATA`). Con el vendor al final de `sys.path`, habrían
+     ganado las versiones viejas del contenedor y `skforecast` habría fallado igual.
+   - **Además, el "OK" que imprimió el test local de `instalar_dependencias.py` era un falso
+     positivo:** el `import skforecast` resolvía al del `.venv`, no al de la carpeta vendor.
+3. **Solución adoptada:** `train_base_2.py` ya no importa `skforecast`. Los rezagos
+   (`matriz_rezagos`, mismo orden de columnas que skforecast: lag_1, lag_7, lag_14, lag_21) y la
+   predicción recursiva (`predecir_recursivo`) se implementan a mano con `numpy`/`pandas`, que el
+   contenedor ya trae. Es lo que la pregunta del equipo apuntaba (que funcione como
+   `train_base.py`, sin instalar nada) y elimina de paso el conflicto `skforecast`/pandas 3 para
+   este script. **Es un cambio de mecanismo respecto del notebook `base_2.ipynb`** (que sigue
+   usando `skforecast`); el modelo, los rezagos, los hiperparámetros y la semilla son los mismos.
+4. `train/instalar_dependencias.py` se **borró** (superado) y se quitó `train/vendor/` del
+   `.gitignore`. `train/diagnostico_entorno.py` se conserva.
+
+**Uso y verificación:** utilizado. Verificaciones:
+
+1. **Paridad exacta contra `skforecast` como oráculo:** se guardó la versión anterior del script
+   (con `skforecast`), se corrieron las dos en local con los mismos datos y se compararon
+   `experiments`-equivalentes tabla por tabla con `cmp`: **las siete tablas de resultados
+   (`01` a `07`) son idénticas byte a byte** (`00_entorno.csv` se excluye por diseño: lleva
+   versiones y fecha).
+2. **Errores propios encontrados y corregidos en el camino:** (a) un `\n` mal escapado en un
+   heredoc de bash dejó una cadena partida y el script no compilaba (`SyntaxError`); se detectó
+   porque la corrida local devolvió código 1, y se corrigió; (b) la limpieza de 512 MB de
+   `train/outputs_local` generados por el test del instalador.
+3. **No verificado (depende del servidor):** que `train_base_2.py` corra en el contenedor con
+   `pandas 1.5.3 / numpy 1.24.4 / scikit-learn 1.2.0` (localmente se probó con pandas 2.3.3,
+   numpy 2.5.2, scikit-learn 1.9.0; no se pudo reproducir el entorno viejo porque numpy 1.24 no
+   tiene ruedas para el Python 3.13 local). Se revisó a mano que las funciones usadas existan en
+   esas versiones, pero la prueba real es reenviar el trabajo y comparar las cifras con las de
+   `train/README.md` ("Cómo verificar una corrida del servidor").
+4. **Advertencia entregada al equipo:** `train_base.py` ya corrió en el servidor con
+   `scikit-learn 1.2.0`; conviene comparar su `06_evaluacion_test.csv` con 1,2625 / 1,0848 /
+   1,6789: es una comprobación gratuita de que el cambio de versión no altera los árboles.
+
+**Archivos afectados:** `train/train_base_2.py` (reescrito sin skforecast), `train/README.md`
+(reescrito), `train/instalar_dependencias.py` (creado en la entrada anterior, borrado acá),
+`.gitignore`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
