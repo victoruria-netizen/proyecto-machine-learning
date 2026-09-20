@@ -3,7 +3,8 @@
 **Notebook:** [`notebooks/preparacion_montevideo.ipynb`](../notebooks/preparacion_montevideo.ipynb)
 **Artefactos:** `experiments/etl_montevideo/` (15 tablas CSV, 1 mapa HTML, 1 figura PNG)
 **Salida:** `data/processed/` (6 archivos, regenerables, no versionados)
-**Fecha de ejecución:** 2026-09-07
+**Fecha de ejecución:** 2026-09-20 (reejecución en el entorno estandarizado, sin cambio de datos
+respecto de la del 2026-09-07; ver la nota de reejecución, más abajo)
 **Alcance:** Montevideo, **2021-07-01 a 2025-12-31**, unidad de análisis **(día, municipio)**
 
 ---
@@ -40,6 +41,36 @@ aplican y se verifican.
 > ese documento discutía largamente: el **balanceo** (ya no hay exceso de ceros), la
 > **interpolación de ceros** (no hay nada que interpolar) y el **estrato de actividad** como
 > variable (con 8 zonas en un rango de 1,71× los terciles son arbitrarios).
+
+> ### Reejecución del 2026-09-20 en el entorno estandarizado
+>
+> El notebook se reejecutó de punta a punta y **regeneró `data/processed/`**. Corrió en un entorno
+> nuevo, fijado en `requirements.txt` y `requirements-lock.txt` (Python 3.13.15, pandas 2.3.3, NumPy
+> 2.5.2; ver `requirements-lock.txt` para el resto). Este notebook no guarda sus versiones en una
+> tabla; el registro de entorno de esa corrida está en `00b_entorno.csv` de los notebooks de
+> diagnóstico, que corrieron en el mismo entorno. La serie de clima se leyó de la caché
+> (`data/raw/clima_montevideo.csv`, sin cambios): no se consultó Open-Meteo.
+>
+> **Ningún dato cambió.** Se comparó contra una copia de la salida anterior: los 5 CSV con datos de
+> `data/processed/` (`panel_diario_montevideo`, `panel_zona_contraste`, `panel_zona_top`,
+> `siniestros_montevideo` y `zonas_montevideo`) y 13 de las 15 tablas de `experiments/etl_montevideo/`
+> quedaron idénticos byte a byte, y la figura `series_zonas.png` también. Cambiaron 2 tablas y el
+> mapa:
+>
+> - `12_diccionario_datos.csv` (y su copia `data/processed/diccionario_datos.csv`): 15 celdas de la
+>   columna de tipo, donde `str` pasó a `object` y `datetime64[us]` a `datetime64[ns]`. Son
+>   etiquetas de tipo de pandas 3 frente a pandas 2, no cambian los datos.
+> - `03b_procedencia_capa_zonas.csv`: una celda, una fecha de modificación con 4 horas de diferencia
+>   (depende de la copia local del archivo).
+> - `mapa_zonas.html`: idéntico salvo por los identificadores aleatorios que genera `folium` en cada
+>   ejecución; git lo muestra como cambiado.
+>
+> **Corrección en la celda 7 (`normalizar_columnas`).** El archivo crudo tiene un registro sin
+> `Calle`, y en pandas 2.x `.astype(str)` convierte un nulo en el texto `"nan"`. Se agregó
+> `.where(df[col].notna())` para conservar el nulo, igual que en `diagnostico_datos` (ver
+> `resumen_diagnostico_datos.md`). No cambió ningún dato de `data/processed/`: las columnas que el
+> notebook conserva no tienen faltantes (el notebook informa 0) y los 5 CSV con datos siguen
+> idénticos byte a byte.
 
 ---
 

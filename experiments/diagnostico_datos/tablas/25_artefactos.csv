@@ -1,7 +1,7 @@
 artefacto,tamaño
 tablas/00_procedencia.csv,0.4 kB
 tablas/00b_entorno.csv,0.2 kB
-tablas/01_esquema_crudo.csv,0.4 kB
+tablas/01_esquema_crudo.csv,0.5 kB
 tablas/02_recorte_alcance.csv,0.2 kB
 tablas/03_disponibilidad_variables.csv,0.8 kB
 tablas/03b_disponibilidad_exogenas.csv,0.3 kB
@@ -46,7 +46,7 @@ tablas/21d_deriva_entre_mitades.csv,0.1 kB
 tablas/22_adecuacion_objetivo.csv,1.2 kB
 tablas/23_coherencia_etl.csv,0.2 kB
 tablas/24_limitaciones.csv,2.8 kB
-tablas/25_artefactos.csv,2.0 kB
+tablas/25_artefactos.csv,2.2 kB
 figuras/fig0_outliers_diarios.png,48.3 kB
 figuras/fig1_cobertura_temporal.png,71.1 kB
 figuras/fig2_cobertura_territorial.png,76.9 kB

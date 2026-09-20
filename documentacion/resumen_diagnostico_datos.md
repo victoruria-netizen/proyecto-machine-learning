@@ -2,8 +2,9 @@
 
 **Notebook:** [`notebooks/diagnostico_datos.ipynb`](../notebooks/diagnostico_datos.ipynb)
 **Artefactos:** `experiments/diagnostico_datos/` (48 tablas CSV y 4 figuras PNG)
-**Fecha de ejecución:** 2026-09-14 (reejecución que agrega la sección 2.8, *Análisis de outliers*, con
-sus dos criterios; el resto de las cifras no cambió respecto de la corrida del 2026-09-07)
+**Fecha de ejecución:** 2026-09-20 (reejecución en el entorno estandarizado y una corrección en la
+celda 6; no cambió ninguna cifra de resultados respecto de la corrida del 2026-09-14, que agregó la
+sección 2.8, *Análisis de outliers*, con sus dos criterios)
 **Alcance:** Montevideo, **2021-07-01 a 2025-12-31**, unidad de análisis **(día, municipio)**
 
 ---
@@ -40,11 +41,41 @@ cifra.
 > | 2026-09-04 | Montevideo, 62 barrios, desde 2021-01-01 | **superada** |
 > | **2026-09-07** | **Montevideo, 8 municipios, desde 2021-07-01** | **vigente** |
 > | 2026-09-14 | Mismo alcance + sección de outliers (§3.8) | **vigente — ampliación, no reemplazo** |
+> | 2026-09-20 | Mismo alcance, reejecución en el entorno estandarizado (pandas 2.3.3) | **vigente — sin cambio de cifras** |
 >
 > La corrida del 2026-09-14 **no cambió ninguna cifra existente**: en `experiments/diagnostico_datos/`
 > sólo aparecieron las tablas `10c_outliers_diarios` a `10g_comparacion_criterios` y la figura `fig0_outliers_diarios.png`,
 > y se actualizaron `00b_entorno.csv` (fecha de ejecución) y `25_artefactos.csv` (listado). Las
 > demás tablas y figuras quedaron idénticas byte a byte (verificado con `git status`).
+>
+> **Reejecución del 2026-09-20.** Corrió en un entorno nuevo, fijado en `requirements.txt` y
+> `requirements-lock.txt`. Versiones registradas en `00b_entorno.csv`: Python 3.13.15, pandas 2.3.3,
+> NumPy 2.5.2, matplotlib 3.11.1, holidays 0.103, pyproj 3.7.2 y pyshp 3.1.6. La corrida anterior
+> había usado pandas 3.0.5 y Python 3.13.2. **No cambió ninguna cifra de resultados.** Se comparó
+> contra una copia de las salidas anteriores: 44 de las 48 tablas y las 4 figuras quedaron idénticas
+> byte a byte. Las otras 4 cambiaron solo en esto:
+>
+> - `00b_entorno`: versiones y fecha de ejecución.
+> - `00_procedencia`: la columna `modificado` (fecha de modificación de los archivos crudos, que
+>   depende de la copia local). Los `sha256` no cambiaron.
+> - `25_artefactos`: el tamaño de 2 archivos.
+> - `01_esquema_crudo`: solo la columna `tipo`. `str` pasó a `object` y `datetime64[us]` a
+>   `datetime64[ns]`: son etiquetas de tipo de pandas 3 frente a pandas 2, no cambian los datos.
+>
+> **Corrección en la celda 6 del notebook.** En pandas 2.x, `.astype(str)` convierte un valor nulo en
+> el texto `"nan"`, que cuenta como calle no nula y distinta. El archivo crudo tiene un registro sin
+> `Calle`. Sin la corrección, `01_esquema_crudo` mostraba para `Calle` 224.694 no nulos y 23.747
+> distintos, un registro más en cada cifra. Se agregó `.where(df_pais[c].notna())` para restituir el
+> nulo. Con la corrección, `Calle` vuelve a 224.693 no nulos y 23.746 distintos, igual que en la
+> corrida con pandas 3.0.5. Las demás tablas quedaron idénticas con y sin la corrección. El mismo
+> patrón `astype(str).str.strip()` estaba en `diagnostico_datos_municipio` (celda 7) y en
+> `preparacion_montevideo` (celda 7): se aplicó allí la misma corrección. En ninguno cambió una
+> salida (`siniestros_montevideo.csv` no exporta `Calle`, y las columnas que conserva
+> `preparacion_montevideo` no tienen faltantes).
+>
+> Con pandas 2.3.3 y NumPy 2.5.2, la celda 8 emite un `DeprecationWarning` de NumPy (la unidad
+> `generic` de `timedelta` está en desuso) en `pd.Timestamp(...) - pd.Timedelta(days=1)`. No afecta
+> ninguna cifra hoy; anticipa un error futuro de esa combinación de versiones.
 >
 > No es un cambio cosmético. Al pasar de barrios a municipios el porcentaje de ceros del panel
 > cae de 71,96 % a **8,60 %**, y **dos conclusiones centrales cambian de signo**: ahora *sí* se

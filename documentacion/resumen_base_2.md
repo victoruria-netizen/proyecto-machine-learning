@@ -4,7 +4,8 @@
 **Artefactos:** `experiments/base_2/` (8 tablas CSV, 4 figuras PNG)
 **Entrada:** `data/processed/panel_zona_top.csv`, del que se leen **solo** `fecha`, `zona_id` y
 `n_siniestros`. El notebook no escribe nada en `data/processed/`.
-**Fecha de ejecución:** 2026-09-15 (`tablas/00_entorno.csv`)
+**Fecha de ejecución:** 2026-09-20 (`tablas/00_entorno.csv`); reejecución en el entorno estandarizado,
+idéntica en cifras a la del 2026-09-15 (ver la nota de reejecución, más abajo)
 **Alcance:** una única serie diaria, **MUNICIPIO C** (el municipio con más siniestros
 registrados), del 2021-07-01 al 2025-12-31 (1.645 días). **Sin variables exógenas.**
 **Métrica principal:** desvianza de Poisson media.
@@ -20,7 +21,7 @@ escrito acá, con el artefacto que respalda cada cifra.
 
 **Reglas que quien redacte debe respetar:**
 
-1. **Ninguna cifra sin artefacto.** Los números salen de la ejecución del 2026-09-15 y llevan al
+1. **Ninguna cifra sin artefacto.** Los números salen de la ejecución del 2026-09-20 (idéntica en cifras a la del 2026-09-15) y llevan al
    lado la tabla que los respalda (`tablas/NN_nombre.csv`). Si hace falta un número que no está
    acá, se marca como `<!-- PENDIENTE: ... -->`.
 2. **Distinguir evidencia de inferencia.** «Los resultados muestran X» y «el equipo concluye Y»
@@ -41,6 +42,19 @@ municipios) y [`resumen_preparacion_montevideo.md`](resumen_preparacion_montevid
 > Poisson, antes MAE) y la numeración de tablas y figuras. **Ninguna cifra de modelo de la versión
 > anterior sigue vigente** (sección 1.4). Una tabla con nombre viejo, como `08_test_metricas.csv`,
 > es de la versión anterior y no se cita.
+
+> ### Reejecución del 2026-09-20 en el entorno estandarizado
+>
+> El notebook se reejecutó de punta a punta (`jupyter nbconvert --execute`) en un entorno nuevo,
+> fijado en `requirements.txt` y `requirements-lock.txt`. Versiones registradas en
+> `tablas/00_entorno.csv`: Python 3.13.15, pandas 2.3.3, NumPy 2.5.2, matplotlib 3.11.1,
+> scikit-learn 1.9.0 y skforecast 0.25.0.
+>
+> **Ninguna cifra cambió.** Se comparó contra una copia de las salidas anteriores: las tablas `01` a
+> `07` y las cuatro figuras quedaron idénticas byte a byte. Solo cambió `00_entorno.csv`: Python
+> pasó de 3.13.2 a 3.13.15 y se actualizó la fecha de ejecución (pandas, NumPy, matplotlib,
+> scikit-learn y skforecast ya eran esas versiones). En el notebook se quitó la celda que instalaba
+> `skforecast` con `%pip`: ahora está fijado en `requirements.txt`. La lógica no se tocó.
 
 > ### ⚠️ Una sola serie, a propósito
 >
@@ -86,7 +100,7 @@ municipios) y [`resumen_preparacion_montevideo.md`](resumen_preparacion_montevid
 
 | § | Qué hace | Por qué |
 | --- | --- | --- |
-| 0 | Instala `skforecast==0.25.0` y registra versiones | `skforecast` no está en `requirements.txt` |
+| 0 | Registra las versiones de Python y bibliotecas en `tablas/00_entorno.csv` | Trazabilidad del entorno. Las dependencias, incluida `skforecast==0.25.0`, están fijadas en `requirements.txt`; el notebook no instala nada |
 | 1 | Carga **solo** fecha, municipio y `n_siniestros`, con formato de fecha explícito | Así ningún modelo puede usar `tipo_dia` ni el clima por error. Sin formato explícito, `01/07/2021` puede leerse como 7 de enero |
 | 2 | Tabla con los resultados del diagnóstico que usa el modelo (sin código) | No repetir el análisis exploratorio |
 | 3 | Partición cronológica 80 / 20 | En series temporales se entrena con el pasado y se evalúa sobre el futuro |
@@ -416,7 +430,7 @@ validación la ventana de la línea base y recién después sumar variables exó
 | **La desvianza de los modelos que predicen 0 depende del valor de reemplazo** (10⁻⁶). Con otro valor, la desvianza del árbol y de repetir semana anterior cambia; la de la media constante y la línea base, no. | Se usa el mismo valor que `base.ipynb`. Fijarlo como parte del protocolo del proyecto |
 | **Sin variables exógenas.** | Decisión de esta entrega. Los resultados no dicen nada sobre cuánto aportan el calendario o el clima |
 | **El crecimiento de los siniestros solo lo sigue la ventana de la línea base.** | La media constante predice el 88,4 % del total; ningún modelo lo trata explícitamente |
-| **Entorno inconsistente con `requirements.txt`.** La corrida usó pandas **2.3.3** (`00_entorno`): `skforecast` 0.25 exige pandas < 3, y `requirements.txt` fija 3.0.5 y no incluye `skforecast`. | Decisión pendiente del equipo (`HANDOFF.md`) |
+| **`skforecast` 0.25 exige pandas < 3.** El entorno del proyecto usa pandas **2.3.3** (`00_entorno`, `requirements.txt`). Mientras se use `skforecast` no se puede pasar a pandas 3. | Restricción declarada en `requirements.txt`. Cambiar la versión de pandas obliga a reejecutar los notebooks y comparar las salidas |
 | **Archivo de entrada restaurado** (§2), no regenerado por el ETL. | Contenido verificado idéntico; queda documentado |
 | **Sin datos de exposición** (tránsito). | Se modela el conteo registrado, no el riesgo |
 
@@ -491,8 +505,7 @@ reejecutan con otro alcance, este notebook y este documento hay que actualizarlo
    (hoy 10⁻⁶, igual que `base.ipynb`), y declararlo en el informe.
 4. **Decidir qué notebook base se presenta.** Ojo: `base.ipynb` usa variables de calendario; si la
    regla «sin exógenas» vale para toda la entrega, ese notebook no la cumple.
-5. **Resolver pandas 3 vs `skforecast`** y dejar `requirements.txt` coherente con la corrida.
-6. **Entregable 3**, para el panel de 8 municipios:
+5. **Entregable 3**, para el panel de 8 municipios:
    - profundidad (y mínimo de días por hoja) y rezagos elegidos con validación temporal y con la
      desvianza de Poisson como criterio, con la ACF calculada solo con entrenamiento;
    - revisión de la ventana de la línea base con el mismo protocolo;

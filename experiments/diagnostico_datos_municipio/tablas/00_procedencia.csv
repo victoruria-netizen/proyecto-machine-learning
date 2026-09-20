@@ -1,3 +1,3 @@
 fuente,archivo,tamaño,sha256,modificado
-siniestros,data\raw\uru_siniestros_unificado.csv,26.19 MB,48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2,2026-09-14 12:58
-municipios,data\raw\municipios_montevideo.geojson,2.87 MB,c5d9f651aa6d88d6ff5bb32b831664b5850b275bfe562bed9e68246492c48d4a,2026-09-14 12:58
+siniestros,data\raw\uru_siniestros_unificado.csv,26.19 MB,48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2,2026-08-24 07:21
+municipios,data\raw\municipios_montevideo.geojson,2.87 MB,ed0ba13e53b08f1e35eead16ffdef16d57e518aff30c7cc77dc0082713b489bd,2026-09-07 09:36

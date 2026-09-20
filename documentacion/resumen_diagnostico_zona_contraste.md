@@ -1,8 +1,9 @@
 # Resumen del diagnóstico de series temporales — Municipio A (zona de contraste)
 
 **Notebook:** [`notebooks/diagnostico_zona_contraste.ipynb`](../notebooks/diagnostico_zona_contraste.ipynb)
-**Artefactos:** `experiments/diagnostico_zona_contraste/` (15 tablas CSV y 7 figuras PNG)
-**Fecha de ejecución:** 2026-09-17 (`jupyter nbconvert --execute`, sin errores)
+**Artefactos:** `experiments/diagnostico_zona_contraste/` (16 tablas CSV y 7 figuras PNG)
+**Fecha de ejecución:** 2026-09-20 (`jupyter nbconvert --execute`, sin errores; reejecución en el
+entorno estandarizado, sin cambio de cifras respecto de la del 2026-09-17)
 **Alcance:** Municipio A de Montevideo, **2021-07-01 a 2025-12-31** (1.645 días), serie diaria de
 conteo de siniestros
 
@@ -32,6 +33,21 @@ mismo análisis para Municipio C (la zona más activa): este documento aplica el
    con la zonificación por municipios, el par top/contraste "ya casi no contrasta"
    (`resumen_preparacion_montevideo.md` §7.5). Sirve para tener una segunda serie con estructura
    temporal propia, no para medir cuánto varía el modelo entre zonas.
+
+> ### Reejecución del 2026-09-20 en el entorno estandarizado
+>
+> El notebook se reejecutó de punta a punta en un entorno nuevo, fijado en `requirements.txt` y
+> `requirements-lock.txt`. Versiones registradas en `00b_entorno.csv`: Python 3.13.15, pandas 2.3.3,
+> NumPy 2.5.2, SciPy 1.18.1, statsmodels 0.14.6, matplotlib 3.11.1 y holidays 0.103. La corrida
+> anterior ya había usado esas mismas versiones de pandas, NumPy, SciPy, statsmodels, matplotlib y
+> holidays; solo cambió Python (3.13.2 a 3.13.15, y la etiqueta de sistema de «Windows 10» a
+> «Windows 11»).
+>
+> **Ninguna cifra de resultados cambió.** Se comparó contra una copia de las salidas anteriores: 13
+> de las 16 tablas y las 7 figuras quedaron idénticas byte a byte. Las otras 3 tablas cambiaron solo
+> en `00b_entorno` (versión de Python y fecha), `00_procedencia` (la columna `modificado` del panel
+> de entrada, porque `preparacion_montevideo` lo regeneró; su `sha256` no cambió) y `14_artefactos`
+> (una fila más: al reejecutar, la tabla se lista a sí misma).
 
 ---
 

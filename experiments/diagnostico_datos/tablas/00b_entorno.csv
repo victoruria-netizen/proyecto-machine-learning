@@ -1,7 +1,7 @@
 clave,valor
-ejecutado,2026-09-14 11:56
-python,3.13.2 · Windows 10
-pandas,3.0.5
+ejecutado,2026-09-20 16:52
+python,3.13.15 · Windows 11
+pandas,2.3.3
 numpy,2.5.2
 matplotlib,3.11.1
 holidays,0.103

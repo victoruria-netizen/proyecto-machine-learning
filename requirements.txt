@@ -1,42 +1,42 @@
 # Dependencias del proyecto — Predicción de Siniestros Viales (PAA)
-# Python 3.13 (ver README). Versiones fijadas por reproducibilidad (guía PAA, entregables 3 y 4).
-# Instalación:  pip install -r requirements.txt
+# Python 3.13.15 (ver README). Versiones exactas por reproducibilidad (guía PAA, entregables 3 y 4).
+#
+# Instalación (reproduce el entorno completo, incluidas las dependencias transitivas):
+#   pip install -r requirements.txt -c requirements-lock.txt
+#
+# Este archivo lista SOLO lo que los notebooks importan (más lo necesario para ejecutarlos).
+# requirements-lock.txt fija el árbol completo (pip freeze del entorno verificado) y se usa
+# como "constraints": no agrega paquetes, solo fija sus versiones.
+# Si se necesita una biblioteca nueva: agregarla acá con versión exacta, instalar y regenerar el lock.
+#
+# Restricción dura: skforecast 0.25.0 exige pandas >=2.1,<3.0, por eso pandas queda en 2.3.3
+# (la última 2.x). No subir pandas a 3 sin quitar skforecast.
 
 # --- Análisis y manejo de datos ---
 numpy==2.5.2
-pandas==3.0.5
-pyarrow==25.0.1          # lectura/escritura de parquet en data/processed
+pandas==2.3.3            # skforecast 0.25.0 exige pandas<3.0
+scipy==1.18.1            # interpolación y pruebas estadísticas
 
 # --- Visualización ---
-matplotlib==3.11.1
-seaborn==0.13.2
+matplotlib==3.11.1       # skforecast (extra plotting) exige <3.12
 
-# --- Aprendizaje automático ---
-scikit-learn==1.9.0      # baselines, métricas, TimeSeriesSplit
-scipy==1.18.1            # interpolación y pruebas estadísticas (dependencia de scikit-learn)
-statsmodels==0.14.6      # SARIMA/SARIMAX y diagnóstico de series temporales
-xgboost==3.4.1           # boosting con variables de rezago
-lightgbm==4.7.0          # boosting con variables de rezago
-joblib==1.5.3            # serialización de modelos (models/)
+# --- Aprendizaje automático y series temporales ---
+scikit-learn==1.9.0      # baselines, métricas, árbol de decisión
+statsmodels==0.14.6      # diagnóstico de series temporales; skforecast exige <0.15
+skforecast==0.25.0       # ForecasterRecursive (base_2); trae numba, optuna, tqdm y rich
 
 # --- Variables exógenas ---
 holidays==0.103          # feriados de Uruguay para el calendario
 requests==2.34.2         # carga histórica puntual de Open-Meteo (cacheada)
 
 # --- Geo / mapas ---
+geopandas==1.1.4         # cruce punto-polígono con los municipios (diagnostico_datos_municipio)
 pyproj==3.7.2            # conversión de coordenadas UTM 21S (EPSG:32721) a lat/lon
-folium==0.20.0           # mapa de zonas del ETL y del dashboard
+pyshp==3.1.6             # lectura de shapefiles; se importa como `shapefile`
+folium==0.20.0           # mapa de zonas del ETL
 branca==0.8.2            # escalas y leyendas de los mapas folium
-pyshp==3.1.6             # lectura de la capa de barrios (shapefile) sin GDAL/geopandas
-streamlit-folium==0.27.4
-
-# --- Prototipo / dashboard (TRL 5) ---
-streamlit==1.62.0
-python-dotenv==1.2.3     # credenciales vía variables de entorno
 
 # --- Notebooks ---
-jupyter==1.1.1
+jupyter==1.1.1           # incluye nbconvert (jupyter nbconvert --execute)
 ipykernel==7.3.0
-
-# --- Pruebas ---
-pytest==9.1.1
+ipython==9.17.1          # los notebooks importan IPython.display

@@ -36,36 +36,82 @@ app/                   Prototipo / dashboard integrado (TRL 5)
 documentacion/         Documentación del proyecto
     registro_uso_IA.md Registro incremental del uso de IA generativa
 tests/                 Pruebas del pipeline de inferencia
-requirements.txt       Dependencias del entorno
+requirements.txt       Dependencias directas del entorno, con versión exacta
+requirements-lock.txt  Versiones exactas de todo el entorno (pip freeze), usadas como constraints
 ```
 
 ## Requisitos e instalación
 
-**Versión de Python: 3.13.** Es la versión con la que el entorno fue verificado de
-punta a punta y la que usan los notebooks del repositorio. Fijarla es lo que garantiza
-que todos los integrantes —y el servidor institucional— reproduzcan los mismos
-resultados. Si el servidor institucional provee otra versión, alinear esta y volver a
-generar `requirements-lock.txt`.
+**Versión de Python: 3.13.15.** Es la versión con la que se creó y verificó el entorno de
+punta a punta (2026-09-20) y la que registran hoy los notebooks. Fijarla evita diferencias
+entre integrantes. Los resultados de `base_2` y de `diagnostico_zona_contraste` no cambiaron
+al pasar de 3.13.2 a 3.13.15; igual, la versión de cada corrida queda registrada en
+`00_entorno.csv` / `00b_entorno.csv`.
 
 ```powershell
 # Windows (PowerShell) — el selector "py" permite fijar la versión
 py -3.13 -m venv .venv
 .venv\Scripts\Activate.ps1
-
-# Linux/Mac
-python3.13 -m venv .venv
-source .venv/bin/activate
+python --version                 # debe decir Python 3.13.15
 
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements.txt -c requirements-lock.txt
+pip check                        # debe decir: No broken requirements found.
 ```
 
-`requirements.txt` contiene las dependencias directas con versión fijada.
-`requirements-lock.txt` es el volcado completo del entorno verificado
-(`pip freeze`) y sirve para reproducir la instalación exacta si hiciera falta.
+```bash
+# Linux/Mac — no verificado: el lock se generó en Windows
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt -c requirements-lock.txt
+```
 
-Las credenciales y rutas sensibles se gestionan mediante variables de entorno. Copiar
-`.env.example` a `.env` y completar los valores antes de ejecutar el pipeline.
+Si `py -3.13` no encuentra Python 3.13.15, instalarlo desde python.org o con
+`uv python install 3.13.15`, y crear el entorno con ese intérprete
+(`uv python find 3.13.15` da la ruta; luego `<ruta>\python.exe -m venv .venv`). En Windows, crear
+un entorno en una ruta muy larga falló una vez (2026-09-20, unos 200 caracteres de ruta,
+probablemente por el límite de 260 caracteres): si pasa, crear el entorno en una ruta más corta.
+
+**Qué es cada archivo**
+
+- `requirements.txt` lista las dependencias directas con versión exacta: lo que importan los
+  notebooks (numpy, pandas, scipy, scikit-learn, statsmodels, skforecast, matplotlib, holidays,
+  geopandas, pyproj, pyshp, folium, branca, requests) y lo necesario para ejecutarlos (jupyter,
+  ipykernel, ipython).
+- `requirements-lock.txt` es el `pip freeze` del entorno verificado (136 paquetes). Se usa como
+  *constraints* (`-c`): fija la versión de todo el árbol de dependencias sin agregar paquetes.
+  Se validó instalando en un entorno limpio con `-r requirements.txt -c requirements-lock.txt`: dio
+  el mismo `pip freeze`.
+
+**Restricción dura: `skforecast` 0.25.0 exige pandas `>=2.1,<3.0`.** Por eso pandas queda en
+2.3.3 (la última 2.x). No subir pandas a 3 sin quitar `skforecast`. Por el mismo motivo
+statsmodels queda por debajo de 0.15 y matplotlib por debajo de 3.12. Cambiar la versión de
+pandas obliga a reejecutar los notebooks y comparar las salidas: el 2026-09-20 se comprobó que
+pandas 3.0.5 y 2.3.3 no dan lo mismo en un caso (`.astype(str)` convierte un nulo en el texto
+`"nan"` en pandas 2.x; ver `documentacion/resumen_diagnostico_datos.md`).
+
+**Dependencias que hoy no están.** El 2026-09-20 se retiraron de `requirements.txt` las que
+ningún notebook importa: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
+python-dotenv y pytest (joblib se instala igual, como dependencia de `skforecast`). Cuando
+`src/`, `app/` o `tests/` las necesiten, agregarlas de nuevo con versión exacta. Hasta entonces
+`streamlit` y `pytest` no están instalados en este entorno.
+
+**Agregar una dependencia.** Instalarla con versión exacta, anotarla en `requirements.txt` con un
+comentario de para qué se usa, reejecutar lo que dependa de ella y regenerar
+`requirements-lock.txt` con `pip freeze` (guardado en UTF-8, conservando su encabezado).
+
+**Otros entornos.** El servidor institucional (`submit_cpu`) corre los scripts de `train/` en un
+contenedor con su propio entorno (Python 3.10, pandas 1.5.3, scikit-learn 1.2.0), distinto de este;
+ver `train/README.md`. Los notebooks de `notebooks/Ejemplos/` son material de ejemplo pensado para
+Colab (usan seaborn, tensorflow y cv2) y no se ejecutan con este entorno.
+
+Las credenciales y rutas sensibles se gestionan mediante variables de entorno.
+`.env.example` documenta las que el código lee hoy: `PAA_DIR` (raíz del proyecto) y `PAA_CSV`
+(ruta al CSV crudo de siniestros), ambas opcionales y leídas por
+`notebooks/preparacion_montevideo.ipynb`. **Ningún código carga un archivo `.env` todavía**: hay que
+definirlas en la terminal antes de abrir Jupyter (por ejemplo, `$env:PAA_CSV = "D:\datos\..."` en
+PowerShell). Cargarlas desde `.env` requeriría `python-dotenv`, que hoy no está instalado.
 
 ## Datos
 
@@ -101,7 +147,50 @@ particulares en las visualizaciones públicas.
 
 ## Ejecución
 
-El flujo completo se ejecuta en cuatro etapas. Los scripts leen su configuración
+### Notebooks (lo que se puede ejecutar hoy)
+
+Con el entorno activado y desde la raíz del repositorio. Se ejecutan **en este orden**, porque
+varios leen lo que escribe uno anterior:
+
+| # | Notebook | Lee | Escribe |
+| --- | --- | --- | --- |
+| 1 | `preparacion_montevideo` | `data/raw/` (siniestros, capas de zonas y caché de clima) | `data/processed/` y `experiments/etl_montevideo/` |
+| 2 | `diagnostico_datos` | `data/raw/` y `data/processed/` | `experiments/diagnostico_datos/` |
+| 3 | `diagnostico_datos_municipio` | `data/raw/` | `experiments/diagnostico_datos_municipio/` |
+| 4 | `diagnostico_zona_contraste` | `data/processed/` | `experiments/diagnostico_zona_contraste/` |
+| 5 | `base` | `data/processed/panel_zona_top.csv` | `experiments/base/` |
+| 6 | `base_2` | `data/processed/panel_zona_top.csv` y, como control, `experiments/base/tablas/06_evaluacion_test.csv` | `experiments/base_2/` |
+
+```powershell
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 notebooks/preparacion_montevideo.ipynb
+```
+
+`--inplace` reemplaza el notebook por su versión con las salidas nuevas. Repetir el comando con
+cada notebook de la tabla, en ese orden. El 2026-09-20 los seis corrieron en secuencia en unos 75
+segundos, sin errores. Para abrirlos en Jupyter o VS Code, elegir el intérprete de `.venv`
+(Python 3.13.15).
+
+- **Datos de entrada.** `data/raw/` no se versiona: hay que copiar ahí los archivos fuente
+  (`uru_siniestros_unificado.csv`, las capas geojson y `clima_montevideo.csv`). Si la caché de
+  clima cubre el período, `preparacion_montevideo` no consulta Open-Meteo.
+- **Registro del entorno.** `base_2` guarda las versiones en `experiments/base_2/tablas/00_entorno.csv`
+  y los tres notebooks de diagnóstico en `experiments/<notebook>/tablas/00b_entorno.csv`; cada uno
+  registra solo las bibliotecas que importa. `base` las imprime pero no las guarda, y
+  `preparacion_montevideo` no las registra.
+- **Cómo leer una reejecución.** La del 2026-09-20 dejó idénticas byte a byte todas las tablas de
+  resultados; las diferencias fueron solo de versiones, fechas, tamaños de archivo, etiquetas de tipo
+  (`str` frente a `object`) e identificadores aleatorios del mapa HTML (detalle en cada
+  `documentacion/resumen_*.md`). Si una reejecución cambia una cifra de resultados, no darla por
+  buena: investigar antes de commitear.
+
+### Pipeline previsto
+
+> **Estado (2026-09-20):** `src/`, `app/` y `tests/` todavía no tienen código. Los comandos de esta
+> sección y de las dos siguientes (dashboard y pruebas) son el diseño previsto y hoy no
+> funcionan. `streamlit` y `pytest` no están instalados en este entorno (ver «Requisitos e
+> instalación»).
+
+El flujo completo se ejecutará en cuatro etapas. Los scripts leerán su configuración
 (granularidad temporal y territorial, período, rutas) desde `src/config.py`.
 
 ```bash

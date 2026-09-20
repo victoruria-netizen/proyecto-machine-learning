@@ -1226,6 +1226,135 @@ notebook y `requirements.txt` siguen con la decisión abierta).
 - [ ] Confirmar con el equipo que `train_base_2.py` no use `skforecast` aunque el notebook sí.
 - [ ] Commitear `train/`, el `.gitignore`, este HANDOFF y el registro de IA.
 
+### Entorno estandarizado y reejecución de todos los notebooks (2026-09-20, sesión de Claude)
+
+**Por qué.** El entorno era inconsistente: `requirements.txt` fijaba pandas 3.0.5 y no incluía
+`skforecast` ni `geopandas`, pero `base_2` y `diagnostico_zona_contraste` habían corrido con pandas
+2.3.3 (un `%pip install skforecast` había bajado pandas en el `.venv`) y `diagnostico_datos_municipio`
+en otro intérprete (Python 3.13.9, NumPy 2.4.6, SciPy 1.17.1). Solo `base_2` guardaba
+`00_entorno.csv`; los tres diagnósticos guardan `00b_entorno.csv` (otro esquema); `base` y
+`preparacion_montevideo` no guardaban nada. Se resolvió en seis pasos, con parada de confirmación
+antes de aplicar y antes de dar por buenas las diferencias.
+
+**Decisiones del equipo:** Python **3.13.15** (instalado con `uv python install`, sin tocar el Python
+del sistema); retirar de `requirements.txt` lo que ningún notebook importa; **quitar la celda
+`%pip install skforecast==0.25.0`** de `base_2`; `requirements.txt` + `requirements-lock.txt`
+como *constraints* (la opción `pyproject` + lock se evaluó y no se adoptó: el repo no es un paquete
+instalable y el equipo trabaja con `pip`). **Corregir** el caso `Calle` (abajo).
+
+**Entorno resultante.**
+
+- `requirements.txt`: 17 dependencias directas con versión exacta (numpy 2.5.2, **pandas 2.3.3**,
+  scipy 1.18.1, matplotlib 3.11.1, scikit-learn 1.9.0, statsmodels 0.14.6, **skforecast 0.25.0**,
+  holidays 0.103, requests 2.34.2, **geopandas 1.1.4**, pyproj 3.7.2, pyshp 3.1.6, folium 0.20.0,
+  branca 0.8.2, jupyter 1.1.1, ipykernel 7.3.0, ipython 9.17.1).
+- **Restricción dura:** `skforecast` 0.25.0 exige `pandas>=2.1,<3.0` (también statsmodels `<0.15` y
+  matplotlib `<3.12`). No subir pandas a 3 sin quitar `skforecast`.
+- Retiradas por no usarse: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
+  python-dotenv y pytest (joblib llega igual, como dependencia de `skforecast`). **Si `src/`, `app/`
+  o `tests/` las necesitan, se agregan de nuevo con versión exacta.**
+- `requirements-lock.txt`: `pip freeze` de 136 paquetes, con encabezado; se usa con `-c`.
+- `.venv` recreado desde cero con Python 3.13.15 (el anterior era 3.14.7, con 11 paquetes).
+- **Verificado:** `pip check` limpio; se importaron todas las bibliotecas; `skforecast` ajustó un
+  `ForecasterRecursive` (usa `numba` con NumPy 2.5.2); `geopandas` leyó la capa real de municipios;
+  y un **segundo entorno limpio**, instalado con `-r requirements.txt -c requirements-lock.txt`, dio
+  **el mismo `pip freeze`** que el `.venv`.
+
+**Reejecución.** Respaldo previo verificado con `diff -r` en `_backup_pre_reejecucion_2026-09-20/`
+(`experiments/`, `data/processed/`, los notebooks y `clima_montevideo.csv`; `data/processed/` no está
+en git, así que esa copia era el único respaldo). Orden: `preparacion_montevideo`,
+`diagnostico_datos`, `diagnostico_datos_municipio`, `diagnostico_zona_contraste`, `base`, `base_2`
+(`base_2` va después de `base`: su celda de control lee `experiments/base/tablas/06_evaluacion_test.csv`).
+`jupyter nbconvert --execute --inplace`: los seis con código 0 y 0 errores en las salidas, unos 75 s
+en total; el clima salió de la caché (`data/raw/clima_montevideo.csv` no cambió). **Los seis se
+reejecutaron una segunda vez** (unos 77 s, otra vez todos con código 0) después de las correcciones
+de `Calle`, y la comparación se repitió contra el mismo respaldo: mismo resultado.
+
+**Comparación contra el respaldo** (celda por celda, sin tolerancias): de 122 tablas y datos, 108
+idénticas byte a byte y 14 con diferencias; de 31 figuras, 28 idénticas, 2 con 0,005 % y 0,003 % de
+píxeles distintos (máximo 1/255 por canal) y el mapa HTML igual salvo por ids aleatorios de
+`folium`. **0 celdas con diferencia numérica.** Los cinco CSV de datos de `data/processed/` y todas
+las tablas de resultados de `base`, `base_2`, `diagnostico_datos_municipio` y
+`diagnostico_zona_contraste` son idénticos. Lo que cambió es solo:
+
+- versiones y fechas (`00_entorno`, `00b_entorno`) y fechas de modificación de archivos
+  (`00_procedencia`, `03b_procedencia_capa_zonas`);
+- `*_artefactos`: 1 fila más en `15_` y `14_` (la tabla se lista a sí misma al reejecutar) y 2
+  tamaños en `25_`;
+- etiquetas de tipo por pandas 3 → 2 (`str` → `object`, `datetime64[us]` → `[ns]`) en
+  `01_esquema_crudo` y en los dos `diccionario_datos.csv`.
+
+**Hallazgo y corrección: `Calle` en `01_esquema_crudo`.** Al pasar a pandas 2.3.3 esa tabla daba 224.694
+no nulos y 23.747 distintos (antes 224.693 y 23.746). Causa, reproducida en ambas versiones: el
+CSV crudo tiene **1 registro sin `Calle`**, y `.astype(str)` (celda 6) lo convierte en el texto
+`"nan"` en pandas 2.x pero lo deja nulo en pandas 3. El equipo pidió corregirlo: se agregó
+`.where(df_pais[c].notna())` en la celda 6 de `diagnostico_datos.ipynb`. Reejecutado, `Calle` vuelve a
+224.693 / 23.746 y el resto de las tablas no cambia. **Después el equipo aprobó aplicar la misma
+corrección** a los otros dos lugares con el patrón: la celda 7 de `diagnostico_datos_municipio.ipynb`
+y la celda 7 de `preparacion_montevideo.ipynb` (`normalizar_columnas`). En ninguno cambió una salida.
+**Es el único cambio de lógica de la sesión: la misma línea, en tres notebooks.**
+
+**Cambios en notebooks.** `base_2.ipynb`: se quitó la celda `%pip` y se reescribió el texto de §0 (decía
+que `skforecast` no estaba en `requirements.txt`). `diagnostico_datos.ipynb`,
+`diagnostico_datos_municipio.ipynb` y `preparacion_montevideo.ipynb`: la línea de arriba. Los seis
+quedaron reejecutados `--inplace` (salidas nuevas; `language_info.version` pasa a 3.13.15).
+
+**Documentación actualizada:** `README.md` (instalación, restricción de pandas, orden de ejecución,
+pipeline `src/` marcado como previsto, nota sobre `.env.example`), `resumen_base.md`, `resumen_base_2.md` (se cierra el
+pendiente «pandas 3 vs `skforecast`»), `resumen_diagnostico_datos.md`,
+`resumen_diagnostico_datos_municipio.md`, `resumen_diagnostico_zona_contraste.md` y
+`resumen_preparacion_montevideo.md`, cada uno con su nota de reejecución. En los de `municipio` y
+`contraste` se corrigieron los conteos de tablas del encabezado (16 → 17 y 15 → 16), que ya estaban
+desactualizados antes de esta sesión.
+
+**Versiones tal como quedan en los `00_entorno.csv` / `00b_entorno.csv` regenerados** (cada
+notebook registra solo lo que importa; coinciden con el `pip freeze` del `.venv`):
+
+| Biblioteca | Versión | Se lee en |
+| --- | --- | --- |
+| Python | 3.13.15 | los cuatro |
+| pandas | 2.3.3 | los cuatro |
+| NumPy | 2.5.2 | los cuatro |
+| scikit-learn | 1.9.0 | `base_2/00_entorno` |
+| statsmodels | 0.14.6 | `diagnostico_datos_municipio/00b_entorno`, `diagnostico_zona_contraste/00b_entorno` |
+| geopandas | 1.1.4 | `diagnostico_datos_municipio/00b_entorno` |
+| holidays | 0.103 | `diagnostico_datos`, `diagnostico_datos_municipio`, `diagnostico_zona_contraste` (`00b_entorno`) |
+| skforecast | 0.25.0 | `base_2/00_entorno` |
+
+**Lo que el equipo debería saber.**
+
+- **`.astype(str)` sobre columnas con nulos** convierte el nulo en el texto `"nan"` en pandas 2.x y no
+  en pandas 3. Ya está corregido en los tres lugares donde aparecía sobre el CSV crudo. Si se agrega
+  código nuevo que lea columnas de texto con `astype(str)`, aplicar el mismo `.where(...notna())`.
+- **La corrida original de `diagnostico_datos_municipio` usó otra copia del geojson de municipios**
+  (`sha256` `c5d9f651…`; el actual, `ed0ba13e…`, es el que ya había registrado `diagnostico_datos`).
+  Las tablas salen idénticas, así que no altera resultados; no se sabe en qué difería.
+- Con pandas 2.3.3 + NumPy 2.5.2, la celda 8 de `diagnostico_datos` emite un `DeprecationWarning` de
+  NumPy (unidad `generic` de `timedelta`): no afecta cifras hoy, anticipa un error futuro. **Se
+  dejó tal cual** (decisión del equipo).
+- `train/` **no se tocó**: el contenedor del servidor tiene su propio entorno (Python 3.10, pandas
+  1.5.3, scikit-learn 1.2.0).
+- **`.env.example` creado** (antes el README lo mencionaba y no existía). Documenta las dos únicas
+  variables que el código lee, `PAA_DIR` y `PAA_CSV` (opcionales, en `preparacion_montevideo`), y
+  las deja comentadas: una variable definida pero vacía se interpretaría como el directorio actual.
+  **Ningún código carga un archivo `.env`** (`python-dotenv` está retirado); hay que definirlas en la
+  terminal. El README se ajustó a eso.
+
+**Pendiente que deja esta sesión:**
+
+- [ ] **Commitear** `requirements.txt`, `requirements-lock.txt`, los seis notebooks reejecutados,
+      `experiments/` regenerado, `README.md`, los `resumen_*.md`, este HANDOFF y el registro de IA:
+      nada de esto está en git.
+- [ ] **Borrar `_backup_pre_reejecucion_2026-09-20/`** (18 MB) cuando se dé por cerrada la verificación.
+      Solo lo oculta `.git/info/exclude`, así que no aparece en `git status`.
+- [x] ~~Decidir si se corrige el patrón `astype(str)` en `diagnostico_datos_municipio` y
+      `preparacion_montevideo`~~ — corregido (misma línea, dos celdas).
+- [ ] Decidir si los notebooks deben registrar el entorno de forma uniforme (hoy: `00_entorno` en
+      `base_2`, `00b_entorno` en los diagnósticos con otro esquema, y nada en `base` ni
+      `preparacion_montevideo`).
+- [x] ~~Crear `.env.example` o quitar la mención del README~~ — creado (ver arriba).
+- [ ] Decidir si `python-dotenv` vuelve a `requirements.txt` cuando `src/` necesite cargar `.env`.
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
@@ -1309,8 +1438,9 @@ de 2026)**. En orden de prioridad.
       este registro: hoy nada de eso está en git.
 - [x] ~~Regenerar `data/processed/panel_zona_top.csv`~~ — restaurado el 2026-09-14 desde
       `panel_diario_montevideo.csv`, verificado byte a byte. **No volver a guardarlo desde Excel.**
-- [ ] **Decidir pandas 3 vs `skforecast`**: el `.venv` quedó con pandas 2.3.3, y `base_2.ipynb` corrió
-      con esa versión. Actualizar `requirements.txt` según lo que se decida.
+- [x] ~~Decidir pandas 3 vs `skforecast`~~ — **resuelto el 2026-09-20**: `skforecast` 0.25.0 y pandas
+      2.3.3, fijados en `requirements.txt` y `requirements-lock.txt`. Ver la sección del entorno
+      estandarizado.
 - [~] **Decidir qué notebook base se entrega** (`base.ipynb`, `base_2.ipynb` o ambos). Desde el
       2026-09-15, `base_2` **no usa exógenas** y `base` sí (calendario y tendencia): si la regla vale
       para toda la entrega, `base` no la cumple. Solo la media constante es común a los dos
@@ -1349,7 +1479,9 @@ de 2026)**. En orden de prioridad.
   en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`. Lo que el PAA usa está
   reimplementado en `notebooks/preparacion_montevideo.ipynb`, con las diferencias documentadas
   en la sección del ETL.
-- Se usa `requirements.txt` (alternativa posible: `environment.yml`).
+- Se usa `requirements.txt` (dependencias directas) + `requirements-lock.txt` (`pip freeze`, usado
+  con `-c`). Se evaluó `pyproject` + lock y no se adoptó (2026-09-20). Restricción dura: pandas
+  < 3 mientras se use `skforecast`.
 - Los datos restringidos o pesados **no** se versionan; documentar en el README cómo
   obtenerlos (sección 4.1 de la guía).
 - Registrar todo uso de IA generativa en `documentacion/registro_uso_IA.md`.

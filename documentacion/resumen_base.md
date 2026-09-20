@@ -3,7 +3,8 @@
 **Notebook:** [`notebooks/base.ipynb`](../notebooks/base.ipynb)
 **Artefactos:** `experiments/base/` (12 tablas CSV, 7 figuras PNG)
 **Salida:** ninguna a `data/processed/` (el notebook sólo consume el panel del ETL)
-**Fecha de ejecución:** 2026-09-10
+**Fecha de ejecución:** 2026-09-20 (reejecución en el entorno estandarizado; las cifras no cambiaron
+respecto de la corrida del 2026-09-10, ver la nota de reejecución, más abajo)
 **Alcance:** una única serie diaria — **MUNICIPIO C** (municipio con más siniestros
 registrados), 2021-07-01 a 2025-12-31, 1.645 días
 
@@ -18,8 +19,8 @@ artefacto que respalda cada cifra.
 
 **Reglas que quien redacte debe respetar:**
 
-1. **Ninguna cifra sin artefacto.** Todos los números salen de la ejecución del 2026-09-10
-   y llevan al lado la tabla que los respalda (`tablas/NN_nombre.csv`). Si hace falta un
+1. **Ninguna cifra sin artefacto.** Todos los números salen de la ejecución del 2026-09-20
+   (idénticos a los de la corrida del 2026-09-10) y llevan al lado la tabla que los respalda (`tablas/NN_nombre.csv`). Si hace falta un
    número que no está acá, marcarlo como `<!-- PENDIENTE: ... -->`.
 2. **Distinguir evidencia de inferencia.** «Los resultados muestran X» y «el equipo
    concluye Y» son afirmaciones distintas.
@@ -40,6 +41,16 @@ evidencia** allá; acá se **aplican** sobre una serie y se dejan los artefactos
 > diagnóstico mostró que los 8 municipios se parecen mucho entre sí (razón máx/mín
 > 1,71×), y la evaluación seria —panel de 8 municipios con métricas desagregadas— es el
 > notebook siguiente. Nada de lo que sigue permite afirmar que un modelo «generaliza».
+
+> ### Reejecución del 2026-09-20 en el entorno estandarizado
+>
+> El notebook se reejecutó de punta a punta (`jupyter nbconvert --execute`) en un entorno nuevo,
+> fijado en `requirements.txt` y `requirements-lock.txt`. **Ninguna cifra cambió:** las 12 tablas y
+> las 7 figuras quedaron idénticas byte a byte respecto de las salidas anteriores (comparación
+> contra una copia previa). Versiones que imprime el notebook (§0, salida de la celda; este
+> notebook no las guarda en una tabla): Python 3.13.15, pandas 2.3.3, NumPy 2.5.2, matplotlib
+> 3.11.1 y scikit-learn 1.9.0. Antes había corrido con Python 3.14.7 y pandas 3.0.5. La lógica del
+> notebook no se tocó.
 
 ---
 

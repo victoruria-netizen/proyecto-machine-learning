@@ -14,6 +14,7 @@ tabla,experiments\diagnostico_zona_contraste\tablas\10_dispersion_por_rezago.csv
 tabla,experiments\diagnostico_zona_contraste\tablas\11_estacionariedad_adf_kpss.csv,0.2 kB
 tabla,experiments\diagnostico_zona_contraste\tablas\12_efecto_diferenciacion.csv,0.2 kB
 tabla,experiments\diagnostico_zona_contraste\tablas\13_diagnostico_transformacion.csv,0.4 kB
+tabla,experiments\diagnostico_zona_contraste\tablas\14_artefactos.csv,2.1 kB
 figura,experiments\diagnostico_zona_contraste\figuras\fig1_tendencia_municipio_a.png,141.8 kB
 figura,experiments\diagnostico_zona_contraste\figuras\fig2a_perfil_semanal_municipio_a.png,29.5 kB
 figura,experiments\diagnostico_zona_contraste\figuras\fig2b_estacionalidad_anual_municipio_a.png,69.7 kB

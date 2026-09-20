@@ -1,8 +1,9 @@
 # Resumen del diagnóstico de series temporales — Municipio C
 
 **Notebook:** [`notebooks/diagnostico_datos_municipio.ipynb`](../notebooks/diagnostico_datos_municipio.ipynb)
-**Artefactos:** `experiments/diagnostico_datos_municipio/` (16 tablas CSV y 7 figuras PNG)
-**Fecha de ejecución:** 2026-09-14 (`jupyter nbconvert --execute`, sin errores)
+**Artefactos:** `experiments/diagnostico_datos_municipio/` (17 tablas CSV y 7 figuras PNG)
+**Fecha de ejecución:** 2026-09-20 (`jupyter nbconvert --execute`, sin errores; reejecución en el
+entorno estandarizado, sin cambio de cifras respecto de la del 2026-09-14)
 **Alcance:** Municipio C de Montevideo, **2021-07-01 a 2025-12-31** (1.645 días), serie diaria de
 conteo de siniestros
 
@@ -29,6 +30,35 @@ un único municipio, y la decisión de si corresponde diferenciarla o transforma
 5. **Un solo municipio.** Ninguna cifra de este documento debe citarse como válida para los otros
    siete municipios ni para el panel agregado sin decirlo explícitamente. Para eso está
    `resumen_diagnostico_datos.md`.
+
+> ### Reejecución del 2026-09-20 en el entorno estandarizado
+>
+> El notebook se reejecutó de punta a punta en un entorno nuevo, fijado en `requirements.txt` y
+> `requirements-lock.txt`. Versiones registradas en `00b_entorno.csv`: Python 3.13.15, pandas 2.3.3,
+> NumPy 2.5.2, SciPy 1.18.1, statsmodels 0.14.6, geopandas 1.1.4, matplotlib 3.11.1 y holidays
+> 0.103. La corrida anterior había usado Python 3.13.9, pandas 3.0.3, NumPy 2.4.6 y SciPy 1.17.1;
+> statsmodels, geopandas, matplotlib y holidays no cambiaron.
+>
+> **Ninguna cifra de resultados cambió.** Se comparó contra una copia de las salidas anteriores: 14
+> de las 17 tablas y 5 de las 7 figuras quedaron idénticas byte a byte. Las otras 3 tablas
+> cambiaron solo en `00b_entorno` (versiones y fecha), `00_procedencia` (ver más abajo) y
+> `15_artefactos` (una fila más: al reejecutar, la tabla se lista a sí misma). Las 2 figuras
+> restantes, `fig4_dispersion_lags_municipio_c.png` y `fig5_transformaciones_municipio_c.png`,
+> difieren en 0,005 % y 0,003 % de los píxeles, con una diferencia máxima de 1 sobre 255 por canal
+> de color: ruido de renderizado.
+>
+> **Cambio en `00_procedencia` a tener presente.** El `sha256` del geojson de municipios
+> (`data/raw/municipios_montevideo.geojson`, 2,87 MB) es distinto: la corrida anterior registró
+> `c5d9f651…` y la actual `ed0ba13e…`, el mismo valor que registró `diagnostico_datos` el
+> 2026-09-14. El `sha256` del archivo de siniestros no cambió. La corrida anterior usó, entonces,
+> **otra copia del geojson**. Como las tablas de resultados salen idénticas, la diferencia entre las
+> dos copias no altera ninguna salida de este notebook. No se sabe en qué difieren, porque la copia
+> anterior no se conserva. El valor vigente es `ed0ba13e…`.
+>
+> **Corrección en la celda 7 del notebook.** El archivo crudo tiene un registro sin `Calle`, y en
+> pandas 2.x `.astype(str)` lo convierte en el texto `"nan"`. Se agregó `.where(df_pais[c].notna())`
+> para conservar el nulo, igual que en `diagnostico_datos` (ver `resumen_diagnostico_datos.md`).
+> Ninguna tabla ni figura de este notebook cambió por esa corrección.
 
 ---
 
