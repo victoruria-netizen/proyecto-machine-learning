@@ -1,0 +1,4 @@
+bloque,desde,hasta,dias,pct
+entrenamiento inicial,2021-07-01,2024-03-13,987,60.0
+validación (ventana deslizante),2024-03-14,2025-02-05,329,20.0
+prueba (reservado),2025-02-06,2025-12-31,329,20.0

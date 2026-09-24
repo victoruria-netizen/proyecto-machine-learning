@@ -1,0 +1,5 @@
+modelo,desvianza_poisson,mae,fuente
+media_constante,1.2625,1.7411,experiments/base/tablas/06_evaluacion_test.csv (fila "Media constante")
+L0,1.332,1.755,experiments/base_2/tablas/05_test_metricas.csv (fila "Promedio de las últimas 4 semanas (línea base)")
+L1,1.0848,1.5919,experiments/base/tablas/06_evaluacion_test.csv (fila "Tasa x calendario")
+arbol_candidato,1.6789,1.9055,experiments/base/tablas/06_evaluacion_test.csv (fila "Arbol de decision")

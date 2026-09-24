@@ -42,17 +42,18 @@ requirements-lock.txt  Versiones exactas de todo el entorno (pip freeze), usadas
 
 ## Requisitos e instalación
 
-**Versión de Python: 3.13.15.** Es la versión con la que se creó y verificó el entorno de
-punta a punta (2026-09-20) y la que registran hoy los notebooks. Fijarla evita diferencias
-entre integrantes. Los resultados de `base_2` y de `diagnostico_zona_contraste` no cambiaron
-al pasar de 3.13.2 a 3.13.15; igual, la versión de cada corrida queda registrada en
-`00_entorno.csv` / `00b_entorno.csv`.
+**Versión de Python: 3.13.2.** Fijarla evita diferencias entre integrantes.
+**Corrección (2026-09-24):** desde el 2026-09-20 este documento decía 3.13.15; esa versión no
+existe (`uv python install 3.13.15` no la encuentra) — fue un error de tipeo que nadie había
+vuelto a verificar. El `.venv` del proyecto y las últimas corridas ya usan 3.13.2; el estándar
+pasa a ser ese. Los `00_entorno.csv` / `00b_entorno.csv` de corridas anteriores a esta fecha
+quedan como registro histórico de lo que se documentó en su momento, no se reescriben.
 
 ```powershell
 # Windows (PowerShell) — el selector "py" permite fijar la versión
 py -3.13 -m venv .venv
 .venv\Scripts\Activate.ps1
-python --version                 # debe decir Python 3.13.15
+python --version                 # debe decir Python 3.13.2
 
 python -m pip install --upgrade pip
 pip install -r requirements.txt -c requirements-lock.txt
@@ -67,9 +68,9 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt -c requirements-lock.txt
 ```
 
-Si `py -3.13` no encuentra Python 3.13.15, instalarlo desde python.org o con
-`uv python install 3.13.15`, y crear el entorno con ese intérprete
-(`uv python find 3.13.15` da la ruta; luego `<ruta>\python.exe -m venv .venv`). En Windows, crear
+Si `py -3.13` no encuentra Python 3.13.2, instalarlo desde python.org o con
+`uv python install 3.13.2`, y crear el entorno con ese intérprete
+(`uv python find 3.13.2` da la ruta; luego `<ruta>\python.exe -m venv .venv`). En Windows, crear
 un entorno en una ruta muy larga falló una vez (2026-09-20, unos 200 caracteres de ruta,
 probablemente por el límite de 260 caracteres): si pasa, crear el entorno en una ruta más corta.
 
@@ -168,7 +169,7 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeou
 `--inplace` reemplaza el notebook por su versión con las salidas nuevas. Repetir el comando con
 cada notebook de la tabla, en ese orden. El 2026-09-20 los seis corrieron en secuencia en unos 75
 segundos, sin errores. Para abrirlos en Jupyter o VS Code, elegir el intérprete de `.venv`
-(Python 3.13.15).
+(Python 3.13.2).
 
 - **Datos de entrada.** `data/raw/` no se versiona: hay que copiar ahí los archivos fuente
   (`uru_siniestros_unificado.csv`, las capas geojson y `clima_montevideo.csv`). Si la caché de

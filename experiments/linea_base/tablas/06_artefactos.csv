@@ -1,0 +1,12 @@
+artefacto,qué respalda
+tablas/00_entorno.csv,Versiones efectivas de la corrida (§0)
+tablas/01_serie_resumen.csv,Estadísticos de la serie de MUNICIPIO C (§1)
+tablas/02_perfil_calendario.csv,Media por tipo de día y factor vs global (§2)
+tablas/03_particiones.csv,"Bloques de entrenamiento, validación y prueba (§4)"
+tablas/04_desarrollo_backtesting.csv,Métricas de los 4 modelos en validación interna (§8)
+tablas/05_evaluacion_test.csv,Métricas de los 4 modelos en el test reservado (§10)
+referencia_no_regresion.csv,Valores de referencia de base.ipynb / base_2.ipynb (§11)
+figuras/fig1_serie.png,"Serie diaria, media móvil y tendencia (§2)"
+figuras/fig2_perfil_calendario.png,Media por tipo de día (§2)
+figuras/fig3_desarrollo_predicciones.png,Predicciones en el tramo final de desarrollo (§8)
+figuras/fig4_test_predicciones.png,Observado vs los 4 modelos en el test (§10)

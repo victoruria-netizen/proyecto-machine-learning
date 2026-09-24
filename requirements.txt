@@ -1,5 +1,9 @@
 # Dependencias del proyecto — Predicción de Siniestros Viales (PAA)
-# Python 3.13.15 (ver README). Versiones exactas por reproducibilidad (guía PAA, entregables 3 y 4).
+# Python 3.13.2 (ver README). Versiones exactas por reproducibilidad (guía PAA, entregables 3 y 4).
+# Corregido el 2026-09-24: "3.13.15" (documentado desde el 2026-09-20) no es una versión de
+# Python que exista — `uv python install 3.13.15` no la encuentra. Era un error de tipeo que
+# nadie había verificado desde entonces. El estándar pasa a ser 3.13.2, la que ya tenía instalada
+# el .venv del proyecto y con la que corrieron las últimas sesiones. Ver HANDOFF.md.
 #
 # Instalación (reproduce el entorno completo, incluidas las dependencias transitivas):
 #   pip install -r requirements.txt -c requirements-lock.txt

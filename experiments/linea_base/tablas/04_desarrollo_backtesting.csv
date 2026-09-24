@@ -1,0 +1,5 @@
+modelo,desvianza_poisson,mae,rmse,razon_total,sesgo_medio,dias_prediccion_cero,n_dias,n_folds
+L1 (tasa x calendario),1.3782,1.6114,2.1641,0.9146,-0.3163,0,329,47
+Arbol candidato (preliminar),1.3912,1.6789,2.1891,0.9988,-0.0045,0,329,47
+Media constante,1.5178,1.7591,2.2735,0.9133,-0.3208,0,329,47
+L0 (promedio 4 semanas),1.6908,1.8792,2.4088,1.0113,0.0418,0,329,47
