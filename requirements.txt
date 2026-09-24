@@ -13,21 +13,23 @@
 # como "constraints": no agrega paquetes, solo fija sus versiones.
 # Si se necesita una biblioteca nueva: agregarla acá con versión exacta, instalar y regenerar el lock.
 #
-# Restricción dura: skforecast 0.25.0 exige pandas >=2.1,<3.0, por eso pandas queda en 2.3.3
-# (la última 2.x). No subir pandas a 3 sin quitar skforecast.
+# skforecast se quitó el 2026-09-24 (ver HANDOFF.md): dejó de usarse al retirar base_2.ipynb
+# (reemplazado por notebooks/linea_base.ipynb, que arma el árbol candidato a mano, sin
+# skforecast). Las restricciones de abajo (pandas <3, matplotlib <3.12, statsmodels <0.15) ya NO
+# aplican por ese motivo — quedan igual porque subir versiones obliga a reejecutar y revalidar
+# todo, y es una decisión aparte, pendiente para el Entregable 3.
 
 # --- Análisis y manejo de datos ---
 numpy==2.5.2
-pandas==2.3.3            # skforecast 0.25.0 exige pandas<3.0
+pandas==2.3.3
 scipy==1.18.1            # interpolación y pruebas estadísticas
 
 # --- Visualización ---
-matplotlib==3.11.1       # skforecast (extra plotting) exige <3.12
+matplotlib==3.11.1
 
 # --- Aprendizaje automático y series temporales ---
 scikit-learn==1.9.0      # baselines, métricas, árbol de decisión
-statsmodels==0.14.6      # diagnóstico de series temporales; skforecast exige <0.15
-skforecast==0.25.0       # ForecasterRecursive (base_2); trae numba, optuna, tqdm y rich
+statsmodels==0.14.6      # diagnóstico de series temporales
 
 # --- Variables exógenas ---
 holidays==0.103          # feriados de Uruguay para el calendario

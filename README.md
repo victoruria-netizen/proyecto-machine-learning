@@ -77,26 +77,29 @@ probablemente por el límite de 260 caracteres): si pasa, crear el entorno en un
 **Qué es cada archivo**
 
 - `requirements.txt` lista las dependencias directas con versión exacta: lo que importan los
-  notebooks (numpy, pandas, scipy, scikit-learn, statsmodels, skforecast, matplotlib, holidays,
+  notebooks (numpy, pandas, scipy, scikit-learn, statsmodels, matplotlib, holidays,
   geopandas, pyproj, pyshp, folium, branca, requests) y lo necesario para ejecutarlos (jupyter,
   ipykernel, ipython).
-- `requirements-lock.txt` es el `pip freeze` del entorno verificado (136 paquetes). Se usa como
+- `requirements-lock.txt` es el `pip freeze` del entorno verificado. Se usa como
   *constraints* (`-c`): fija la versión de todo el árbol de dependencias sin agregar paquetes.
   Se validó instalando en un entorno limpio con `-r requirements.txt -c requirements-lock.txt`: dio
   el mismo `pip freeze`.
 
-**Restricción dura: `skforecast` 0.25.0 exige pandas `>=2.1,<3.0`.** Por eso pandas queda en
-2.3.3 (la última 2.x). No subir pandas a 3 sin quitar `skforecast`. Por el mismo motivo
-statsmodels queda por debajo de 0.15 y matplotlib por debajo de 3.12. Cambiar la versión de
-pandas obliga a reejecutar los notebooks y comparar las salidas: el 2026-09-20 se comprobó que
-pandas 3.0.5 y 2.3.3 no dan lo mismo en un caso (`.astype(str)` convierte un nulo en el texto
-`"nan"` en pandas 2.x; ver `documentacion/resumen_diagnostico_datos.md`).
+**`skforecast` se quitó (2026-09-24).** Dejó de usarse al retirar `base_2.ipynb` —reemplazado por
+`notebooks/linea_base.ipynb`, que arma el árbol candidato a mano, sin `skforecast`— y ya no lo
+importa ningún notebook del pipeline (sí lo sigue usando, sólo como tutorial de referencia,
+`notebooks/Ejemplos/Series_temporales_y_pronóstico_ejemplo.ipynb`; ver la nota en esa carpeta).
+Las restricciones que existían por `skforecast` 0.25.0 (pandas `<3.0`, statsmodels `<0.15`,
+matplotlib `<3.12`) **ya no aplican**, pero los pines no se tocaron: subir esas versiones obliga a
+reejecutar y revalidar todos los notebooks, y es una decisión aparte, pendiente para el
+Entregable 3. Cambiar la versión de pandas, en particular, exige comparar las salidas: el
+2026-09-20 se comprobó que pandas 3.0.5 y 2.3.3 no dan lo mismo en un caso (`.astype(str)`
+convierte un nulo en el texto `"nan"` en pandas 2.x; ver `documentacion/resumen_diagnostico_datos.md`).
 
 **Dependencias que hoy no están.** El 2026-09-20 se retiraron de `requirements.txt` las que
 ningún notebook importa: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
-python-dotenv y pytest (joblib se instala igual, como dependencia de `skforecast`). Cuando
-`src/`, `app/` o `tests/` las necesiten, agregarlas de nuevo con versión exacta. Hasta entonces
-`streamlit` y `pytest` no están instalados en este entorno.
+python-dotenv y pytest. Cuando `src/`, `app/` o `tests/` las necesiten, agregarlas de nuevo con
+versión exacta. Hasta entonces `streamlit` y `pytest` no están instalados en este entorno.
 
 **Agregar una dependencia.** Instalarla con versión exacta, anotarla en `requirements.txt` con un
 comentario de para qué se usa, reejecutar lo que dependa de ella y regenerar
