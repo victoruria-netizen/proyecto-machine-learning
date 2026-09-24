@@ -1,3 +1,0 @@
-modelo,desvianza_poisson,mae,rmse,razon_total,sesgo_medio,n_dias,profundidad,hojas
-Arbol sin podar (por omision),12.6468,2.4863,3.1652,1.0476,0.1763,329,31,943
-Arbol base (max_depth=4),1.4005,1.6815,2.1958,0.9981,-0.0071,329,4,13

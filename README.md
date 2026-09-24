@@ -159,25 +159,29 @@ varios leen lo que escribe uno anterior:
 | 2 | `diagnostico_datos` | `data/raw/` y `data/processed/` | `experiments/diagnostico_datos/` |
 | 3 | `diagnostico_datos_municipio` | `data/raw/` | `experiments/diagnostico_datos_municipio/` |
 | 4 | `diagnostico_zona_contraste` | `data/processed/` | `experiments/diagnostico_zona_contraste/` |
-| 5 | `base` | `data/processed/panel_zona_top.csv` | `experiments/base/` |
-| 6 | `base_2` | `data/processed/panel_zona_top.csv` y, como control, `experiments/base/tablas/06_evaluacion_test.csv` | `experiments/base_2/` |
+| 5 | `linea_base` | `data/processed/panel_zona_top.csv` | `experiments/linea_base/` |
 
 ```powershell
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 notebooks/preparacion_montevideo.ipynb
 ```
 
 `--inplace` reemplaza el notebook por su versión con las salidas nuevas. Repetir el comando con
-cada notebook de la tabla, en ese orden. El 2026-09-20 los seis corrieron en secuencia en unos 75
-segundos, sin errores. Para abrirlos en Jupyter o VS Code, elegir el intérprete de `.venv`
-(Python 3.13.2).
+cada notebook de la tabla, en ese orden. Para abrirlos en Jupyter o VS Code, elegir el
+intérprete de `.venv` (Python 3.13.2).
+
+**Nota (2026-09-24):** hasta esta fecha la tabla tenía seis filas: `base` y `base_2` leían el
+mismo `panel_zona_top.csv` y corrían en los puestos 5 y 6 (el 2026-09-20 los seis corrieron en
+secuencia en unos 75 segundos, sin errores). Se unificaron en `linea_base`, que queda en el
+puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entregable_2`. Ver
+`documentacion/cambios_para_informe.md`.
 
 - **Datos de entrada.** `data/raw/` no se versiona: hay que copiar ahí los archivos fuente
   (`uru_siniestros_unificado.csv`, las capas geojson y `clima_montevideo.csv`). Si la caché de
   clima cubre el período, `preparacion_montevideo` no consulta Open-Meteo.
-- **Registro del entorno.** `base_2` guarda las versiones en `experiments/base_2/tablas/00_entorno.csv`
-  y los tres notebooks de diagnóstico en `experiments/<notebook>/tablas/00b_entorno.csv`; cada uno
-  registra solo las bibliotecas que importa. `base` las imprime pero no las guarda, y
-  `preparacion_montevideo` no las registra.
+- **Registro del entorno.** `linea_base` guarda las versiones en
+  `experiments/linea_base/tablas/00_entorno.csv`, y los tres notebooks de diagnóstico en
+  `experiments/<notebook>/tablas/00b_entorno.csv`; cada uno registra solo las bibliotecas que
+  importa. `preparacion_montevideo` no las registra.
 - **Cómo leer una reejecución.** La del 2026-09-20 dejó idénticas byte a byte todas las tablas de
   resultados; las diferencias fueron solo de versiones, fechas, tamaños de archivo, etiquetas de tipo
   (`str` frente a `object`) e identificadores aleatorios del mapa HTML (detalle en cada

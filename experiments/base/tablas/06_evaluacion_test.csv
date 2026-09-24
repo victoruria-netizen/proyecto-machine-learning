@@ -1,4 +1,0 @@
-modelo,desvianza_poisson,mae,rmse,razon_total,sesgo_medio,n_dias,n_folds
-Media constante,1.2625,1.7411,2.1199,0.8839,-0.4498,329,47
-Tasa x calendario,1.0848,1.5919,1.9667,0.8841,-0.4493,329,47
-Arbol de decision,1.6789,1.9055,2.4087,0.7229,-1.0737,329,47

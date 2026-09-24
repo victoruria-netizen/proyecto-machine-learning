@@ -1,5 +1,0 @@
-modelo,desvianza_poisson,MAE,RMSE,total_predicho_sobre_observado,desvianza_vs_linea_base_pct,MAE_vs_linea_base_pct,dias_con_prediccion_cero
-Media constante,1.262,1.741,2.12,0.884,-5.2,-0.8,0
-Promedio de las últimas 4 semanas (línea base),1.332,1.755,2.179,0.981,0.0,0.0,0
-Árbol de decisión,3.462,2.137,2.738,0.967,159.9,21.8,7
-Repetir semana anterior,5.007,2.228,2.866,0.996,275.8,27.0,10

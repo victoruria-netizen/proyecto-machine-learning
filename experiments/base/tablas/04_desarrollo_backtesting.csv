@@ -1,6 +1,0 @@
-modelo,desvianza_poisson,mae,rmse,razon_total,sesgo_medio,n_dias,n_folds
-Media movil 56d x calendario,1.3766,1.6501,2.1663,1.0102,0.0377,329,47
-Tasa x calendario,1.3782,1.6114,2.1641,0.9146,-0.3163,329,47
-Arbol de decision,1.4005,1.6815,2.1958,0.9981,-0.0071,329,47
-Media constante,1.5178,1.7591,2.2735,0.9133,-0.3208,329,47
-Naive estacional (t-7),7.8956,2.3769,3.0647,1.0066,0.0243,329,47

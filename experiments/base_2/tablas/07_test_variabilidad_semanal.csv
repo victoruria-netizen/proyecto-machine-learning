@@ -1,5 +1,0 @@
-modelo,desvianza_semanal_minima,desvianza_semanal_mediana,desvianza_semanal_maxima,semanas_con_menor_desvianza_que_linea_base,semanas
-Árbol de decisión,0.551,2.158,19.339,8,47
-Media constante,0.318,1.147,2.388,29,47
-Promedio de las últimas 4 semanas (línea base),0.473,1.209,2.516,,47
-Repetir semana anterior,0.322,2.417,34.962,6,47

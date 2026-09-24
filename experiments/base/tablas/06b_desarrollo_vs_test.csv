@@ -1,4 +1,0 @@
-modelo,desv_poisson_dev,mae_dev,razon_dev,desv_poisson_test,mae_test,razon_test
-Tasa x calendario,1.3782,1.6114,0.9146,1.0848,1.5919,0.8841
-Arbol de decision,1.4005,1.6815,0.9981,1.6789,1.9055,0.7229
-Media constante,1.5178,1.7591,0.9133,1.2625,1.7411,0.8839
