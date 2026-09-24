@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-18_
+_Última actualización: 2026-09-24_
 
 ---
 
@@ -1355,6 +1355,119 @@ notebook registra solo lo que importa; coinciden con el `pip freeze` del `.venv`
 - [x] ~~Crear `.env.example` o quitar la mención del README~~ — creado (ver arriba).
 - [ ] Decidir si `python-dotenv` vuelve a `requirements.txt` cuando `src/` necesite cargar `.env`.
 
+### Congelamiento del Entregable 2 y unificación de la línea base (2026-09-24, sesión de Claude)
+
+El equipo adoptó una **convención de ramas**: cada entregable queda congelado en su propia rama
+como registro histórico (`entregable_2`, y así sucesivamente con `entregable_3`, etc.), y el
+desarrollo del siguiente entregable continúa en `main`. Esta sesión ejecutó el primer ciclo:
+congelar el Entregable 2 y, recién después, limpiar y reordenar `main`. **No es desarrollo del
+Entregable 3**: no se tocó ningún hiperparámetro, variable, partición ni métrica.
+
+**Rama `entregable_2` creada y publicada** (`git push origin entregable_2`), desde el commit de
+`main` que incluye el informe entregado
+(`documentacion/informe/Entregable2_PAA_20-09-26.pdf`, agregado en esta sesión porque no estaba
+versionado — el equipo lo aportó a pedido). La rama preserva código, notebooks y `experiments/`
+tal como estaban; `data/raw/` y `data/processed/` no se preservan (regenerables, nunca
+versionados). **No se vuelve a commitear nada ahí.**
+
+**Notebook unificado.** `notebooks/base.ipynb` y `notebooks/base_2.ipynb` (seis modelos, sin
+distinguir cuáles eran línea base y cuáles candidatos) se reemplazan por
+`notebooks/linea_base.ipynb`, que separa explícitamente:
+
+- **Líneas base** (no se ajustan): media constante, L0 (promedio de lo observado 7/14/21/28 días
+  antes) y L1 (tasa del municipio × factor de calendario).
+- **Modelo candidato preliminar**, en su propia sección: el árbol de decisión que antes era
+  "Árbol B" en `base.ipynb` — mismos hiperparámetros (`max_depth=4`, `min_samples_leaf=20`) y
+  mismas variables (rezagos 7/14/21, fin de semana, feriado, tiempo en años), sólo cambia el
+  rótulo y la ubicación, con una nota explícita de que no es una línea base y que su selección de
+  hiperparámetros por validación interna queda para el Entregable 3.
+
+**Se retiran** (preservados en `entregable_2`, no en `main`):
+
+- "Repetir semana anterior" (naive estacional) — peor desempeño de los seis, desvianza 5,007.
+- "Árbol A" (`max_depth=15`, `skforecast.ForecasterRecursive`, rezagos `[1,7,14,21]`) — 716 hojas
+  para 1.295 filas, memorización, sin validación interna.
+- "Media móvil de 56 días por calendario" — variante de contraste de `base.ipynb`, sólo evaluada
+  en validación interna, nunca en el bloque final; no formaba parte de los cuatro modelos a
+  conservar.
+
+Misma partición (987/329/329 días), mismo protocolo (47 cortes de 7 días, origen móvil, ventana
+expansiva, ajuste congelado en el bloque final) y mismas métricas (desvianza de Poisson principal,
+MAE, RMSE, razón total, días con predicción cero) que los notebooks que reemplaza.
+
+**Verificación de entorno (nueva).** Primera celda del notebook: lee `requirements.txt` en vivo y
+compara la versión de Python y cada dependencia directa contra el entorno que lo ejecuta —
+`raise`, no aviso, si algo difiere. Responde al problema real de las tres combinaciones distintas
+de intérprete/bibliotecas documentado el 2026-09-20. Al construirla se detectó que
+**"Python 3.13.15", documentado desde esa fecha en `requirements.txt`, `README.md` y este mismo
+archivo, no es una versión de Python que exista** (`uv python install 3.13.15` no la encuentra):
+era un error de tipeo nunca verificado. Corregido a **3.13.2** (la que ya tenía instalada el
+`.venv` del proyecto) en `requirements.txt` y `README.md`. Las menciones históricas a "3.13.15"
+en `registro_uso_IA.md`, en los `resumen_*.md` y en las salidas ya guardadas de otros notebooks
+**no se reescribieron**: son registro de lo que se documentó en su momento.
+
+**Verificación de no regresión (nueva).** Última celda del notebook: compara los cuatro modelos
+contra `experiments/linea_base/referencia_no_regresion.csv` (valores tomados de
+`experiments/base/tablas/06_evaluacion_test.csv` y `experiments/base_2/tablas/05_test_metricas.csv`
+antes de retirar esos notebooks), con tolerancia 0,001. Reemplaza el control cruzado que existía
+entre los dos notebooks. **Pasa**: los cuatro modelos reproducen las cifras previas casi exactas
+(media constante 1,2625/1,7411; L0 1,3324/1,7546 —los 3 decimales de la fuente daban 1,332/1,755—;
+L1 1,0848/1,5919; árbol candidato 1,6789/1,9055 — desvianza/MAE).
+
+**Dependencias.** Se quitó `skforecast==0.25.0` de `requirements.txt`: dejó de usarse al retirar
+`base_2.ipynb` (único notebook del pipeline que lo importaba). Sólo sigue usándolo
+`notebooks/Ejemplos/Series_temporales_y_pronóstico_ejemplo.ipynb` (tutorial de referencia, sin
+relación con el pipeline) — se le agregó `notebooks/Ejemplos/README.md` explicando cómo
+reinstalarlo aparte si hace falta. Las restricciones de versión que existían por `skforecast`
+(`pandas < 3.0`, `matplotlib < 3.12`, `statsmodels < 0.15`) ya no aplican, pero **los pines no se
+tocaron** — subir versiones exige reejecutar y revalidar todos los notebooks, decisión pendiente
+para el Entregable 3. `requirements-lock.txt` se regeneró en un entorno limpio: de 136 a 123
+paquetes (desaparecen `skforecast` y sus transitivas: numba, optuna, tqdm, rich, llvmlite,
+alembic, SQLAlchemy, Mako, greenlet, colorlog, markdown-it-py, mdurl). `linea_base.ipynb` se
+reejecutó de punta a punta en ese entorno regenerado: la celda de no regresión sigue pasando, el
+diff contra la corrida anterior sólo muestra timestamps y el conteo de dependencias verificadas
+(17 → 16).
+
+**Eliminado de `main`** (preservado en `entregable_2`): `notebooks/base.ipynb`,
+`notebooks/base_2.ipynb`, `experiments/base/`, `experiments/base_2/`, `train/train_base.py`,
+`train/train_base_2.py`, `documentacion/resumen_base.md`, `documentacion/resumen_base_2.md`.
+Actualizadas para no dejar referencias colgadas: `README.md` (tabla de orden de ejecución y
+descripción de dependencias), `train/README.md` (tabla de scripts y valores de referencia).
+Verificado con búsqueda en todo el repositorio que ningún otro notebook ni script referenciaba
+esas rutas.
+
+**Artefactos nuevos:** `experiments/linea_base/tablas/` (7 CSV, incluido `00_entorno.csv`),
+`experiments/linea_base/figuras/` (4 PNG), `experiments/linea_base/referencia_no_regresion.csv`,
+`documentacion/resumen_linea_base.md` (reemplaza a `resumen_base.md` y `resumen_base_2.md`, según
+la convención de documentación de notebooks de `CLAUDE.md`).
+
+**Puente para el informe:** `documentacion/cambios_para_informe.md` (nuevo). El informe entregado
+(`documentacion/informe/Entregable2_PAA_20-09-26.pdf`) cita artefactos y nombres que ya no existen
+en `main` tal cual; ese documento mapea cada cita a su ruta nueva o a "retirado, disponible en
+`entregable_2`", y separa qué secciones necesitan reescritura de cuáles sólo una corrección
+puntual. **No se editó el informe en esta sesión.**
+
+**Pendiente que deja esta sesión** (detalle completo, con motivo, en
+`documentacion/cambios_para_informe.md`, sección f):
+
+- [ ] Actualizar los pines de versión liberados al quitar `skforecast` (pandas, matplotlib,
+      statsmodels) — decisión aparte, exige reejecutar y comparar todos los notebooks.
+- [ ] Validar la ventana de L0 (4 semanas) con datos de validación interna — hoy fijada a mano.
+- [ ] Recalcular la ACF que orienta los rezagos del árbol candidato usando sólo el bloque de
+      desarrollo (hoy usa el período completo — fuga leve, heredada de `base_2.ipynb`).
+- [ ] Decidir si `t_anios` se mantiene en el árbol candidato: el informe ya atribuye a esa
+      variable el mal desempeño del árbol en el bloque final (no extrapola la tendencia).
+- [ ] Definir con el docente y el tutor la partición y el tratamiento del clima para la evaluación
+      final del Entregable 3 (incluido si se incorpora el semestre 2026 de la UNASEV).
+- [ ] Decidir el destino del Anexo F del informe (tablas F1–F4 sobre el árbol, hoy sin equivalente
+      reproducible en `experiments/linea_base/`): reconstruirlas con el árbol candidato o dejarlas
+      como registro histórico apuntando a `entregable_2`.
+- [ ] Si se necesita reenviar el modelo de línea base al servidor, reconstruir una versión `.py`
+      de `linea_base.ipynb` (`train/train_base.py` y `train/train_base_2.py` se retiraron con los
+      notebooks que representaban).
+- [ ] Corregir el informe siguiendo `documentacion/cambios_para_informe.md` (sesión aparte, con
+      otra persona).
+
 ## 4. Pendiente (próximos pasos)
 
 Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
@@ -1441,20 +1554,24 @@ de 2026)**. En orden de prioridad.
 - [x] ~~Decidir pandas 3 vs `skforecast`~~ — **resuelto el 2026-09-20**: `skforecast` 0.25.0 y pandas
       2.3.3, fijados en `requirements.txt` y `requirements-lock.txt`. Ver la sección del entorno
       estandarizado.
-- [~] **Decidir qué notebook base se entrega** (`base.ipynb`, `base_2.ipynb` o ambos). Desde el
-      2026-09-15, `base_2` **no usa exógenas** y `base` sí (calendario y tendencia): si la regla vale
-      para toda la entrega, `base` no la cumple. Solo la media constante es común a los dos
-      (control cruzado OK).
-- [ ] **Validar las lecturas y conclusiones de `base_2.ipynb`** (redactadas con Claude, reescritas
-      el 2026-09-15).
-- [ ] **Decidir si se mantiene la línea base «promedio de las últimas 4 semanas»**: en test la media
-      constante tiene 5,2 % menos desvianza de Poisson (0,8 % menos MAE). Revisarlo **con
-      validación**, no con el test.
-- [ ] **Fijar el tratamiento de las predicciones 0** en la desvianza de Poisson (hoy `EPS = 1e-6`,
-      igual en `base` y `base_2`) y declararlo en el informe: la desvianza del árbol depende de ese
-      valor.
-- [ ] **Commitear** `base_2.ipynb`, `experiments/base_2/` (incluidas las tablas y figuras borradas de
-      la versión anterior), `resumen_base_2.md`, este HANDOFF y el registro de IA.
+- [x] ~~Decidir qué notebook base se entrega (`base.ipynb`, `base_2.ipynb` o ambos)~~ — **resuelto el
+      2026-09-24**: ninguno de los dos se entrega por separado. Se unificaron en
+      `notebooks/linea_base.ipynb`, sin exógenas para las líneas base y con calendario sólo en el
+      árbol candidato (igual que antes); `base.ipynb`/`base_2.ipynb` se retiraron de `main` y
+      quedan en la rama `entregable_2`. Ver la entrada del 2026-09-24.
+- [x] ~~Validar las lecturas y conclusiones de `base_2.ipynb`~~ — las cifras y lecturas que
+      sobrevivieron (media constante, L0) pasaron a `documentacion/resumen_linea_base.md`; el
+      notebook original queda en `entregable_2` si hace falta revisar el resto.
+- [ ] **Decidir si se mantiene la línea base «promedio de las últimas 4 semanas» (L0)**: en el
+      bloque final la media constante sigue teniendo menos desvianza de Poisson (1,2625 contra
+      1,3324, un 5,2 % menos). No tocado el 2026-09-24: revisarlo **con validación**, no con el
+      bloque final. Ver `documentacion/cambios_para_informe.md`, sección f.
+- [x] ~~Fijar el tratamiento de las predicciones 0 en la desvianza de Poisson~~ — `EPS = 1e-6`,
+      igual en `base`, `base_2` y ahora en `linea_base.ipynb`; declarado en el notebook y en
+      `documentacion/resumen_linea_base.md`.
+- [x] ~~Commitear `base_2.ipynb`, `experiments/base_2/`, `resumen_base_2.md`~~ — **superado el
+      2026-09-24**: en vez de commitearse a `main`, quedaron preservados en la rama `entregable_2`
+      y se retiraron de `main`, reemplazados por `linea_base.ipynb`.
 
 **Entrega**
 

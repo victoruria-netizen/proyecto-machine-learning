@@ -2110,3 +2110,130 @@ reejecutados), `README.md`, `HANDOFF.md`, `documentacion/resumen_diagnostico_dat
 `resumen_diagnostico_datos_municipio.md`, `resumen_preparacion_montevideo.md`,
 `documentacion/registro_uso_IA.md`, y `experiments/**` y `data/processed/diccionario_datos.csv`
 (regenerados).
+
+## Sesión 2026-09-24 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** congelamiento del Entregable 2 en una rama de registro (`entregable_2`) y, recién
+después, unificación de los seis modelos de `notebooks/base.ipynb` y `notebooks/base_2.ipynb` en
+un único `notebooks/linea_base.ipynb`, retiro de lo obsoleto, salida de `skforecast` de las
+dependencias, y documentación de cierre. Tarea explícitamente delimitada para no ser desarrollo
+del Entregable 3. No se pegaron datos personales ni muestras de filas en los prompts.
+
+### Prompt 1
+
+> # CONTEXTO
+>
+> Repositorio del Proyecto de Aplicación en Aprendizaje Automático: predicción de
+> siniestros de tránsito por municipio y día en Montevideo. El Entregable 2 ya fue
+> entregado y defendido. Esta tarea tiene dos partes: congelar el estado del Entregable 2 en una
+> rama de registro, y después limpiar y reordenar main. NO es desarrollo del Entregable 3. No
+> cambies modelos, hiperparámetros, variables, partición ni métricas.
+>
+> [Instrucciones completas de las Fases 0 a 4: crear la rama `entregable_2` desde el estado
+> actual de `main` antes de cambiar nada; unificar `base.ipynb`/`base_2.ipynb` en
+> `notebooks/linea_base.ipynb` con una sección "Líneas base" (media constante, L0, L1) y una
+> sección aparte "Modelo candidato preliminar" (el árbol, renombrado, sin tocar hiperparámetros
+> ni variables); retirar "repetir semana anterior" y "Árbol A"; agregar una celda de verificación
+> de entorno que detenga la ejecución si Python o alguna dependencia difieren de
+> `requirements.txt`, y una celda de no regresión contra valores de referencia copiados antes de
+> borrar `experiments/base/` y `experiments/base_2/`; eliminar esas carpetas y los notebooks
+> retirados de `main` sin dejar referencias colgadas; sacar `skforecast` de `requirements.txt` si
+> nada más lo usa y regenerar `requirements-lock.txt`; actualizar `HANDOFF.md`,
+> `registro_uso_IA.md` y generar `documentacion/cambios_para_informe.md` como puente para quien
+> corrija el informe en otra sesión. Lista extensa de "fuera de alcance" (no tocar partición, no
+> validar la ventana de L0, no recalcular la ACF, no quitar `t_anios`, no agregar modelos nuevos,
+> no extender al panel de 8 municipios, no subir versiones de dependencias más allá de quitar
+> `skforecast`, no editar el informe). Pedido explícito de hacer un plan primero y de parar a
+> preguntar ante cualquier contradicción con las instrucciones.]
+
+**Respuesta (extracto relevante):** se entró en modo de planificación. Antes de planificar se
+investigó el estado real del repositorio (no se asumió nada de lo que decía el prompt): se leyó
+`HANDOFF.md`, los notebooks `base.ipynb`/`base_2.ipynb` completos (celda por celda, para extraer
+el código real de L1, L0 y el árbol), los CSV de `experiments/base/` y `experiments/base_2/`, y se
+corrieron búsquedas en todo el repositorio para las rutas a retirar. Esa investigación encontró
+tres problemas no previstos por el prompt, cada uno resuelto **preguntando antes de decidir**, no
+por cuenta propia:
+
+1. **No existía ningún informe del Entregable 2 en el repositorio** (ni `documentacion/informe/`,
+   ni ningún `.md`/`.pdf`/`.docx`, ni en el historial de git) — bloqueante explícito de la Fase 0.
+2. `notebooks/Ejemplos/Series_temporales_y_pronóstico_ejemplo.ipynb` (tutorial, sin relación con
+   el pipeline) seguía importando `skforecast`, lo que contradecía la premisa de la Fase 3 de que
+   "nada más lo usa".
+3. Al construir la celda de verificación de entorno se descubrió que **"Python 3.13.15"**,
+   documentado como estándar del proyecto desde el 2026-09-20 en `requirements.txt`, `README.md` y
+   `HANDOFF.md`, **no es una versión de Python que exista** (`uv python install 3.13.15` no la
+   encuentra).
+
+**Uso y verificación:** el plan se escribió después de resolver los tres puntos con el usuario
+(ver Prompts 2 a 4) y se ejecutó en el orden pedido: Fase 0 (rama `entregable_2` creada desde el
+commit que agrega el informe, publicada con `git push`), Fase 1 (`linea_base.ipynb`, construido
+con `nbformat` reutilizando el código real de los notebooks originales, no reescrito de memoria),
+Fase 2 (borrado con `git rm`, búsqueda de referencias colgadas antes de borrar), Fase 3 (lock
+regenerado en un entorno limpio, con un kernel de Jupyter registrado explícitamente para evitar
+que `jupyter nbconvert` resolviera el intérprete equivocado por `PATH` — se detectó porque un
+`RuntimeWarning` de arranque seguía señalando la ruta del `.venv` del proyecto en vez del entorno
+nuevo), Fase 4 (este registro, `HANDOFF.md` y `cambios_para_informe.md`, este último construido
+leyendo el texto completo del PDF de 54 páginas del informe entregado, no adivinando su
+estructura). Verificado con: ejecución de punta a punta de `linea_base.ipynb`
+(`jupyter nbconvert`/`nbconvert --execute`) en tres entornos (el original, el regenerado sin
+`skforecast`, y el `.venv` final ya sincronizado), con la celda de no regresión en verde en los
+tres y el mismo resultado numérico en los cuatro modelos; `git diff` del notebook entre corridas
+mostrando que sólo cambian timestamps y el conteo de dependencias verificadas; `pip check` e
+inspección de `pip freeze` confirmando la ausencia de `skforecast` y sus transitivas; búsqueda
+`grep`/`git grep` en todo el árbol de `main` sin referencias colgadas a `base.ipynb`, `base_2` ni
+`experiments/base(_2)/` fuera de menciones históricas explícitas.
+
+### Prompt 2 (pregunta de Claude, vía herramienta de clarificación)
+
+> Revisé todo el repo (archivos, nombres de archivo y git log --all) y no hay ningún informe del
+> Entregable 2 en el repositorio [...] ¿Dónde está la versión del informe tal como se entregó?
+
+**Respuesta del usuario:** "Tengo el archivo, lo traigo yo" — agregó
+`documentacion/informe/Entregable2_PAA_20-09-26.pdf` (8 páginas según `file`, 54 según `pypdf`;
+se usó el conteo de `pypdf`, que lee el árbol de páginas real) y avisó "ready".
+
+**Uso y verificación:** commiteado como primer paso de la Fase 0, antes de crear la rama
+`entregable_2`, para que la rama de registro incluyera el informe. Verificado abriendo el PDF con
+`pypdf` y confirmando 54 páginas de contenido real antes de darlo por válido.
+**Archivos afectados:** `documentacion/informe/Entregable2_PAA_20-09-26.pdf`.
+
+### Prompt 3 (pregunta de Claude)
+
+> La Fase 3 pide verificar que nada más importe skforecast antes de sacarlo de requirements.txt.
+> Encontré que notebooks/Ejemplos/Series_temporales_y_pronóstico_ejemplo.ipynb [...] sí lo
+> importa. [...] ¿Cómo procedo?
+
+**Respuesta del usuario:** "Sacar igual, dejar constancia (Recomendado)".
+
+**Uso y verificación:** se quitó `skforecast` de `requirements.txt` igual, y se agregó
+`notebooks/Ejemplos/README.md` explicando cómo reinstalarlo aparte. Verificado con
+`git grep skforecast` sobre el árbol final de `main`: sólo aparece en ese notebook de ejemplo, en
+su guía de referencia (`Guia_series_temporales_skforecast.md`) y en menciones históricas
+(`HANDOFF.md`, `registro_uso_IA.md`).
+
+### Prompt 4 (pregunta de Claude)
+
+> Para la celda de entorno [...] requirements.txt y HANDOFF.md declaran "Python 3.13.15" [...]
+> Pero esa versión no existe: `uv python install 3.13.15` falla [...] ¿Cómo sigo?
+
+**Respuesta del usuario:** "Corregir el pin a 3.13.2 (Recomendado)".
+
+**Uso y verificación:** corregido en `requirements.txt` y `README.md` (con una nota explicando el
+error); no se reescribieron las menciones históricas a "3.13.15" en `registro_uso_IA.md`, en los
+`resumen_*.md` ni en las salidas ya guardadas de otros notebooks, porque son registro de lo que se
+documentó en su momento, no una afirmación vigente. Verificado corriendo
+`.venv/Scripts/python.exe -m pip install -r requirements.txt -c requirements-lock.txt` y
+`pip check` (limpio) después de la corrección, y ejecutando la celda de entorno de
+`linea_base.ipynb` con resultado "Entorno OK".
+
+**Uso y verificación (general de la sesión):** todos los cambios de código se ejecutaron
+realmente (no se asumió que el código escrito funcionaba); cada fase terminó en un commit
+separado (`git log --oneline` los distingue) y ninguno se hizo sin que el árbol de trabajo
+reflejara exactamente lo revisado. **Archivos afectados:** `notebooks/linea_base.ipynb` (nuevo),
+`experiments/linea_base/**` (nuevo), `documentacion/resumen_linea_base.md` (nuevo),
+`documentacion/cambios_para_informe.md` (nuevo), `notebooks/Ejemplos/README.md` (nuevo),
+`requirements.txt`, `requirements-lock.txt`, `README.md`, `train/README.md`, `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`; eliminados `notebooks/base.ipynb`, `notebooks/base_2.ipynb`,
+`experiments/base/**`, `experiments/base_2/**`, `train/train_base.py`, `train/train_base_2.py`,
+`documentacion/resumen_base.md`, `documentacion/resumen_base_2.md` (preservados en la rama
+`entregable_2`).
