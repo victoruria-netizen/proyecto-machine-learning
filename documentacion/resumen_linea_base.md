@@ -67,7 +67,7 @@ distinguiendo explícitamente dos categorías:
 | --- | --- | --- |
 | **Métrica principal: desvianza de Poisson media** | El objetivo es un conteo con sobredispersión leve (índice 1,26, `01_serie_resumen.csv`). Pondera el error por el nivel; el MAE no. | `resumen_diagnostico_datos.md` §5.1 |
 | Acompañan **MAE, RMSE, razón total predicho/observado, sesgo medio y días con predicción cero** | Lectura operativa, sensibilidad a errores grandes, calibración, y detección de predicciones degeneradas. | — |
-| **Partición cronológica en tres bloques (987 / 329 / 329 días)** | Entrenamiento inicial (60 %), validación por ventana deslizante (20 %), prueba reservada (20 %). En una serie temporal no se parte al azar. | `03_particiones.csv` |
+| **Partición cronológica en tres bloques (987 / 329 / 329 días)** | Entrenamiento inicial (60 %), validación por ventana expansiva (20 %), bloque final (20 %, evaluado preliminarmente en E2). En una serie temporal no se parte al azar. | `03_particiones.csv` |
 | **Validación interna: 47 cortes de 7 días, origen móvil, ventana expansiva** | Evaluar configuraciones sin tocar el test; en el test el ajuste queda congelado en el desarrollo. | Protocolo de `base.ipynb` |
 | **L1 = tasa × factor de calendario** | Forma multiplicativa que el diagnóstico midió como la mejor disponible fuera de muestra (−11,8 % en el panel). Con una sola zona se reduce a las medias por `tipo_dia`. | `resumen_diagnostico_datos.md` §5.3 |
 | **L0 = promedio de lo observado 7/14/21/28 días antes** | Recoge el patrón semanal sin exógenas; promedia cuatro semanas para que el ruido de una sola pese menos. Sin parámetros que ajustar. | `base_2.ipynb` (2026-09-15) |
@@ -102,7 +102,7 @@ distinguiendo explícitamente dos categorías:
 
 En desarrollo el árbol queda entre L1 y la media constante — parece competitivo.
 
-### Evaluación final en el test reservado (`05_evaluacion_test.csv`) — una sola vez
+### Evaluación final en el bloque final (`05_evaluacion_test.csv`) — una sola vez
 
 | Modelo | Desvianza de Poisson | MAE | Razón total pred./obs. | Días con predicción 0 |
 | --- | --- | --- | --- | --- |
@@ -118,7 +118,7 @@ las dos primeras líneas base). L0 no es la referencia de menor desvianza: la me
 constante le gana (1,2625 contra 1,3324).
 
 **Inferencia del equipo:** el protocolo funcionó — un modelo que en validación interna
-parecía razonable se cae en la prueba reservada. Sigue siendo razonable recomendar L1
+parecía razonable se cae en el bloque final. Sigue siendo razonable recomendar L1
 como línea base del proyecto y tratar al árbol como un modelo de arranque a mejorar en
 el Entregable 3, no como candidato final.
 
@@ -148,7 +148,7 @@ en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia
   mano; la selección de modelo e hiperparámetros con validación es el Entregable 3.
 - **L0 no se revisó con datos de validación.** Que la media constante le gane en el
   test no es motivo para cambiarla ahora: revisarla con el test sería elegir el modelo
-  mirando la prueba reservada.
+  mirando el bloque final.
 - **El clima y el rezago de 1 día no se usan** en ningún modelo de este notebook.
   Quedan como candidatos para el panel.
 - **`t_anios` en el árbol candidato no extrapola.** Es la causa identificada de por qué
@@ -177,7 +177,7 @@ en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia
 | `tablas/02_perfil_calendario.csv` | Media de siniestros por `tipo_dia`, insumo de L1 |
 | `tablas/03_particiones.csv` | Los tres bloques cronológicos (987/329/329 días) |
 | `tablas/04_desarrollo_backtesting.csv` | Métricas de los 4 modelos en validación interna |
-| `tablas/05_evaluacion_test.csv` | Métricas de los 4 modelos en el test reservado — **la tabla a citar en el informe** |
+| `tablas/05_evaluacion_test.csv` | Métricas de los 4 modelos en el bloque final — **la tabla a citar en el informe** |
 | `referencia_no_regresion.csv` | Valores de referencia de `base.ipynb` / `base_2.ipynb` (rama `entregable_2`) |
 | `figuras/fig1_serie.png` | Serie diaria, media móvil de 28 días y tendencia lineal |
 | `figuras/fig2_perfil_calendario.png` | Media de siniestros por tipo de día |

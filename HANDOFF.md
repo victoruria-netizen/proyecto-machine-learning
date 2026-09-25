@@ -729,8 +729,8 @@ figuras** en `experiments/base/` y el documento acompañante
 
 | Punto | Decisión |
 | --- | --- |
-| Protocolo de evaluación | Partición cronológica **80 / 20**; validación interna por **ventana deslizante** (origen móvil, ventana expansiva, horizonte 7 días, 47 cortes); métrica principal **desvianza de Poisson** + MAE, RMSE, razón total predicho/observado y sesgo medio |
-| Conjunto de prueba reservado | Últimos **329 días (20 %)**, 2025-02-06 → 2025-12-31. Congelado entre §5 y §9; usado una sola vez |
+| Protocolo de evaluación | Partición cronológica **80 / 20**; validación interna por **ventana expansiva** (origen móvil, horizonte 7 días, 47 cortes); métrica principal **desvianza de Poisson** + MAE, RMSE, razón total predicho/observado y sesgo medio |
+| Bloque final (evaluado preliminarmente en E2) | Últimos **329 días (20 %)**, 2025-02-06 → 2025-12-31. Congelado entre §5 y §9; usado una sola vez. No es una prueba reservada e independiente para el E3 |
 | Línea base del proyecto | **Tasa × factor de calendario** (media del entrenamiento por `tipo_dia`) — la forma multiplicativa que el diagnóstico recomienda |
 | Modelo base aprendido | **Árbol de decisión básico** (`DecisionTreeRegressor`, `max_depth=4`, `min_samples_leaf=20`) con rezagos t−7/14/21, calendario y tendencia. Contrastado con media constante, naive estacional (t−7) y media móvil 56 d × calendario |
 
@@ -756,7 +756,7 @@ para que sea auditable.
   (0,884) pero mucho menos.
 - **Conclusión:** la línea base del proyecto sigue siendo `Tasa × calendario`; un árbol
   básico no es un modelo final adecuado para una serie con tendencia. **El protocolo hizo
-  su trabajo:** un modelo competitivo en desarrollo se cayó en el test reservado.
+  su trabajo:** un modelo competitivo en desarrollo se cayó en el bloque final.
 
 **Entorno:** no había `.venv` en la máquina. Se creó uno (`python -m venv .venv`,
 gitignored) con `pandas 3.0.5 / numpy 2.5.2 / scikit-learn 1.9.0 / scipy 1.18.1 /
@@ -1535,10 +1535,12 @@ de 2026)**. En orden de prioridad.
 - [ ] **Rediseñar el hold-out de zonas del «megamodelo».** Con 8 municipios, dejar uno afuera por
       vez y promediar las ocho corridas es lo único defendible; declarar que su poder estadístico
       es bajo y que no puede ser la evidencia principal de la generalización.
-- [~] **Definir las particiones cronológicas** con el conjunto de prueba reservado. **Definidas
-      en `base.ipynb` (§5):** 80 % desarrollo / 20 % prueba reservada; dentro de desarrollo,
-      ventana deslizante con origen móvil (75 % entrenamiento inicial, 47 cortes de 7 días). La
-      partición por la mitad del diagnóstico era sólo instrumental. **Falta aplicarlo al panel.**
+- [~] **Definir las particiones cronológicas** con el bloque final. **Definidas
+      en `base.ipynb` (§5), vigentes en `linea_base.ipynb`:** 80 % desarrollo / 20 % bloque final
+      (evaluado preliminarmente en E2, no es prueba reservada e independiente para el E3); dentro
+      de desarrollo, ventana expansiva con origen móvil (75 % entrenamiento inicial, 47 cortes de
+      7 días). La partición por la mitad del diagnóstico era sólo instrumental. **Falta aplicarlo
+      al panel.**
 - [ ] **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y
       todos con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
 - [x] ~~Cerrar la sección 2.8 de outliers del diagnóstico~~ — hecho (2026-09-14): celda de

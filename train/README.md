@@ -45,7 +45,7 @@ Para que `documentacion/resumen_linea_base.md` siga citando las rutas vigentes
 corrida elegida a esa carpeta del repositorio.
 
 **Cómo verificar una corrida del servidor** (valores de referencia, desvianza de Poisson en el
-conjunto de prueba): media constante 1,2625; L0 1,3324; L1 (tasa × calendario) 1,0848; árbol
+bloque final): media constante 1,2625; L0 1,3324; L1 (tasa × calendario) 1,0848; árbol
 candidato preliminar 1,6789 (`experiments/linea_base/tablas/05_evaluacion_test.csv`). El
 contenedor trae `scikit-learn 1.2.0` (localmente se probó con 1.9.0), así que conviene comparar:
 si difiere en algo, es la primera pista a revisar.

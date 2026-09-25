@@ -6,4 +6,4 @@ L0,desarrollo,1.6908,1.8792,sin referencia histórica: L0 no estaba en el backte
 L1,bloque_final,1.0848,1.5919,entregable_2:experiments/base/tablas/06_evaluacion_test.csv (fila "Tasa x calendario")
 L1,desarrollo,1.3782,1.6114,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Tasa x calendario")
 arbol_candidato,bloque_final,1.6789,1.9055,entregable_2:experiments/base/tablas/06_evaluacion_test.csv (fila "Arbol de decision")
-arbol_candidato,desarrollo,1.4005,1.6815,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Arbol de decision"); linea_base.ipynb lo reproduce exacto desde que SEMILLA se corrigió a 20260910 (Bloque 1, 2026-09-25; antes tenía 20260924 y daba 1.3912/1.6789)
+arbol_candidato,desarrollo,1.4005,1.6815,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Arbol de decision"); linea_base.ipynb lo reproduce exacto desde que SEMILLA se corrigió a 20260910 en el Bloque 1 (2026-09-25); antes tenía 20260924 y daba 1.3912/1.6789
