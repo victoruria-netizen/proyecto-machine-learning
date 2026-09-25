@@ -1,5 +1,9 @@
-modelo,desvianza_poisson,mae,fuente
-media_constante,1.2625,1.7411,experiments/base/tablas/06_evaluacion_test.csv (fila "Media constante")
-L0,1.332,1.755,experiments/base_2/tablas/05_test_metricas.csv (fila "Promedio de las últimas 4 semanas (línea base)")
-L1,1.0848,1.5919,experiments/base/tablas/06_evaluacion_test.csv (fila "Tasa x calendario")
-arbol_candidato,1.6789,1.9055,experiments/base/tablas/06_evaluacion_test.csv (fila "Arbol de decision")
+modelo,tramo,desvianza_poisson,mae,fuente
+media_constante,bloque_final,1.2625,1.7411,entregable_2:experiments/base/tablas/06_evaluacion_test.csv (fila "Media constante")
+media_constante,desarrollo,1.5178,1.7591,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Media constante")
+L0,bloque_final,1.332,1.755,entregable_2:experiments/base_2/tablas/05_test_metricas.csv (fila "Promedio de las últimas 4 semanas (línea base)")
+L0,desarrollo,1.6908,1.8792,sin referencia histórica: L0 no estaba en el backtesting de desarrollo de base_2.ipynb; valor inicial tomado de linea_base.ipynb (2026-09-24)
+L1,bloque_final,1.0848,1.5919,entregable_2:experiments/base/tablas/06_evaluacion_test.csv (fila "Tasa x calendario")
+L1,desarrollo,1.3782,1.6114,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Tasa x calendario")
+arbol_candidato,bloque_final,1.6789,1.9055,entregable_2:experiments/base/tablas/06_evaluacion_test.csv (fila "Arbol de decision")
+arbol_candidato,desarrollo,1.4005,1.6815,entregable_2:experiments/base/tablas/04_desarrollo_backtesting.csv (fila "Arbol de decision"); linea_base.ipynb lo reproduce exacto desde que SEMILLA se corrigió a 20260910 (Bloque 1, 2026-09-25; antes tenía 20260924 y daba 1.3912/1.6789)
