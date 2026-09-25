@@ -2237,3 +2237,195 @@ reflejara exactamente lo revisado. **Archivos afectados:** `notebooks/linea_base
 `experiments/base/**`, `experiments/base_2/**`, `train/train_base.py`, `train/train_base_2.py`,
 `documentacion/resumen_base.md`, `documentacion/resumen_base_2.md` (preservados en la rama
 `entregable_2`).
+
+## Sesión 2026-09-25 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** Auditoría de solo lectura del repositorio, previa a la corrección de
+`documentacion/informe/Entregable2_PAA_20-09-26.pdf`. No se modificó ningún archivo (verificado
+con `git status --porcelain` y `git stash list` al inicio y al final, ambos vacíos). Se auditaron:
+estado de ramas (`main`/`entregable_2`), uso de datos por notebook, revisión técnica de
+`notebooks/linea_base.ipynb`, cruce exhaustivo del texto del informe (54 páginas, extraídas con un
+script Python propio de solo lectura, sin dependencias externas, descartado al finalizar) contra
+`documentacion/cambios_para_informe.md` y contra el repositorio, coherencia de
+HANDOFF.md/README.md/CLAUDE.md/resúmenes, y revisión general del repositorio.
+
+### Prompt 1
+> # Auditoría de solo lectura del repositorio — previa a la corrección del informe del Entregable 2
+>
+> ## Contexto
+>
+> El 2026-09-24 se congeló el Entregable 2 en la rama `entregable_2` y se unificaron `base.ipynb` y
+> `base_2.ipynb` en `notebooks/linea_base.ipynb`. El puente hacia el informe está en
+> `documentacion/cambios_para_informe.md`. Antes de corregir el informe (`documentacion/informe/
+> Entregable2_PAA_20-09-26.pdf`) el equipo quiere un **reporte detallado del estado real del repo**,
+> contrastado contra lo que dicen la documentación y el informe, y aprovechar para hacer una
+> **review general del repositorio**. El objetivo es detectar cualquier otra corrección necesaria
+> en el repo **antes** de tocar el informe. **No es desarrollo del Entregable 3.**
+>
+> ## Regla absoluta: SOLO LECTURA
+>
+> Esta sesión no modifica nada. Concretamente:
+>
+> - **Prohibido:** editar, crear, mover o borrar archivos dentro del repo; `git add/commit/push/
+>   checkout/switch/reset/stash/merge/rebase/worktree add/tag/branch -d`; ejecutar notebooks
+>   (`nbconvert --execute`, en cualquier modo, porque escriben en `experiments/`); `pip install`,
+>   `uv`, o cualquier cambio del entorno; regenerar `data/processed/`.
+> - **Permitido:** leer archivos; `git status`, `git log`, `git show <rama>:<ruta>`, `git diff`,
+>   `git branch -a`, `git ls-files`, `git ls-remote`, `git fetch --dry-run`; `grep`/`rg`; scripts de
+>   Python que **sólo lean** (CSV, JSON de los `.ipynb`, texto del PDF) e impriman por pantalla.
+>   Si necesitás un archivo temporal (p. ej. el texto extraído del PDF), creálo **fuera del repo**
+>   (directorio temporal del sistema) y borralo al terminar.
+> - **Excepción a CLAUDE.md:** en esta sesión **no** escribas en `documentacion/registro_uso_IA.md`
+>   ni en `HANDOFF.md`. En su lugar, al final del reporte, dejá **redactada** la entrada del registro
+>   de uso de IA de esta sesión (formato de CLAUDE.md) para que el equipo la agregue después.
+> - **Prueba de no modificación:** corré `git status --porcelain` y `git stash list` al principio y
+>   al final, y mostrá ambas salidas en el reporte. Tienen que ser idénticas.
+>
+> [Se omiten aquí, por brevedad y porque no cambian el resultado, las secciones "Fuentes a leer
+> primero" (CLAUDE.md, HANDOFF.md, README.md, requirements*.txt, .gitignore, .env.example,
+> train/README.md, notebooks/Ejemplos/README.md, todo `documentacion/`, el PDF del informe) y "Qué
+> verificar" (secciones A a F con ~40 preguntas puntuales sobre: estado de git y ramas; qué datos
+> usa cada notebook; revisión técnica de `linea_base.ipynb` — ventana expansiva/deslizante, fugas de
+> información, semillas, sesgo medio, verificación de entorno; informe contra repositorio — barrido
+> exhaustivo de términos, rutas citadas, terminología del bloque final, cifras de diagnóstico;
+> coherencia de HANDOFF/README/CLAUDE.md/resúmenes; y review general del repositorio — artefactos
+> huérfanos, `src/`/`app/`/`tests`/`models`, `etl/`, `requirements.txt` vs `requirements-lock.txt`,
+> evidencia de ejecución en servidor). El texto completo está en el historial de esta conversación.]
+>
+> ## Formato del reporte
+>
+> Respondé en la conversación (no en un archivo), en español y en Markdown: resumen ejecutivo,
+> salida de `git status` inicial, secciones A a F con evidencia, tabla consolidada de hallazgos
+> (ID, descripción, evidencia, severidad, categoría), lo que no se pudo verificar en solo lectura,
+> salida de `git status` final, y la entrada propuesta para `registro_uso_IA.md`.
+
+**Respuesta (extracto relevante):** Reporte de auditoría con 28 hallazgos tabulados. Los dos más
+relevantes: (1) `experiments/linea_base/tablas/03_particiones.csv` y los encabezados de
+`linea_base.ipynb` rotulaban la validación como "ventana deslizante" cuando el código implementa
+una ventana expansiva (`historia = datos.iloc[:origen]`, sin límite inferior) y el propio glosario
+del informe define ambos términos como opuestos (H1); y `documentacion/cambios_para_informe.md`
+(sección "Lo que NO cambió") afirmaba que las cuatro filas de la Tabla 4 estaban reproducidas
+dentro de una tolerancia de 0,001 y verificadas por la celda de no regresión del notebook — falso
+para el Árbol candidato (diferencia de hasta 0,0093 en desvianza de Poisson), y esa celda nunca
+verificaba esa tabla, sólo la Tabla 5 (H2). Además: 3 omisiones confirmadas en
+`cambios_para_informe.md` respecto del texto del informe (§3.4.2, nota (b) de la Tabla 5, plural
+"los árboles" en §4.3.3), una fuga leve no declarada en la selección de Municipio C/A (H11), y
+~15 puntos de documentación desactualizada en HANDOFF.md/README.md/CLAUDE.md/resúmenes.
+
+**Uso y verificación:** verificado línea por línea contra el código de `notebooks/linea_base.ipynb`,
+los CSV de `experiments/linea_base/` y `entregable_2` (`git show`), y el texto completo del PDF del
+informe. No se aplicó ningún cambio en esa sesión; el equipo decidió qué corregir a partir de la
+tabla de hallazgos, y esos hallazgos (H1–H27) son la base de la sesión siguiente (Bloques 1 a 6,
+más abajo). **Archivos afectados:** ninguno (sesión de solo lectura).
+
+## Sesión 2026-09-25 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5)
+
+**Contexto:** Aplicación al repositorio de las correcciones surgidas de la auditoría anterior, en
+seis bloques con commits separados, para que el informe se corrija después sobre una base
+verificada. No es desarrollo del Entregable 3.
+
+### Prompt 1
+> # Correcciones al repositorio previas a la corrección del informe del Entregable 2
+>
+> Una auditoría de solo lectura (sesión anterior) relevó el estado del repo después de la
+> unificación del 2026-09-24. Esta sesión **aplica las correcciones al repo** que surgieron de esa
+> auditoría [...] **Esto no es desarrollo del Entregable 3.** No se toca ningún hiperparámetro,
+> variable, partición, métrica ni modelo, salvo lo que exija el Bloque 1 **y sólo tras confirmación
+> del equipo**.
+>
+> Reglas: trabajar en `main`, nunca commitear en `entregable_2`; un commit local por bloque, sin
+> push; archivos temporales fuera del repo; `git status` limpio al empezar (si no, detenerse y
+> avisar); ninguna cifra sin artefacto; si una reejecución cambia algo inesperado, detenerse y
+> reportar, no commitear. Fuera de alcance: `origin/rama1`, `notebooks/Ejemplos/`,
+> `diagnostico_datos_municipio.ipynb`, pines de versión, `train_linea_base.py`, el PDF del informe,
+> y cualquier trabajo del E3.
+>
+> **Bloque 1 (prioridad):** investigar por qué `04_desarrollo_backtesting.csv` no reproduce
+> `entregable_2` para el árbol candidato — comparar `base.ipynb` (extraído con `git show`) contra
+> `linea_base.ipynb` línea por línea, aislar la causa con un script si hace falta, y
+> **detenerse a reportar antes de modificar nada**, con una recomendación entre corregir, mantener
+> y documentar, o no poder determinar la causa. Esperar confirmación antes de aplicar.
+>
+> **Bloque 2:** en `linea_base.ipynb`, reemplazar "ventana deslizante" por "ventana expansiva" y
+> alinear la terminología del bloque final (rótulos de CSV, títulos de figuras, con una nota de que
+> no es una prueba reservada e independiente para el E3); reejecutar el notebook una sola vez y
+> diffear cada CSV contra lo commiteado; barrer el resto del repo por los mismos términos.
+>
+> **Bloque 3:** verificar sin modificar nada si el criterio de selección de `zona_top`/
+> `zona_contraste` (calculado sobre el período completo) da el mismo resultado calculado sólo con
+> el entrenamiento inicial o sólo con el desarrollo; declarar la fuga como leve e inocua si da C y
+> A en ambos tramos, con las cifras, sin tocar el notebook de preparación.
+>
+> **Bloque 4:** verificar que el log del servidor citado en el Anexo F.1 existe, revisar que no
+> tenga credenciales ni datos personales, contrastarlo cifra por cifra contra el Anexo F.1, y
+> documentarlo en `train/README.md`.
+>
+> **Bloque 5:** actualizar `resumen_linea_base.md`, `resumen_preparacion_montevideo.md`,
+> `HANDOFF.md`, `README.md` y `CLAUDE.md` según los hallazgos H3 y H16 a H27 de la auditoría;
+> preguntar al equipo el rol exacto de docente y tutor antes de escribirlo; agregar una sección
+> fechada a `cambios_para_informe.md` con la corrección a la sección (e), las omisiones reales
+> encontradas frente al informe (con página), las decisiones del equipo sobre las Tablas F1–F4 e
+> Ilustraciones F1–F2, y una nota de que el informe ya usaba la terminología correcta.
+>
+> **Bloque 6:** registrar esta sesión y la de auditoría en `registro_uso_IA.md` (append-only),
+> actualizar `HANDOFF.md`, y reportar commits, diff resumido, resultado de cada bloque, lo
+> pendiente y confirmación de que no se hizo push.
+
+**Respuesta (extracto relevante):**
+
+Al empezar, `git status` no estaba limpio (`documentacion/logs/` sin commitear, con nombres
+distintos a los que esperaba el Bloque 4 y un job — 108, `train_base_2.py` — no documentado en el
+informe): se preguntó al equipo antes de seguir en vez de asumir. Confirmado usar ambos archivos
+con sus nombres actuales.
+
+**Bloque 1:** comparando `notebooks/linea_base.ipynb` contra `base.ipynb` (extraído de
+`entregable_2` con `git show`, sin `checkout`), las funciones de backtesting, construcción de
+matrices y predicción del árbol son idénticas byte a byte; la única diferencia es
+`SEMILLA=20260924` contra `SEMILLA=20260910`. Reproducido en un script aislado (`.venv` del
+proyecto, mismas versiones que usan ambos notebooks): cada semilla reproduce exacto el valor de su
+notebook (1,3912 y 1,4005 respectivamente), y ambas dan el mismo árbol al ajustar sobre las 1.295
+filas del desarrollo completo (sin empates de partición con ese volumen). Reportado el hallazgo y
+esperada confirmación **antes de tocar nada**; el equipo eligió corregir `linea_base.ipynb` a
+`SEMILLA=20260910`. Aplicado, y extendida la celda de no regresión (§11) para cubrir también la
+tabla de desarrollo (`referencia_no_regresion.csv` con columna `tramo`).
+
+**Bloque 2:** terminología corregida en `linea_base.ipynb` (títulos, markdown, rótulo de
+`03_particiones.csv`) y barrida en `HANDOFF.md`, `resumen_linea_base.md` y `train/README.md` (sólo
+donde describían la misma partición, mismas fechas); no tocada en `README.md` (describe una
+comparación prevista para el E3, no la implementación actual) ni en particiones instrumentales de
+los diagnósticos (otro concepto). Reejecutado el notebook una sola vez
+(`jupyter nbconvert --execute`): entorno OK, no regresión OK en los dos tramos. Un bug de comillas
+propio (una coma sin escapar en `referencia_no_regresion.csv`) rompía el parseo de pandas; corregido
+antes de reejecutar. Diff verificado: sólo cambiaron los rótulos esperados, la fila del árbol en
+desarrollo (por el Bloque 1) y el render de una figura (leyenda/título).
+
+**Bloque 3:** verificado con un script de solo lectura sobre
+`data/processed/siniestros_montevideo.csv` que el ranking de municipios por siniestros es idéntico
+(C > B > D > A > F > G > E > CH) calculado sobre el período completo, sólo el entrenamiento inicial
+o sólo el desarrollo. Declarada la fuga como leve e inocua, con las cifras, en
+`resumen_preparacion_montevideo.md` y `resumen_linea_base.md`; no se tocó
+`preparacion_montevideo.ipynb`.
+
+**Bloque 4:** el log (`log_servidor_base.txt`, Job 104) coincide cifra por cifra con el Anexo F.1
+del informe (job ID, horario, script, versiones del contenedor, RUN_ID, conteo de "18 tablas y
+figuras"); sin credenciales ni datos personales más allá del grupo/host institucional. `.gitignore`
+no excluye `*.log`, no hizo falta ninguna excepción. Documentado en `train/README.md`.
+
+**Bloque 5:** aplicados los 12 hallazgos de documentación (H3, H16–H27) en los seis archivos
+listados por el equipo; docente y tutor confirmados con el equipo antes de escribirlos (Pablo D.
+Cuña, docente de la asignatura; Matías López, tutor del proyecto). `cambios_para_informe.md` ahora
+tiene la sección fechada 2026-09-25 con la corrección, las omisiones y las decisiones del equipo.
+
+**Uso y verificación:** cada bloque se verificó antes de dar el siguiente por cerrado — el Bloque 1
+con un script de reproducción aislado y comparación de código línea por línea; el Bloque 2 con la
+reejecución real del notebook y el diff de cada CSV/figura contra la versión commiteada; el Bloque
+3 con un script de solo lectura sobre datos reales; el Bloque 4 contrastando el log contra el
+Anexo F.1 texto por texto. Cada bloque terminó en un commit separado en `main`, ninguno en
+`entregable_2`, y no se hizo push. **Archivos afectados:** `notebooks/linea_base.ipynb`,
+`experiments/linea_base/tablas/03_particiones.csv`, `experiments/linea_base/tablas/
+04_desarrollo_backtesting.csv`, `experiments/linea_base/tablas/06_artefactos.csv`,
+`experiments/linea_base/figuras/fig4_test_predicciones.png`,
+`experiments/linea_base/referencia_no_regresion.csv`, `documentacion/resumen_linea_base.md`,
+`documentacion/resumen_preparacion_montevideo.md`, `documentacion/cambios_para_informe.md`,
+`documentacion/logs/log_servidor_base.txt` (nuevo), `documentacion/logs/log_servidor_base2.txt`
+(nuevo), `HANDOFF.md`, `README.md`, `CLAUDE.md`, `train/README.md`.

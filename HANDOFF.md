@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-24_
+_Última actualización: 2026-09-25_
 
 ---
 
@@ -1461,14 +1461,75 @@ puntual. **No se editó el informe en esta sesión.**
       variable el mal desempeño del árbol en el bloque final (no extrapola la tendencia).
 - [ ] Definir con el docente y el tutor la partición y el tratamiento del clima para la evaluación
       final del Entregable 3 (incluido si se incorpora el semestre 2026 de la UNASEV).
-- [ ] Decidir el destino del Anexo F del informe (tablas F1–F4 sobre el árbol, hoy sin equivalente
-      reproducible en `experiments/linea_base/`): reconstruirlas con el árbol candidato o dejarlas
-      como registro histórico apuntando a `entregable_2`.
+- [x] ~~Decidir el destino del Anexo F del informe~~ — **resuelto el 2026-09-25:** el equipo decidió
+      quitar del informe las Tablas F1–F4 y las Ilustraciones F1–F2, y conservar sólo el Anexo F.1
+      (ejecución en el servidor), ahora respaldado por `documentacion/logs/log_servidor_base.txt`.
+      Ver la entrada de esa fecha, más abajo.
 - [ ] Si se necesita reenviar el modelo de línea base al servidor, reconstruir una versión `.py`
       de `linea_base.ipynb` (`train/train_base.py` y `train/train_base_2.py` se retiraron con los
       notebooks que representaban).
 - [ ] Corregir el informe siguiendo `documentacion/cambios_para_informe.md` (sesión aparte, con
       otra persona).
+
+### Auditoría de solo lectura y correcciones al repositorio (2026-09-25, sesión de Claude)
+
+Dos sesiones: una auditoría de solo lectura del estado post-unificación (sin modificar nada,
+verificado con `git status`/`git stash list` idénticos al inicio y al final), y una segunda sesión
+que aplicó las correcciones surgidas de esa auditoría, en seis bloques con un commit por bloque.
+**No es desarrollo del Entregable 3.** Detalle completo de los prompts y respuestas en
+`documentacion/registro_uso_IA.md`; hallazgos completos y decisiones en
+`documentacion/cambios_para_informe.md`.
+
+**Corregido — Bloque 1 (H2).** `notebooks/linea_base.ipynb` tenía `SEMILLA=20260924` (la fecha de
+la unificación) en vez de `20260910` (la de `base.ipynb`): el árbol candidato en validación interna
+daba 1,3912 en vez de 1,4005 (diferencia de 0,0093 en desvianza, fuera de tolerancia), y la celda
+de no regresión nunca lo detectaba porque sólo verificaba el bloque final. Aislado comparando
+ambos notebooks línea por línea y reproduciendo la causa en un script aparte; confirmada con el
+equipo antes de aplicar. Corregido a `SEMILLA=20260910`; la celda de no regresión ahora cubre
+también la tabla de desarrollo.
+
+**Corregido — Bloque 2 (H1, H9).** La validación interna es una ventana **expansiva**
+(`historia = datos.iloc[:origen]`, sin límite inferior) — el código y el glosario del informe la
+definen así, opuesta a "deslizante" — pero el notebook y varios documentos decían "deslizante",
+incluido el rótulo del artefacto versionado `03_particiones.csv`. Corregido en el notebook,
+`resumen_linea_base.md`, este documento y `train/README.md`. El bloque final se llamaba "prueba
+(reservado)"/"conjunto de prueba" sin la aclaración del informe de que fue evaluado
+preliminarmente en el E2 y no es una prueba reservada e independiente para el E3; alineado en los
+mismos lugares. Reejecutado `linea_base.ipynb` una sola vez: entorno OK, no regresión OK en los
+dos tramos; el diff contra la versión commiteada sólo mostró los rótulos, la fila del árbol del
+Bloque 1 y el render de una figura.
+
+**Documentado — Bloque 3 (H11).** `preparacion_montevideo.ipynb` elige Municipio C (más activo) y A
+(contraste) sobre el período completo, incluido el bloque final — no declarado hasta ahora.
+Verificado con un script de solo lectura: el ranking de municipios por siniestros es el mismo
+calculado sólo con el entrenamiento inicial o sólo con el desarrollo. Declarado como fuga leve e
+inocua en `resumen_preparacion_montevideo.md` y `resumen_linea_base.md`; no se tocó el notebook de
+preparación.
+
+**Incorporado — Bloque 4 (H7).** `documentacion/logs/log_servidor_base.txt` (Job 104,
+`train_base.py`) y `log_servidor_base2.txt` (Job 108, `train_base_2.py`, no citado en el informe),
+copiados por el equipo con esos nombres (no el que cita el Anexo F.1). El primero coincide cifra
+por cifra con el Anexo F.1. Sin credenciales ni datos personales más allá del grupo/host
+institucional. Documentado en `train/README.md`.
+
+**Documentación — Bloque 5 (H3, H16–H27).** Corregidos en `resumen_linea_base.md`,
+`resumen_preparacion_montevideo.md`, `README.md`, `CLAUDE.md` y este documento (§1, §3, §6, §4 —
+ver la reorganización más abajo): el conteo de tablas CSV, enlaces rotos a `resumen_base.md`/
+`resumen_base_2.md`, la media móvil de 56 días faltante en "Qué se retiró", las referencias a
+`etl/` como si viviera en este repositorio (no vive: es del PID), la ubicación de la guía de la
+asignatura, la restricción de pandas por `skforecast` (ya removido), `train/` faltante en los
+árboles de estructura, la afirmación de que "todavía no se anticipan métricas" pese a que
+`experiments/linea_base/` ya existe, y el comando de instalación de `CLAUDE.md`. Docente y tutor
+confirmados con el equipo antes de escribirlos: **Pablo D. Cuña**, docente de la asignatura;
+**Matías López**, tutor del proyecto — ambos ahora en README.md y aquí (§1).
+
+**§4 reorganizada (2026-09-25):** en "4.1 Entregable 2 — cerrado" y "4.2 Pendientes que pasan al
+Entregable 3". Marcados como resueltos, verificados en los hechos: "Borrar artefactos huérfanos"
+(no existen esas rutas) y "Commitear la sección 2.8" (ya está en `main`).
+
+**No se hizo:** push a `origin` (el equipo lo hace después de revisar); tocar `origin/rama1`,
+`notebooks/Ejemplos/`, `diagnostico_datos_municipio.ipynb`, los pines de versión ni el PDF del
+informe (todo fuera de alcance); ningún commit en `entregable_2`.
 
 ## 4. Pendiente (próximos pasos)
 
