@@ -30,6 +30,7 @@ README.md              Este archivo: propósito, requisitos, datos, ejecución y
 data/                  Datos (o mecanismo de acceso; no se versionan datos restringidos)
 notebooks/             Notebooks de exploración y análisis
 src/                   Código fuente de la solución (preprocesamiento, modelado, inferencia)
+train/                 Scripts .py para enviar al servidor institucional (ver train/README.md)
 models/                Modelos entrenados y artefactos necesarios para la inferencia
 experiments/           Registro de experimentos, configuraciones y resultados
 app/                   Prototipo / dashboard integrado (TRL 5)
@@ -84,6 +85,13 @@ probablemente por el límite de 260 caracteres): si pasa, crear el entorno en un
   *constraints* (`-c`): fija la versión de todo el árbol de dependencias sin agregar paquetes.
   Se validó instalando en un entorno limpio con `-r requirements.txt -c requirements-lock.txt`: dio
   el mismo `pip freeze`.
+
+**Verificación de entorno en los notebooks.** `notebooks/linea_base.ipynb` (y los demás
+notebooks del pipeline) tienen una celda que lee `requirements.txt` en vivo y compara la
+versión de Python y la de cada dependencia directa contra el entorno donde corren; si algo
+no coincide, **detiene la ejecución** con un error explícito (no es un aviso). Responde a un
+problema real: las corridas del Entregable 2 se hicieron con tres combinaciones distintas de
+intérprete y bibliotecas antes de que nadie lo notara.
 
 **`skforecast` se quitó (2026-09-24).** Dejó de usarse al retirar `base_2.ipynb` —reemplazado por
 `notebooks/linea_base.ipynb`, que arma el árbol candidato a mano, sin `skforecast`— y ya no lo
@@ -193,7 +201,7 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
 
 ### Pipeline previsto
 
-> **Estado (2026-09-20):** `src/`, `app/` y `tests/` todavía no tienen código. Los comandos de esta
+> **Estado (2026-09-25):** `src/`, `app/` y `tests/` todavía no tienen código. Los comandos de esta
 > sección y de las dos siguientes (dashboard y pruebas) son el diseño previsto y hoy no
 > funcionan. `streamlit` y `pytest` no están instalados en este entorno (ver «Requisitos e
 > instalación»).
@@ -235,34 +243,43 @@ pytest tests/
 
 ## Resultados esperados
 
-Los resultados se completan de forma acumulativa según avancen los entregables. El
-protocolo de evaluación previsto es el siguiente:
+Los resultados se completan de forma acumulativa según avancen los entregables.
 
-- **Línea base.** Modelo ingenuo de referencia (valor del período anterior o promedio
-  móvil), contra el cual se contrasta todo modelo posterior.
+**Lo que ya existe (Entregable 2, sobre una única serie — Municipio C, no representativa
+del proyecto):** tres líneas base (media constante, promedio de las últimas 4 semanas,
+tasa × factor de calendario) y un árbol de decisión como modelo candidato preliminar, con
+hiperparámetros fijados a mano, sin selección por validación interna. En el bloque final,
+la referencia con calendario (L1) tiene la menor desvianza de Poisson de las cuatro; el
+árbol candidato es el peor de las cuatro y no extrapola la tendencia creciente de la
+serie. Ese bloque final fue evaluado preliminarmente en el Entregable 2, no es una prueba
+reservada e independiente. Detalle completo, tablas y limitaciones en
+`experiments/linea_base/` y `documentacion/resumen_linea_base.md`.
+
+**Lo previsto para el Entregable 3** (protocolo de evaluación, todavía no ejecutado):
+
 - **Modelos candidatos.** Dos familias de enfoques: modelos estadísticos clásicos de
   series temporales (por ejemplo SARIMA) y modelos de aprendizaje automático supervisado
   con variables de rezago (por ejemplo modelos de boosting).
 - **Estrategias comparadas.** Con y sin variables exógenas, y esquemas de ventana
   expansiva frente a ventana deslizante.
-- **Validación.** Particiones que respetan el orden cronológico de los datos, con un tramo
-  temporal final reservado como conjunto de prueba, no utilizado para seleccionar modelos,
-  ajustar hiperparámetros ni tomar decisiones metodológicas.
+- **Alcance.** El panel completo de 8 municipios, con métricas desagregadas por municipio
+  y hold-out dejando un municipio afuera por vez — no la serie única del Entregable 2.
+- **Validación.** Particiones que respetan el orden cronológico de los datos; el diseño
+  de la evaluación final todavía es una decisión pendiente (ver
+  `documentacion/cambios_para_informe.md`).
 - **Métricas.** Métricas de error estandarizadas para pronóstico, definidas según las
   características y la distribución de la serie una vez completado el análisis
   exploratorio.
 
-Todavía no se anticipan métricas ni desempeños: se documentarán aquí una vez obtenidos,
-junto con el análisis de errores, la solidez del modelo y sus limitaciones y sesgos
-previsibles. El registro detallado de configuraciones y resultados se mantiene en
-`experiments/`.
+El registro detallado de configuraciones y resultados se mantiene en `experiments/`.
 
 ## Equipo y tutoría
 
 - **Integrantes:**
   - Victor Samuel Uría Padilla — victor.uria@estudiantes.utec.edu.uy
   - Juan Lucas Pimentel Barreto — juan.pimentel@estudiantes.utec.edu.uy
-- **Tutor:** Mag. Matias Leonardo López Pérez — Universidad Tecnológica (UTEC), docente encargado — matias.lopez@utec.edu.uy
+- **Docente (asignatura):** Pablo D. Cuña.
+- **Tutor (seguimiento del proyecto):** Mag. Matias Leonardo López Pérez — Universidad Tecnológica (UTEC) — matias.lopez@utec.edu.uy
 
 ## Uso de inteligencia artificial
 

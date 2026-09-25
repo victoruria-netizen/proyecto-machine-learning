@@ -77,7 +77,8 @@ aplican y se verifican.
 ## 1. Qué hace este notebook y qué lo distingue
 
 Adapta al contexto de aprendizaje automático el pipeline ETL del **Proyecto de Ingeniería de Datos
-(PID)** que está en `etl/`, y deja en `data/processed/` el conjunto con el que se entrenan los
+(PID)** que está en `etl/` **del repositorio del PID** (no de este), y deja en `data/processed/`
+el conjunto con el que se entrenan los
 modelos. Extrae del CSV crudo de UNASEV, limpia, recorta al alcance, asigna cada siniestro a su
 municipio, construye las variables exógenas y arma el **panel día × municipio** con los ceros
 explícitos.
@@ -99,8 +100,11 @@ propio notebook, y **dieciséis verificaciones detienen la ejecución** si algo 
 | Clima a PostgreSQL, por hora y por punto | Clima diario para Montevideo, cacheado en `data/raw/` | Sin base de datos, y la unidad es el día |
 | Reproyección UTM→WGS84 | Reutilizada | Sirve para el mapa y para la asignación a municipios |
 
-**`etl/` no se ejecuta en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`. Se
-conserva en el repositorio como fuente de la adaptación.
+**`etl/` no se ejecuta en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`.
+**No vive en este repositorio** — se incorporó brevemente el 2026-09-01 como referencia para
+adaptarlo y se retiró el 2026-09-07 (ver `HANDOFF.md`, §6); vive en el repositorio del PID (ver
+README.md, "Proyecto de origen"). Las citas a rutas de `etl/` en este documento (§3.4, §6.2)
+refieren a ese repositorio externo, no a una carpeta de este.
 
 ---
 

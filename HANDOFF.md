@@ -13,8 +13,8 @@ _Última actualización: 2026-09-24_
 - **Tema:** Predicción de siniestros viales.
 - **Continuidad:** El PAA continúa el Proyecto de Ingeniería de Datos (PID) del mismo
   equipo. Se reutilizan datos y activos del PID (declarar y distinguir en el informe).
-- **Docente:** Pablo D. Cuña.
-- **Guía de referencia:** `Guia_estudiantes_PAA_2026.md` (en la raíz del repo).
+- **Docente:** Pablo D. Cuña (asignatura). **Tutor:** Matías López (seguimiento del proyecto).
+- **Guía de referencia:** `documentacion/Guia_estudiantes_PAA_2026.md`.
 - **Plantilla de propuesta:** `Plantilla_presentacion_aprobacion_PAA.md`.
 
 ## 2. Repositorio
@@ -55,6 +55,8 @@ _Última actualización: 2026-09-24_
       `jupyter nbconvert --execute`, sin errores y con las diez verificaciones en verde.
 - [x] `etl/` incorporado al repositorio (2026-09-01): el pipeline del PID, como fuente de la
       adaptación. **No se ejecuta** en el PAA — depende de PostgreSQL, MongoDB y Docker.
+      **Corrección (2026-09-25):** se retiró de `main` el 2026-09-07 y no volvió; vive en el
+      repositorio del PID, no en este (ver §6).
 - [x] **Zonificación por barrios de Montevideo** (2026-09-04): capa oficial de la Intendencia (62
       polígonos) obtenida y en uso. El notebook corre completo con las 13 verificaciones en verde
       y exporta `data/processed/` con esta zonificación. Detalle en la sección siguiente.
@@ -1470,8 +1472,11 @@ puntual. **No se editó el informe en esta sesión.**
 
 ## 4. Pendiente (próximos pasos)
 
-Orientado al **Entregable 2 — Datos, metodología y línea base (fecha límite: 20 de septiembre
-de 2026)**. En orden de prioridad.
+**Reorganizado el 2026-09-25** en dos partes: lo que cierra con el Entregable 2 (histórico, no
+se reabre) y lo que pasa al Entregable 3 (sólo una lista; nada de esto se empezó en esta
+sesión).
+
+### 4.1 Entregable 2 — cerrado
 
 **✅ Resuelto — el ETL ya está en el alcance nuevo** (2026-09-07)
 
@@ -1493,24 +1498,25 @@ de 2026)**. En orden de prioridad.
 - [x] ~~Sacar la ruta de Colab~~ — hecho: las rutas se resuelven solas en Colab y en local.
 - [x] ~~Decidir el filtro de pandemia~~ (hallazgo A2) — **resuelto el 2026-09-07**:
       `FECHA_INICIO = "2021-07-01"`, con la justificación en tres pasos dentro del diagnóstico.
-- [ ] **Borrar los artefactos huérfanos**: `experiments/preparacion_montevideo/`,
-      `data/processed/montevideo/` y los Parquet nacionales de `data/processed/`. Ninguno lo
-      genera código vigente. Ya no hay razón para esperar: el ETL vigente está validado.
-- [x] ~~**Fijar las métricas** del protocolo de evaluación~~ — hecho en `notebooks/base.ipynb`
-      (§4): **desvianza de Poisson** como principal, más MAE, RMSE, razón total predicho/observado
+- [x] ~~**Borrar los artefactos huérfanos**~~: `experiments/preparacion_montevideo/`,
+      `data/processed/montevideo/` y los Parquet nacionales de `data/processed/`. **Resuelto en
+      los hechos, verificado 2026-09-25:** ninguna de esas rutas existe en el working tree
+      (no queda registro de si alguien las borró a mano o si nunca llegaron a esta copia local;
+      `data/` está gitignorado, así que git no lo puede confirmar retroactivamente).
+- [x] ~~**Fijar las métricas** del protocolo de evaluación~~ — hecho, originalmente en
+      `notebooks/base.ipynb` (§4), vigente sin cambios en `notebooks/linea_base.ipynb` (§3):
+      **desvianza de Poisson** como principal, más MAE, RMSE, razón total predicho/observado
       y sesgo medio. *Ojo:* la redacción anterior hablaba de «objetivo Poisson con exceso de
       ceros» y **ya no aplica** — con municipios los ceros son el 8,60 %.
 - [x] ~~Decidir el balanceo~~ — **no corresponde**: con 8,60 % de ceros no hay clases que
       balancear. Las notas anteriores sobre exceso de ceros y Tweedie están superadas.
-- [~] **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario) y
-      evaluarla con el protocolo definitivo. **Hecho sobre una sola serie** en
-      `notebooks/base.ipynb` (§7): `Tasa × calendario` mejora la desvianza un −9,2 % vs la media
-      constante en desarrollo y un −14,1 % en el test. **Falta llevarlo al panel de 8 municipios**
-      con la tasa histórica por municipio ajustada sólo con entrenamiento. El diagnóstico ya midió
-      que es la mejor forma disponible (−11,8 % fuera de muestra) y que **la forma saturada
-      empeora** el resultado.
+- [x] ~~**Implementar la línea base multiplicativa**~~ (tasa del municipio × factor de calendario)
+      y evaluarla con el protocolo definitivo. **Hecho sobre una sola serie**, originalmente en
+      `notebooks/base.ipynb` (§7), vigente en `notebooks/linea_base.ipynb` (§6): `Tasa ×
+      calendario` mejora la desvianza un −9,2 % vs la media constante en desarrollo y un −14,1 %
+      en el bloque final. Llevarlo al panel de 8 municipios pasa al Entregable 3 (sección 4.2).
 
-**Metodología abierta**
+**Metodología — resuelto para el Entregable 2**
 
 - [x] ~~Bajar la capa de zonas~~ — hecho: barrios (2026-09-04, 62 polígonos) y **municipios
       (2026-09-07, 8 polígonos, vigente)**, ambos vía WFS del GeoServer de la Intendencia.
@@ -1521,41 +1527,18 @@ de 2026)**. En orden de prioridad.
 - [x] ~~Integrar el clima~~ — hecho, pero **hay que reconsiderarlo**: fuera de muestra no aporta
       nada (−11,5 % con clima contra −11,8 % sin él).
 - [x] ~~Decidir el destino de `analisis_inicial.ipynb`~~ — borrado del repositorio.
-- [ ] **Agregar la variable de nivel de zona** (tasa histórica del municipio, ajustada sólo con
-      entrenamiento). Sigue siendo el bloque más útil fuera de muestra (−7,5 %) y hoy no está en
-      el panel.
-- [ ] **Tratar la tendencia creciente** (+11,0 % entre mitades): recalibrar nivel, incluir
-      tendencia o ponderar los datos recientes. Decisión abierta. **`base.ipynb` lo confirmó como
-      problema real:** en el test los tres finalistas infra-predicen (razón total 0,72–0,88);
-      el árbol de decisión, que **no extrapola**, es el que peor rinde (razón 0,72, desvianza
-      1,68 contra 1,08 de la línea base). La ventana móvil de 56 d corrige la calibración en
-      desarrollo sin bajar la desvianza.
-- [ ] **Evaluar el rezago de un día** como variable candidata, contra la línea base y bajo el
-      mismo protocolo. Ya no se lo descarta de entrada: hay señal en 5 de 8 municipios.
-- [ ] **Rediseñar el hold-out de zonas del «megamodelo».** Con 8 municipios, dejar uno afuera por
-      vez y promediar las ocho corridas es lo único defendible; declarar que su poder estadístico
-      es bajo y que no puede ser la evidencia principal de la generalización.
-- [~] **Definir las particiones cronológicas** con el bloque final. **Definidas
-      en `base.ipynb` (§5), vigentes en `linea_base.ipynb`:** 80 % desarrollo / 20 % bloque final
-      (evaluado preliminarmente en E2, no es prueba reservada e independiente para el E3); dentro
-      de desarrollo, ventana expansiva con origen móvil (75 % entrenamiento inicial, 47 cortes de
-      7 días). La partición por la mitad del diagnóstico era sólo instrumental. **Falta aplicarlo
-      al panel.**
-- [ ] **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y
-      todos con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
 - [x] ~~Cerrar la sección 2.8 de outliers del diagnóstico~~ — hecho (2026-09-14): celda de
       interpretación, criterio por grupo de calendario (`10e`–`10g`) y figura verificada contra
       las tablas.
-- [ ] **Validar la interpretación de la 2.8** (redactada con Claude) y, si se quiere usar la
-      hipótesis electoral de los domingos, conseguir una fuente citable. Opcional: el mismo
-      criterio sobre el objetivo por (día, municipio).
-- [ ] **Commitear la sección 2.8** junto con sus artefactos (`10c`–`10g`, `fig0`), el resumen y
-      este registro: hoy nada de eso está en git.
+- [x] ~~**Commitear la sección 2.8**~~ junto con sus artefactos (`10c`–`10g`, `fig0`) y el resumen.
+      **Resuelto en los hechos, verificado 2026-09-25:** están en `main`
+      (`experiments/diagnostico_datos/tablas/10c_...` a `10g_...`, `figuras/fig0_...` y
+      `documentacion/resumen_diagnostico_datos.md`).
 - [x] ~~Regenerar `data/processed/panel_zona_top.csv`~~ — restaurado el 2026-09-14 desde
       `panel_diario_montevideo.csv`, verificado byte a byte. **No volver a guardarlo desde Excel.**
-- [x] ~~Decidir pandas 3 vs `skforecast`~~ — **resuelto el 2026-09-20**: `skforecast` 0.25.0 y pandas
-      2.3.3, fijados en `requirements.txt` y `requirements-lock.txt`. Ver la sección del entorno
-      estandarizado.
+- [x] ~~Decidir pandas 3 vs `skforecast`~~ — **resuelto el 2026-09-20**, y **superado el
+      2026-09-24**: `skforecast` se quitó del todo del proyecto (ver más abajo); la restricción de
+      pandas por esa dependencia ya no aplica.
 - [x] ~~Decidir qué notebook base se entrega (`base.ipynb`, `base_2.ipynb` o ambos)~~ — **resuelto el
       2026-09-24**: ninguno de los dos se entrega por separado. Se unificaron en
       `notebooks/linea_base.ipynb`, sin exógenas para las líneas base y con calendario sólo en el
@@ -1564,23 +1547,75 @@ de 2026)**. En orden de prioridad.
 - [x] ~~Validar las lecturas y conclusiones de `base_2.ipynb`~~ — las cifras y lecturas que
       sobrevivieron (media constante, L0) pasaron a `documentacion/resumen_linea_base.md`; el
       notebook original queda en `entregable_2` si hace falta revisar el resto.
-- [ ] **Decidir si se mantiene la línea base «promedio de las últimas 4 semanas» (L0)**: en el
-      bloque final la media constante sigue teniendo menos desvianza de Poisson (1,2625 contra
-      1,3324, un 5,2 % menos). No tocado el 2026-09-24: revisarlo **con validación**, no con el
-      bloque final. Ver `documentacion/cambios_para_informe.md`, sección f.
 - [x] ~~Fijar el tratamiento de las predicciones 0 en la desvianza de Poisson~~ — `EPS = 1e-6`,
       igual en `base`, `base_2` y ahora en `linea_base.ipynb`; declarado en el notebook y en
       `documentacion/resumen_linea_base.md`.
 - [x] ~~Commitear `base_2.ipynb`, `experiments/base_2/`, `resumen_base_2.md`~~ — **superado el
       2026-09-24**: en vez de commitearse a `main`, quedaron preservados en la rama `entregable_2`
       y se retiraron de `main`, reemplazados por `linea_base.ipynb`.
+- [x] ~~Corregir la semilla del árbol candidato en validación interna~~ (H2 de la auditoría del
+      2026-09-25) — `linea_base.ipynb` tenía `SEMILLA=20260924` (la fecha de la unificación) en vez
+      de `20260910` (la de `base.ipynb`); causaba que `04_desarrollo_backtesting.csv` no
+      reprodujera el valor de `entregable_2`. Corregido; ver
+      `documentacion/cambios_para_informe.md`.
+- [x] ~~Alinear la terminología de `linea_base.ipynb` con el informe~~ (H1/H9 de la auditoría del
+      2026-09-25) — "ventana deslizante" → "ventana expansiva" (el código y el glosario del
+      informe la definen como expansiva); "prueba (reservado)"/"conjunto de prueba" → "bloque
+      final", con la aclaración de que no es una prueba reservada e independiente para el E3.
 
-**Entrega**
+### 4.2 Pendientes que pasan al Entregable 3
 
-- [ ] Migrar de notebooks a `src/` lo que deba ser reproducible por línea de comandos.
-- [ ] Borrador acumulativo del informe en `documentacion/informe/`, al menos hasta resultados
-      preliminares (la sección *Metodología — datos* puede apoyarse ya en el diagnóstico).
-- [ ] Evidencia de uso del **servidor institucional** y constancia de seguimiento del tutor.
+Sólo una lista — nada de esto se empezó. Ver también `documentacion/cambios_para_informe.md`,
+sección f, y `documentacion/resumen_linea_base.md`, sección 6.
+
+- **Agregar la variable de nivel de zona** (tasa histórica del municipio, ajustada sólo con
+  entrenamiento). Sigue siendo el bloque más útil fuera de muestra (−7,5 %) y hoy no está en el
+  panel.
+- **Tratar la tendencia creciente** (+11,0 % entre mitades): recalibrar nivel, incluir tendencia
+  o ponderar los datos recientes. Decisión abierta. Confirmado como problema real, originalmente
+  en `base.ipynb` y vigente en `linea_base.ipynb`: en el bloque final los cuatro modelos
+  infra-predicen (razón total 0,72–0,98); el árbol candidato, que **no extrapola**, es el que
+  peor rinde (razón 0,72, desvianza 1,68 contra 1,08 de la línea base recomendada).
+- **Evaluar el rezago de un día** como variable candidata, contra la línea base y bajo el mismo
+  protocolo. Ya no se lo descarta de entrada: hay señal en 5 de 8 municipios.
+- **Rediseñar el hold-out de zonas del «megamodelo».** Con 8 municipios, dejar uno afuera por vez
+  y promediar las ocho corridas es lo único defendible; declarar que su poder estadístico es bajo
+  y que no puede ser la evidencia principal de la generalización.
+- **Llevar la partición cronológica y el protocolo de `linea_base.ipynb` al panel de 8
+  municipios.** Vigentes hoy sobre una sola serie: 80 % desarrollo / 20 % bloque final (evaluado
+  preliminarmente en el E2, no es prueba reservada e independiente para el E3); dentro de
+  desarrollo, ventana expansiva con origen móvil (75 % entrenamiento inicial, 47 cortes de 7
+  días). El diseño de la evaluación final del E3 es una decisión aparte, todavía pendiente.
+- **Decidir el tratamiento del catálogo de zonas** (hallazgo A14). Con 8 municipios fijos y todos
+  con siniestros, la fuga es mucho menor que con barrios, pero sigue existiendo.
+- **Recalcular sólo con desarrollo** la ACF que orienta los rezagos del árbol candidato: hoy usa
+  el período completo (fuga leve, declarada desde `base_2.ipynb`).
+- **Decidir si `t_anios` se mantiene** en el árbol candidato: es la causa identificada de su mal
+  desempeño en el bloque final (no extrapola la tendencia).
+- **Elegir los hiperparámetros del árbol** (o de la familia que se use) por validación interna,
+  no a mano.
+- **Validar la interpretación de la sección 2.8** (redactada con Claude) y, si se quiere usar la
+  hipótesis electoral de los domingos, conseguir una fuente citable. Opcional: el mismo criterio
+  sobre el objetivo por (día, municipio).
+- **Decidir si se mantiene la línea base «promedio de las últimas 4 semanas» (L0)**: en el bloque
+  final la media constante sigue teniendo menos desvianza de Poisson (1,2625 contra 1,3324, un
+  5,2 % menos). Revisarlo **con validación**, no con el bloque final.
+- **Repetir el criterio de selección de zona_top/zona_contraste sólo con entrenamiento** si el
+  criterio de selección de zonas llega a influir en alguna decisión de modelado del panel (H11 de
+  la auditoría del 2026-09-25: hoy usa el período completo, verificado inocuo para C/A puntualmente,
+  no verificado en general).
+- **Reconstruir una versión `.py` de `linea_base.ipynb`** para el servidor, si el equipo quiere
+  repetir el entrenamiento verificado que documenta el Anexo F.1 (hoy sólo existe para los
+  notebooks retirados: `train/train_base.py`, `train/train_base_2.py`, en `entregable_2`).
+- **Actualizar los pines de versión** liberados al quitar `skforecast` (`pandas`, `matplotlib`,
+  `statsmodels`): exige reejecutar y revalidar todos los notebooks. Decisión aparte.
+- Migrar de notebooks a `src/` lo que deba ser reproducible por línea de comandos.
+- Borrador acumulativo del informe en `documentacion/informe/`, al menos hasta resultados
+  preliminares (la sección *Metodología — datos* puede apoyarse ya en el diagnóstico).
+- Evidencia de uso del **servidor institucional** y constancia de seguimiento del tutor. Hay
+  evidencia parcial para `train_base.py` (Job 104, `documentacion/logs/log_servidor_base.txt`,
+  Anexo F.1) y `train_base_2.py` (Job 108, `documentacion/logs/log_servidor_base2.txt`, sin
+  anexo); ninguna todavía para `linea_base.ipynb`.
 
 ## 5. Calendario de entregables
 
@@ -1594,13 +1629,16 @@ de 2026)**. En orden de prioridad.
 
 ## 6. Notas y decisiones
 
-- `etl/` es el pipeline del **PID**, incorporado como fuente de la adaptación. **No se ejecuta
-  en el PAA:** depende de PostgreSQL, MongoDB, Docker y rutas `/app/...`. Lo que el PAA usa está
+- `etl/` es el pipeline del **PID**. Se incorporó brevemente a este repositorio el 2026-09-01
+  como referencia para adaptarlo, pero **no vive en `main`**: se retiró el 2026-09-07 (nunca
+  volvió) porque depende de PostgreSQL, MongoDB, Docker y rutas `/app/...` ajenas al PAA. Vive en
+  el repositorio del PID (ver enlace en README.md, "Proyecto de origen"). Lo que el PAA usa está
   reimplementado en `notebooks/preparacion_montevideo.ipynb`, con las diferencias documentadas
-  en la sección del ETL.
+  en `documentacion/resumen_preparacion_montevideo.md`.
 - Se usa `requirements.txt` (dependencias directas) + `requirements-lock.txt` (`pip freeze`, usado
-  con `-c`). Se evaluó `pyproject` + lock y no se adoptó (2026-09-20). Restricción dura: pandas
-  < 3 mientras se use `skforecast`.
+  con `-c`). Se evaluó `pyproject` + lock y no se adoptó (2026-09-20). La restricción de pandas
+  < 3 por `skforecast` ya no aplica: `skforecast` se quitó del proyecto el 2026-09-24 (ver
+  requirements.txt).
 - Los datos restringidos o pesados **no** se versionan; documentar en el README cómo
   obtenerlos (sección 4.1 de la guía).
 - Registrar todo uso de IA generativa en `documentacion/registro_uso_IA.md`.

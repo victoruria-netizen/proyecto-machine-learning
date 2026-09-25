@@ -1,9 +1,10 @@
 # Resumen de línea base y modelo candidato preliminar — MUNICIPIO C
 
 **Notebook:** [`notebooks/linea_base.ipynb`](../notebooks/linea_base.ipynb)
-**Artefactos:** `experiments/linea_base/` (6 tablas CSV, 4 figuras PNG, 1 CSV de referencia)
+**Artefactos:** `experiments/linea_base/` (7 tablas CSV en `tablas/`, 4 figuras PNG, 1 CSV de
+referencia — 8 CSV en total)
 **Salida:** ninguna a `data/processed/` (el notebook sólo consume el panel del ETL)
-**Fecha de ejecución:** 2026-09-24
+**Fecha de ejecución:** 2026-09-25 (última reejecución; ver correcciones del 2026-09-25 más abajo)
 **Alcance:** una única serie diaria — **MUNICIPIO C** (municipio con más siniestros
 registrados), 2021-07-01 a 2025-12-31, 1.645 días
 
@@ -13,11 +14,13 @@ registrados), 2021-07-01 a 2025-12-31, 1.645 días
 
 Contexto autocontenido para redactar las secciones *Metodología — diseño de evaluación*
 y *Línea base* del informe (guía PAA §6.2) sin abrir el repositorio. Reemplaza a
-[`resumen_base.md`](resumen_base.md) y [`resumen_base_2.md`](resumen_base_2.md), que
-documentaban `base.ipynb` y `base_2.ipynb`: esos dos notebooks ya no están en `main`
-(preservados en la rama histórica `entregable_2`) y este notebook unifica lo que
-quedaba repartido entre ambos. Ver `documentacion/cambios_para_informe.md` para la
-tabla completa de equivalencias de artefactos y de nombres.
+`resumen_base.md` y `resumen_base_2.md`, que documentaban `base.ipynb` y `base_2.ipynb`:
+esos dos notebooks ya no están en `main` (preservados en la rama histórica
+`entregable_2`) y este notebook unifica lo que quedaba repartido entre ambos. Los dos
+documentos reemplazados **ya no existen en `main`**; para consultarlos, `git show
+entregable_2:documentacion/resumen_base.md` (o `resumen_base_2.md`). Ver
+`documentacion/cambios_para_informe.md` para la tabla completa de equivalencias de
+artefactos y de nombres.
 
 **Reglas que quien redacte debe respetar:**
 
@@ -98,7 +101,7 @@ distinguiendo explícitamente dos categorías:
 
 | Modelo | Desvianza de Poisson | MAE |
 | --- | --- | --- |
-| Árbol candidato (preliminar) | 1,3912 | 1,6789 |
+| Árbol candidato (preliminar) | 1,4005 | 1,6815 |
 
 En desarrollo el árbol queda entre L1 y la media constante — parece competitivo.
 
@@ -124,10 +127,23 @@ el Entregable 3, no como candidato final.
 
 ### Verificación de no regresión (`referencia_no_regresion.csv`, celda §11)
 
-Los cuatro modelos coinciden (tolerancia 0,001) con los valores que ya se habían
-obtenido por separado en `base.ipynb` y `base_2.ipynb` antes de retirarse de `main`.
-Única diferencia observable: L0 difiere en el cuarto decimal (1,3324 aquí contra 1,332
-en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia.
+Cubre **los dos tramos** (desarrollo y bloque final; columna `tramo` de la referencia).
+Hasta el 2026-09-24 sólo cubría el bloque final, y eso dejó pasar sin detectar un error
+real: `linea_base.ipynb` tenía `SEMILLA=20260924` (la fecha de esta unificación) en vez
+de `20260910` (la de `base.ipynb`), que hacía que el árbol candidato en validación
+interna diera 1,3912 en vez de 1,4005 — una diferencia de 0,0093 en desvianza, fuera de
+cualquier tolerancia de redondeo. Aislada la causa comparando ambos notebooks línea por
+línea y reproduciéndola en un script aparte (2026-09-25): la semilla es la única
+diferencia de código; en el bloque final ambas semillas dan el mismo árbol (con 1.295
+filas de entrenamiento no hay empates de partición que la semilla deba resolver), por
+eso esa tabla ya coincidía exacta. Corregido a `SEMILLA=20260910`. Con la corrección, los
+cuatro modelos coinciden (tolerancia 0,001) en los dos tramos con los valores que ya se
+habían obtenido por separado en `base.ipynb` y `base_2.ipynb` antes de retirarse de
+`main`. `L0` no tiene referencia histórica de desarrollo (`base_2.ipynb` no calculaba esa
+tabla): su fila de desarrollo es un valor inicial propio de este notebook. Única
+diferencia observable en bloque final: L0 difiere en el cuarto decimal (1,3324 aquí
+contra 1,332 en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no
+discrepancia. Detalle completo en `documentacion/cambios_para_informe.md`.
 
 ---
 
@@ -137,6 +153,7 @@ en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia
 | --- | --- | --- | --- |
 | Repetir semana anterior (naive estacional) | Peor desempeño de los seis modelos del Entregable 2: desvianza 5,007 en el test completo. Ya cumplió su función de referencia negativa. | `experiments/base_2/tablas/05_test_metricas.csv` | Rama `entregable_2` |
 | Árbol A (`max_depth=15`, `skforecast.ForecasterRecursive`, rezagos `[1,7,14,21]`) | 716 hojas para 1.295 filas de entrenamiento (1,81 días/hoja): memorización, no aprendizaje de reglas. Sin validación interna — se evaluó directo contra el test. Reajustar hiperparámetros no corrige la falta de validación. | `experiments/base_2/tablas/02_tamano_arbol.csv` | Rama `entregable_2` |
+| Media móvil de 56 días por calendario | Contraste sobre el tratamiento de la tendencia en `base.ipynb`, sólo evaluado en validación interna (nunca en el bloque final). No estaba en el alcance de los "seis modelos" que esta tarea pedía unificar ni retirar explícitamente, pero al no ser ninguno de los cuatro que sobreviven, tampoco pasó a `linea_base.ipynb`. | `experiments/base/tablas/04_desarrollo_backtesting.csv` (fila "Media movil 56d x calendario") | Rama `entregable_2` |
 
 ---
 
@@ -184,11 +201,11 @@ en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia
 | `tablas/03_particiones.csv` | Los tres bloques cronológicos (987/329/329 días) |
 | `tablas/04_desarrollo_backtesting.csv` | Métricas de los 4 modelos en validación interna |
 | `tablas/05_evaluacion_test.csv` | Métricas de los 4 modelos en el bloque final — **la tabla a citar en el informe** |
-| `referencia_no_regresion.csv` | Valores de referencia de `base.ipynb` / `base_2.ipynb` (rama `entregable_2`) |
+| `referencia_no_regresion.csv` | Valores de referencia de `base.ipynb` / `base_2.ipynb`, desarrollo y bloque final (rama `entregable_2`) |
 | `figuras/fig1_serie.png` | Serie diaria, media móvil de 28 días y tendencia lineal |
 | `figuras/fig2_perfil_calendario.png` | Media de siniestros por tipo de día |
 | `figuras/fig3_desarrollo_predicciones.png` | Predicciones de los 4 modelos, últimos ~140 días de desarrollo |
-| `figuras/fig4_test_predicciones.png` | Observado vs los 4 modelos en el test, con contexto |
+| `figuras/fig4_test_predicciones.png` | Observado vs los 4 modelos en el bloque final, con contexto |
 
 ---
 

@@ -6,7 +6,8 @@ Guía para Claude Code (y otros asistentes) al trabajar en este repositorio.
 
 Proyecto de Aprendizaje Automático (PAA) de UTEC / LIDIA 2026 sobre **predicción de
 siniestros viales**. Continúa el Proyecto de Ingeniería de Datos (PID) del mismo equipo,
-reutilizando sus datos y activos. La guía completa está en `Guia_estudiantes_PAA_2026.md`.
+reutilizando sus datos y activos. La guía completa está en
+`documentacion/Guia_estudiantes_PAA_2026.md`.
 
 ## Estructura del repositorio
 
@@ -16,6 +17,7 @@ data/
   └──raw            Datos o mecanismo de acceso (no versionar datos restringidos/pesados)
 notebooks/       Notebooks de exploración y análisis
 src/             Código fuente: preprocesamiento, modelado, inferencia
+train/           Scripts .py para enviar al servidor institucional (ver train/README.md)
 models/          Modelos entrenados y artefactos (los pesados se ignoran en git)
 experiments/     Registro de experimentos, configuraciones y resultados
 app/             Prototipo / dashboard integrado (objetivo TRL 5)
@@ -29,11 +31,11 @@ tests/           Pruebas del pipeline de inferencia
 ## Entorno y comandos
 
 - **SO:** Windows. Shell principal: PowerShell (también hay bash disponible).
-- **Entorno Python:**
+- **Entorno Python:** versión fijada 3.13.2 (ver README.md, "Requisitos e instalación").
   ```
-  python -m venv .venv
+  py -3.13 -m venv .venv
   .venv\Scripts\activate      # PowerShell/CMD
-  pip install -r requirements.txt
+  pip install -r requirements.txt -c requirements-lock.txt
   ```
 - **Pruebas:** `pytest` (los tests viven en `tests/`).
 
