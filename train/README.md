@@ -15,6 +15,11 @@ reconstruir una versión `.py` de `linea_base.ipynb` para la cola del servidor, 
 como referencia (mismo patrón: sólo lectura de `/work`, escritura en `/outputs/runs/<RUN_ID>/`,
 dependencias limitadas a lo que trae el contenedor).
 
+**Logs de esas corridas:** `documentacion/logs/log_servidor_base.txt` (Job 104, `train_base.py`,
+18/09/2026, RUN_ID `20260918_124207`) es la fuente del Anexo F.1 del informe — coincide cifra por
+cifra con esa tabla. `documentacion/logs/log_servidor_base2.txt` (Job 108, `train_base_2.py`,
+18/09/2026, RUN_ID `20260918_132608`) es una corrida adicional que el informe no cita.
+
 **Por qué CPU y no GPU** (aplica a cualquier script que entrene el árbol candidato).
 `DecisionTreeRegressor` de scikit-learn no tiene implementación GPU, y con ~1.300-1.600 filas de
 entrenamiento tampoco habría cómputo que acelerar. Enviarlo con `submit_gpu` reservaría un nodo

@@ -1,0 +1,270 @@
+=================================
+ Trabajo CPU enviado por Slurm
+ Grupo: grp04
+ Host: lidia
+ Job ID: 104
+ Script: train_base.py
+ Workspace: /srv/data-platform/grp04/workspace
+ Outputs: /data/models/grp04
+ Imagen: /opt/apptainer-images/tensorflow_ngc_24.04_tf2_py3_mlcv.sif
+ Partición: cpu
+ CPUs asignadas: 4
+ Memoria solicitada: 12G
+ Tiempo máximo: 04:00:00
+ Inicio: vie 18 sep 2026 12:42:01 -03
+=================================
+Límites de paralelismo CPU:
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+LOKY_MAX_CPU_COUNT=4
+=================================
+CPU affinity dentro del batch antes de srun:
+pid 539766's current affinity list: 0,1,12,13
+cpu-bind=MASK - lidia, task  0  0 [539785]: mask 0x3003 set
+Entrenamiento iniciado: train_base.py (modelo base, MUNICIPIO C)
+RUN_ID              : 20260918_124207
+SLURM_JOB_ID         : 104
+SLURM_JOB_NAME       : grp04_cpu_train_base
+SLURM_CPUS_PER_TASK  : 4
+CUDA_VISIBLE_DEVICES : no_definido (no se usa GPU en este script)
+Carpeta de resultados: /outputs/runs/20260918_124207
+Cargando librerías...
+pandas       1.5.3
+numpy        1.24.4
+matplotlib   3.10.9
+scikit-learn 1.2.0
+python       3.10.12
+Raíz del repositorio: /work
+Dataset             : data/processed/panel_zona_top.csv
+
+=== 1. Carga y estructura de la serie ===
+                zona_id  n_siniestros      tipo_dia  temp_media  temp_max  temp_min  precipitacion_mm  lluvia_mm  viento_max_kmh estado_clima  llovio
+fecha                                                                                                                                                
+2021-07-01  MUNICIPIO C             5  entre_semana        11.2      14.9       9.4               0.0        0.0            19.6      nublado       0
+2021-07-02  MUNICIPIO C             8  entre_semana        10.4      13.0       8.5               0.0        0.0            22.7      nublado       0
+2021-07-03  MUNICIPIO C             2    fin_semana        10.9      14.7       8.0               0.0        0.0            24.4    despejado       0
+2021-07-04  MUNICIPIO C             4    fin_semana         9.8      15.0       6.0               0.0        0.0            20.4      nublado       0
+2021-07-05  MUNICIPIO C             2  entre_semana         9.7      15.7       5.2               0.0        0.0            14.8    despejado       0
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 1645 entries, 2021-07-01 to 2025-12-31
+Data columns (total 11 columns):
+ #   Column            Non-Null Count  Dtype  
+---  ------            --------------  -----  
+ 0   zona_id           1645 non-null   string 
+ 1   n_siniestros      1645 non-null   int64  
+ 2   tipo_dia          1645 non-null   object 
+ 3   temp_media        1645 non-null   float64
+ 4   temp_max          1645 non-null   float64
+ 5   temp_min          1645 non-null   float64
+ 6   precipitacion_mm  1645 non-null   float64
+ 7   lluvia_mm         1645 non-null   float64
+ 8   viento_max_kmh    1645 non-null   float64
+ 9   estado_clima      1645 non-null   object 
+ 10  llovio            1645 non-null   int64  
+dtypes: float64(6), int64(2), object(2), string(1)
+memory usage: 154.2+ KB
+
+                     verificación   ok
+ índice temporal ordenado y único True
+          serie diaria sin huecos True
+                sin valores nulos True
+      objetivo entero no negativo True
+una sola zona (zona_id constante) True
+
+Zona: MUNICIPIO C | Días: 1645 | 2021-07-01 → 2025-12-31
+[tabla]  01_serie_resumen.csv (10 filas)
+        indicador       valor
+        municipio MUNICIPIO C
+             dias        1645
+        fecha_min  2021-07-01
+        fecha_max  2025-12-31
+            media      3.5155
+         varianza      4.4297
+indice_dispersion        1.26
+           minimo           0
+           maximo          13
+        pct_ceros         4.8
+
+=== 2. Visualización de la serie ===
+[figura] fig1_serie.png
+Media 1ª mitad: 3.363
+Media 2ª mitad: 3.668
+Variación entre mitades: +9.1 %
+
+=== 3. Estructura de calendario ===
+[tabla]  02_perfil_calendario.csv (3 filas)
+    tipo_dia  dias  media  desvio  factor_vs_global
+entre_semana  1114  3.988   2.108             1.134
+  fin_semana   454  2.564   1.755             0.729
+     feriado    77  2.286   1.494             0.650
+[figura] fig2_perfil_calendario.png
+ rezago  autocorrelacion
+      1           0.0785
+      7           0.0768
+     14           0.1724
+
+=== 4. Métricas del protocolo ===
+desvianza de una predicción perfecta: 0.0
+
+=== 5. Partición temporal: desarrollo y prueba ===
+[tabla]  03_particiones.csv (3 filas)
+                         bloque      desde      hasta  dias  pct
+          entrenamiento inicial 2021-07-01 2024-03-13   987 60.0
+validación (ventana deslizante) 2024-03-14 2025-02-05   329 20.0
+             prueba (reservado) 2025-02-06 2025-12-31   329 20.0
+Horizonte: 7 días | Paso: 7 días | Folds de validación estimados: 47
+[tabla]  02b_autocorrelacion.csv (3 filas)
+ rezago  autocorrelacion_desarrollo
+      1                      0.0557
+      7                      0.0770
+     14                      0.1653
+[figura] fig3_particion.png
+
+=== 6. Backtesting de ventana deslizante ===
+
+=== 7. Líneas base ===
+Comparando árbol sin podar vs árbol base (max_depth=4)...
+[tabla]  04c_arbol_profundidad.csv (2 filas)
+                       modelo  desvianza_poisson    mae   rmse  razon_total  sesgo_medio  n_dias  profundidad  hojas
+Arbol sin podar (por omision)            12.6468 2.4863 3.1652       1.0476       0.1763     329           31    943
+     Arbol base (max_depth=4)             1.4005 1.6815 2.1958       0.9981      -0.0071     329            4     13
+Ejecutando backtesting de los 5 modelos en desarrollo (47 cortes aprox.)...
+  Media constante: listo (47 folds)
+  Naive estacional (t-7): listo (47 folds)
+  Tasa x calendario: listo (47 folds)
+  Media movil 56d x calendario: listo (47 folds)
+  Arbol de decision: listo (47 folds)
+[tabla]  04_desarrollo_backtesting.csv (5 filas)
+                      modelo  desvianza_poisson    mae   rmse  razon_total  sesgo_medio  n_dias  n_folds
+Media movil 56d x calendario             1.3766 1.6501 2.1663       1.0102       0.0377     329       47
+           Tasa x calendario             1.3782 1.6114 2.1641       0.9146      -0.3163     329       47
+           Arbol de decision             1.4005 1.6815 2.1958       0.9981      -0.0071     329       47
+             Media constante             1.5178 1.7591 2.2735       0.9133      -0.3208     329       47
+      Naive estacional (t-7)             7.8956 2.3769 3.0647       1.0066       0.0243     329       47
+[tabla]  04b_folds_linea_base.csv (47 filas)
+    origen        fin  desvianza_poisson    mae   rmse  razon_total  sesgo_medio  n_dias
+2024-03-14 2024-03-20             1.6754 1.6670 2.0269       0.9495      -0.1802       7
+2024-03-21 2024-03-27             0.9508 1.3664 1.6127       0.9606      -0.1125       7
+2024-03-28 2024-04-03             2.8284 1.9094 2.1646       1.8877       1.3949       7
+2024-04-04 2024-04-10             2.8528 2.4608 2.6831       0.8778      -0.4714       7
+2024-04-11 2024-04-17             0.6421 0.9525 1.2933       1.0784       0.2463       7
+2024-04-18 2024-04-24             1.0990 1.4841 2.0374       0.7640      -0.9778       7
+2024-04-25 2024-05-01             1.3426 1.5391 1.8362       1.1683       0.4569       7
+2024-05-02 2024-05-08             0.9437 1.6669 2.0362       0.7194      -1.3228       7
+2024-05-09 2024-05-15             1.3206 1.6619 2.1570       0.8209      -0.7419       7
+2024-05-16 2024-05-22             1.6148 1.6350 2.1058       1.0266       0.0875       7
+2024-05-23 2024-05-29             0.9922 1.4344 2.0880       0.7690      -1.0229       7
+2024-05-30 2024-06-05             2.5170 1.9719 2.3680       1.0859       0.2700       7
+2024-06-06 2024-06-12             0.6420 0.9544 1.2796       1.3265       0.8395       7
+2024-06-13 2024-06-19             0.4125 0.9269 1.1518       0.8900      -0.3928       7
+2024-06-20 2024-06-26             2.6655 2.6781 3.3071       0.5817      -2.4500       7
+2024-06-27 2024-07-03             0.4689 1.0714 1.1904       0.9985      -0.0050       7
+2024-07-04 2024-07-10             0.3517 0.7287 0.9540       1.1983       0.5665       7
+2024-07-11 2024-07-17             1.6794 1.9394 2.9219       0.7254      -1.2944       7
+2024-07-18 2024-07-24             1.9924 1.6054 2.3195       0.8616      -0.5140       7
+2024-07-25 2024-07-31             0.8805 1.4261 1.9665       0.7064      -1.4261       7
+2024-08-01 2024-08-07             0.1852 0.5963 0.7564       1.0034       0.0118       7
+2024-08-08 2024-08-14             1.2747 1.8822 2.2696       0.8304      -0.7026       7
+2024-08-15 2024-08-21             3.0445 3.0300 3.4291       0.7092      -1.4123       7
+2024-08-22 2024-08-28             0.9607 1.3465 1.8211       0.8538      -0.5846       7
+2024-08-29 2024-09-04             2.0637 1.9779 2.2474       1.4222       1.0254       7
+2024-09-05 2024-09-11             1.2358 1.9322 2.2908       0.7098      -1.4096       7
+2024-09-12 2024-09-18             1.9459 1.4517 1.8773       1.2098       0.5993       7
+2024-09-19 2024-09-25             0.8926 1.6413 2.0448       0.7553      -1.1187       7
+2024-09-26 2024-10-02             0.9522 1.4523 1.8253       0.9687      -0.1117       7
+2024-10-03 2024-10-09             0.6430 1.0670 1.3796       0.9316      -0.2539       7
+2024-10-10 2024-10-16             2.4604 2.7103 3.6471       0.5722      -2.5666       7
+2024-10-17 2024-10-23             2.1783 2.2668 3.3463       0.8693      -0.5229       7
+2024-10-24 2024-10-30             0.8614 1.4831 1.9124       0.7859      -0.9483       7
+2024-10-31 2024-11-06             1.6305 1.7065 1.9125       1.2742       0.7443       7
+2024-11-07 2024-11-13             0.4064 0.9468 1.1393       1.2831       0.7684       7
+2024-11-14 2024-11-20             0.8596 1.5901 1.6838       0.9017      -0.3791       7
+2024-11-21 2024-11-27             0.3981 0.9123 1.1404       0.9370      -0.2340       7
+2024-11-28 2024-12-04             1.2779 1.6963 2.1655       0.9374      -0.2326       7
+2024-12-05 2024-12-11             1.4019 1.7660 2.6884       0.6966      -1.5170       7
+2024-12-12 2024-12-18             1.2044 1.7361 2.1328       0.9777      -0.0796       7
+2024-12-19 2024-12-25             3.8332 3.5961 4.5293       0.5079      -3.1634       7
+2024-12-26 2025-01-01             0.2307 0.6174 0.8511       1.1491       0.4260       7
+2025-01-02 2025-01-08             1.3674 1.6223 1.7247       1.1482       0.4234       7
+2025-01-09 2025-01-15             1.7770 1.5282 2.0221       1.5338       1.2201       7
+2025-01-16 2025-01-22             1.4786 1.3344 1.8279       1.1133       0.3559       7
+2025-01-23 2025-01-29             0.7254 1.3524 1.4570       1.5299       1.2111       7
+2025-01-30 2025-02-05             1.6159 1.4121 1.8966       1.2215       0.6328       7
+[figura] fig4_desarrollo_predicciones.png
+
+=== 8. Selección para la evaluación final ===
+[tabla]  05_importancias_arbol.csv (6 filas)
+     variable  importancia
+es_fin_semana       0.5253
+      t_anios       0.2259
+   es_feriado       0.1714
+      y_lag21       0.0644
+       y_lag7       0.0130
+      y_lag14       0.0000
+profundidad: 4 | hojas: 13
+[figura] fig4b_importancias_arbol.png
+
+=== 9. Evaluación final sobre el conjunto de prueba ===
+  Media constante: evaluado en prueba (47 folds)
+  Tasa x calendario: evaluado en prueba (47 folds)
+  Arbol de decision: evaluado en prueba (47 folds)
+[tabla]  06_evaluacion_test.csv (3 filas)
+           modelo  desvianza_poisson    mae   rmse  razon_total  sesgo_medio  n_dias  n_folds
+  Media constante             1.2625 1.7411 2.1199       0.8839      -0.4498     329       47
+Tasa x calendario             1.0848 1.5919 1.9667       0.8841      -0.4493     329       47
+Arbol de decision             1.6789 1.9055 2.4087       0.7229      -1.0737     329       47
+[tabla]  06b_desarrollo_vs_test.csv (3 filas)
+           modelo  desv_poisson_dev  mae_dev  razon_dev  desv_poisson_test  mae_test  razon_test
+Tasa x calendario            1.3782   1.6114     0.9146             1.0848    1.5919      0.8841
+Arbol de decision            1.4005   1.6815     0.9981             1.6789    1.9055      0.7229
+  Media constante            1.5178   1.7591     0.9133             1.2625    1.7411      0.8839
+[figura] fig5_test_predicciones.png
+[tabla]  07_calibracion_mensual_test.csv (11 filas)
+  fecha  observado  predicho  razon
+2025-02         72 63.116909  0.877
+2025-03        112 82.194175  0.734
+2025-04        116 82.041152  0.707
+2025-05        111 85.522212  0.770
+2025-06        110 84.857568  0.771
+2025-07        121 85.656553  0.708
+2025-08        134 86.450243  0.645
+2025-09        134 85.037621  0.635
+2025-10        128 91.581311  0.715
+2025-11        109 86.118932  0.790
+2025-12        128 89.162621  0.697
+[figura] fig6_calibracion_test.png
+
+=== 11. Índice de artefactos ===
+[tabla]  08_artefactos.csv (18 filas)
+                               artefacto                                                      qué respalda
+             tablas/01_serie_resumen.csv                      Estadísticos de la serie de MUNICIPIO C (§1)
+         tablas/02_perfil_calendario.csv                     Media por tipo de día y factor vs global (§3)
+          tablas/02b_autocorrelacion.csv                 Autocorrelación a rezagos 1/7/14 sin el test (§5)
+               tablas/03_particiones.csv                Bloques de entrenamiento, validación y prueba (§5)
+    tablas/04_desarrollo_backtesting.csv              Métricas de los 5 modelos en validación interna (§7)
+         tablas/04b_folds_linea_base.csv                          Métricas por corte de la línea base (§7)
+        tablas/04c_arbol_profundidad.csv Árbol sin podar vs árbol base: desvianza, profundidad, hojas (§7)
+        tablas/05_importancias_arbol.csv                      Importancia de variables del árbol base (§8)
+           tablas/06_evaluacion_test.csv                        Métricas de los finalistas en el test (§9)
+       tablas/06b_desarrollo_vs_test.csv                               Comparación desarrollo vs test (§9)
+  tablas/07_calibracion_mensual_test.csv                  Total mensual observado vs predicho en test (§9)
+                  figuras/fig1_serie.png                        Serie diaria, media móvil y tendencia (§2)
+      figuras/fig2_perfil_calendario.png                                        Media por tipo de día (§3)
+              figuras/fig3_particion.png                                           Partición temporal (§5)
+figuras/fig4_desarrollo_predicciones.png                 Predicciones en el tramo final de desarrollo (§7)
+    figuras/fig4b_importancias_arbol.png                      Importancia de variables del árbol base (§8)
+      figuras/fig5_test_predicciones.png                           Observado vs finalistas en el test (§9)
+       figuras/fig6_calibracion_test.png                                       Calibración en el test (§9)
+
+Entrenamiento finalizado en 3.3 s.
+Resultados guardados en: /outputs/runs/20260918_124207
+Para citarlos desde el informe con las mismas rutas que el notebook, copiar
+  /outputs/runs/20260918_124207/tablas/*  ->  experiments/base/tablas/
+  /outputs/runs/20260918_124207/figuras/* ->  experiments/base/figuras/
+=================================
+ Trabajo CPU finalizado
+ Fin: vie 18 sep 2026 12:42:11 -03
+ Resultados en: /data/models/grp04
+=================================

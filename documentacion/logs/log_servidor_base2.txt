@@ -1,0 +1,199 @@
+=================================
+ Trabajo CPU enviado por Slurm
+ Grupo: grp04
+ Host: lidia
+ Job ID: 108
+ Script: train_base_2.py
+ Workspace: /srv/data-platform/grp04/workspace
+ Outputs: /data/models/grp04
+ Imagen: /opt/apptainer-images/tensorflow_ngc_24.04_tf2_py3_mlcv.sif
+ Partición: cpu
+ CPUs asignadas: 4
+ Memoria solicitada: 12G
+ Tiempo máximo: 04:00:00
+ Inicio: vie 18 sep 2026 13:26:02 -03
+=================================
+Límites de paralelismo CPU:
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+LOKY_MAX_CPU_COUNT=4
+=================================
+CPU affinity dentro del batch antes de srun:
+pid 545251's current affinity list: 0,1,12,13
+cpu-bind=MASK - lidia, task  0  0 [545270]: mask 0x3003 set
+Entrenamiento iniciado: train_base_2.py (modelo base simplificado, MUNICIPIO C)
+RUN_ID              : 20260918_132608
+SLURM_JOB_ID         : 108
+SLURM_JOB_NAME       : grp04_cpu_train_base_2
+SLURM_CPUS_PER_TASK  : 4
+CUDA_VISIBLE_DEVICES : no_definido (no se usa GPU en este script)
+Carpeta de resultados: /outputs/runs/20260918_132608
+python        3.10.12
+pandas        1.5.3
+numpy         1.24.4
+matplotlib    3.10.9
+scikit-learn  1.2.0
+[tabla]  00_entorno.csv (6 filas)
+     componente          version
+         python          3.10.12
+         pandas            1.5.3
+          numpy           1.24.4
+     matplotlib           3.10.9
+   scikit-learn            1.2.0
+fecha_ejecucion 2026-09-18 13:26
+Raíz del repositorio: /work
+Dataset             : data/processed/panel_zona_top.csv
+
+=== 1. Carga de datos ===
+Municipio: MUNICIPIO C
+                zona_id  n_siniestros
+fecha                                
+2021-07-01  MUNICIPIO C             5
+2021-07-02  MUNICIPIO C             8
+2021-07-03  MUNICIPIO C             2
+2021-07-04  MUNICIPIO C             4
+2021-07-05  MUNICIPIO C             2
+<class 'pandas.core.frame.DataFrame'>
+DatetimeIndex: 1645 entries, 2021-07-01 to 2025-12-31
+Data columns (total 2 columns):
+ #   Column        Non-Null Count  Dtype 
+---  ------        --------------  ----- 
+ 0   zona_id       1645 non-null   object
+ 1   n_siniestros  1645 non-null   int64 
+dtypes: int64(1), object(1)
+memory usage: 38.6+ KB
+
+Rango de la serie: 2021-07-01 00:00:00 -> 2025-12-31 00:00:00
+1 days    1644
+
+=== 2. Lo que se toma del diagnóstico (ver diagnostico_datos_municipio.ipynb) ===
+
+=== 3. Entrenamiento y prueba ===
+[tabla]  01_particion.csv (2 filas)
+     conjunto      desde      hasta  dias  porcentaje  promedio_siniestros_por_dia
+entrenamiento 2021-07-01 2025-02-05  1316        80.0                        3.426
+       prueba 2025-02-06 2025-12-31   329        20.0                        3.875
+[figura] fig1_particion.png
+
+=== 4. Modelo: árbol de decisión sobre rezagos ===
+Entrenando DecisionTreeRegressor (max_depth=15, lags=[1,7,14,21])...
+Entrenamiento del árbol finalizado.
+Variables del árbol: ['lag_1', 'lag_7', 'lag_14', 'lag_21']
+¿Usa variables exógenas?: False
+[tabla]  02_tamano_arbol.csv (4 filas)
+                indicador valor
+   filas de entrenamiento  1295
+              profundidad    15
+                    hojas   716
+filas por hoja (promedio)  1.81
+
+=== 5. Línea base ===
+Media de entrenamiento: 3.426
+
+=== 6. Primera mirada: la primera semana de prueba ===
+[tabla]  03_primera_semana_predicciones.csv (7 filas)
+     fecha  valor_real  Árbol de decisión  Media constante  Promedio de las últimas 4 semanas (línea base)  Repetir semana anterior
+2025-02-06           6              9.000            3.426                                            2.00                      3.0
+2025-02-07           4              2.000            3.426                                            3.75                      4.0
+2025-02-08           1              3.500            3.426                                            3.25                      5.0
+2025-02-09           1              2.000            3.426                                            1.50                      1.0
+2025-02-10           2              2.750            3.426                                            2.75                      4.0
+2025-02-11           2              3.333            3.426                                            2.25                      0.0
+2025-02-12           2              2.375            3.426                                            3.00                      3.0
+[figura] fig2_primera_semana.png
+[tabla]  04_primera_semana_metricas.csv (4 filas)
+                                        modelo  desvianza_poisson   MAE  RMSE  total_predicho_sobre_observado
+                             Árbol de decisión              0.957 1.565 1.802                           1.387
+Promedio de las últimas 4 semanas (línea base)              1.166 1.286 1.813                           1.028
+                               Media constante              1.220 1.754 1.883                           1.332
+                       Repetir semana anterior              8.963 1.714 2.204                           1.111
+
+=== 7. Evaluación en todo el conjunto de prueba ===
+Semanas evaluadas: 47 | días: 329
+[tabla]  05_test_metricas.csv (4 filas)
+                                        modelo  desvianza_poisson   MAE  RMSE  total_predicho_sobre_observado  desvianza_vs_linea_base_pct  MAE_vs_linea_base_pct  dias_con_prediccion_cero
+                               Media constante              1.262 1.741 2.120                           0.884                         -5.2                   -0.8                         0
+Promedio de las últimas 4 semanas (línea base)              1.332 1.755 2.179                           0.981                          0.0                    0.0                         0
+                             Árbol de decisión              3.462 2.137 2.738                           0.967                        159.9                   21.8                         7
+                       Repetir semana anterior              5.007 2.228 2.866                           0.996                        275.8                   27.0                        10
+Días con predicción 0 del árbol:
+            semana  valor_real  Árbol de decisión
+fecha                                            
+2025-02-16       2           0                0.0
+2025-02-27       4           4                0.0
+2025-06-22      20           4                0.0
+2025-07-24      25           2                0.0
+2025-08-03      26           3                0.0
+2025-08-31      30           0                0.0
+2025-09-07      31           4                0.0
+No está experiments/base/tablas/06_evaluacion_test.csv: control cruzado omitido.
+[tabla]  06_test_semanal.csv (47 filas)
+ semana      desde  observado_total  desvianza | Árbol de decisión  desvianza | Media constante  desvianza | Promedio de las últimas 4 semanas (línea base)  desvianza | Repetir semana anterior  MAE | Árbol de decisión  MAE | Media constante  MAE | Promedio de las últimas 4 semanas (línea base)  MAE | Repetir semana anterior  total | Árbol de decisión  total | Media constante  total | Promedio de las últimas 4 semanas (línea base)  total | Repetir semana anterior
+      1 2025-02-06               18                          0.957                        1.220                                                       1.166                                8.963                    1.565                  1.754                                                 1.286                          1.714                     24.958                   23.979                                                   18.50                             20.0
+      2 2025-02-13               15                          2.612                        1.964                                                       1.224                                1.654                    2.459                  1.897                                                 1.429                          1.286                     27.424                   23.979                                                   19.00                             18.0
+      3 2025-02-20               29                          1.896                        0.709                                                       1.365                                9.718                    2.095                  1.532                                                 1.821                          2.000                     24.333                   23.979                                                   17.25                             15.0
+      4 2025-02-27               19                         17.553                        1.128                                                       0.671                                1.371                    2.029                  1.611                                                 1.071                          1.714                     18.000                   23.979                                                   20.50                             29.0
+      5 2025-03-06               30                          2.894                        1.038                                                       1.509                                2.722                    2.597                  1.675                                                 1.536                          1.857                     30.182                   23.979                                                   20.25                             19.0
+      6 2025-03-13               30                          0.718                        1.099                                                       0.846                                1.185                    1.714                  1.675                                                 1.536                          1.714                     38.000                   23.979                                                   23.25                             30.0
+      7 2025-03-20               28                          0.962                        0.405                                                       0.709                                1.300                    1.829                  1.103                                                 1.357                          1.714                     37.400                   23.979                                                   27.00                             30.0
+      8 2025-03-27               26                          2.420                        1.419                                                       1.625                                1.072                    2.610                  1.918                                                 2.250                          1.714                     26.329                   23.979                                                   26.75                             28.0
+      9 2025-04-03               25                          0.952                        0.733                                                       0.709                                1.537                    1.590                  1.368                                                 1.071                          1.857                     26.133                   23.979                                                   28.50                             26.0
+     10 2025-04-10               24                          2.702                        1.279                                                       1.183                                1.416                    2.658                  1.754                                                 1.607                          1.857                     24.607                   23.979                                                   27.25                             25.0
+     11 2025-04-17               22                          3.333                        0.424                                                       0.494                                1.528                    2.248                  1.061                                                 0.964                          1.714                     18.262                   23.979                                                   25.75                             24.0
+     12 2025-04-24               34                          1.593                        1.253                                                       1.404                                1.242                    1.833                  1.960                                                 1.893                          1.714                     21.167                   23.979                                                   24.25                             22.0
+     13 2025-05-01               22                          1.397                        0.573                                                       1.166                                2.088                    1.812                  1.061                                                 1.821                          2.571                     23.886                   23.979                                                   26.25                             34.0
+     14 2025-05-08               26                          1.390                        0.848                                                       1.042                                1.163                    1.950                  1.632                                                 1.643                          1.714                     26.048                   23.979                                                   25.50                             22.0
+     15 2025-05-15               24                          2.540                        1.775                                                       2.177                                4.398                    2.168                  1.918                                                 2.357                          3.429                     24.175                   23.979                                                   26.00                             26.0
+     16 2025-05-22               21                          1.750                        0.964                                                       1.193                                4.944                    1.929                  1.611                                                 1.857                          1.857                     31.500                   23.979                                                   26.50                             24.0
+     17 2025-05-29               30                          2.158                        1.960                                                       1.856                                1.584                    2.000                  1.960                                                 1.964                          1.857                     18.000                   23.979                                                   23.25                             21.0
+     18 2025-06-05               33                          0.999                        1.118                                                       0.570                                8.062                    1.436                  1.818                                                 1.179                          1.286                     22.950                   23.979                                                   25.25                             30.0
+     19 2025-06-12               20                          3.837                        2.225                                                       1.759                                2.974                    3.001                  2.204                                                 1.429                          2.429                     25.596                   23.979                                                   27.00                             33.0
+     20 2025-06-19               33                         19.339                        0.989                                                       1.563                               19.045                    2.571                  1.532                                                 1.929                          2.714                     25.000                   23.979                                                   26.00                             20.0
+     21 2025-06-26               20                          5.182                        1.602                                                       2.120                                3.427                    3.852                  1.754                                                 2.071                          3.000                     36.967                   23.979                                                   29.00                             33.0
+     22 2025-07-03               20                          2.180                        1.679                                                       2.216                               15.414                    1.831                  1.632                                                 2.000                          3.143                     23.182                   23.979                                                   26.50                             20.0
+     23 2025-07-10               33                          2.304                        2.388                                                       2.052                               34.962                    2.400                  2.632                                                 2.464                          2.714                     30.200                   23.979                                                   23.25                             20.0
+     24 2025-07-17               33                          3.555                        2.043                                                       2.285                                4.631                    2.743                  2.389                                                 2.429                          3.714                     27.796                   23.979                                                   26.50                             33.0
+     25 2025-07-24               24                          9.636                        1.129                                                       1.089                                3.946                    2.514                  1.754                                                 1.857                          3.571                     26.400                   23.979                                                   26.50                             33.0
+     26 2025-07-31               29                         13.969                        0.847                                                       0.937                                1.712                    2.286                  1.489                                                 1.786                          2.143                     15.000                   23.979                                                   27.50                             24.0
+     27 2025-08-07               34                          1.978                        0.920                                                       0.976                                1.446                    1.743                  1.675                                                 1.679                          1.857                     30.800                   23.979                                                   29.75                             29.0
+     28 2025-08-14               36                          2.571                        1.376                                                       0.759                                1.409                    2.672                  2.125                                                 1.500                          2.000                     28.296                   23.979                                                   30.00                             34.0
+     29 2025-08-21               25                          2.234                        1.935                                                       2.516                                2.159                    2.500                  2.347                                                 2.821                          2.429                     25.500                   23.979                                                   30.75                             36.0
+     30 2025-08-28               26                          0.648                        1.414                                                       1.526                                2.649                    1.000                  1.511                                                 1.786                          2.429                     19.000                   23.979                                                   31.00                             25.0
+     31 2025-09-04               24                         16.732                        0.467                                                       0.694                               16.916                    1.685                  1.061                                                 1.464                          1.714                     21.796                   23.979                                                   30.25                             26.0
+     32 2025-09-11               39                          2.608                        2.147                                                       1.856                                2.417                    2.517                  2.553                                                 2.036                          2.143                     22.578                   23.979                                                   27.75                             24.0
+     33 2025-09-18               27                          1.390                        1.250                                                       1.573                                3.455                    1.743                  1.818                                                 2.000                          3.429                     26.800                   23.979                                                   28.50                             39.0
+     34 2025-09-25               37                          1.639                        1.422                                                       0.582                                1.134                    2.719                  2.267                                                 1.214                          1.429                     34.633                   23.979                                                   29.00                             27.0
+     35 2025-10-02               27                          0.668                        0.979                                                       1.319                                1.786                    0.959                  1.532                                                 1.821                          2.000                     26.286                   23.979                                                   31.75                             37.0
+     36 2025-10-09               31                          2.412                        2.037                                                       1.557                                4.498                    3.342                  2.103                                                 1.786                          2.857                     41.607                   23.979                                                   32.50                             27.0
+     37 2025-10-16               34                          3.348                        2.174                                                       2.124                               18.620                    2.283                  2.368                                                 2.857                          3.286                     18.022                   23.979                                                   30.50                             31.0
+     38 2025-10-23               22                          3.374                        1.147                                                       1.759                                3.395                    2.542                  1.754                                                 2.250                          3.143                     23.796                   23.979                                                   32.25                             34.0
+     39 2025-10-30               24                          1.463                        0.656                                                       0.893                                2.468                    1.524                  1.225                                                 1.357                          2.286                     25.333                   23.979                                                   28.50                             22.0
+     40 2025-11-06               19                          1.754                        0.486                                                       0.841                                0.568                    2.321                  0.875                                                 1.464                          1.000                     31.250                   23.979                                                   27.75                             24.0
+     41 2025-11-13               31                          0.551                        1.027                                                       0.473                                2.053                    1.129                  1.818                                                 1.179                          2.286                     27.696                   23.979                                                   24.75                             19.0
+     42 2025-11-20               27                          1.162                        0.457                                                       0.988                                1.597                    1.999                  1.082                                                 1.571                          2.286                     30.556                   23.979                                                   24.00                             31.0
+     43 2025-11-27               30                          0.641                        0.318                                                       0.634                                0.322                    1.410                  0.982                                                 1.107                          0.714                     24.129                   23.979                                                   25.25                             27.0
+     44 2025-12-04               20                          1.920                        1.452                                                       1.209                                1.604                    1.895                  1.918                                                 1.607                          1.714                     27.267                   23.979                                                   26.75                             30.0
+     45 2025-12-11               42                          4.275                        1.944                                                       2.041                                7.439                    3.141                  2.574                                                 2.286                          3.143                     20.011                   23.979                                                   27.00                             20.0
+     46 2025-12-18               27                          1.283                        2.050                                                       2.191                                2.828                    1.676                  2.225                                                 2.250                          2.714                     26.729                   23.979                                                   29.75                             42.0
+     47 2025-12-25               25                          1.255                        0.868                                                       1.176                               14.504                    1.895                  1.325                                                 1.821                          2.857                     26.933                   23.979                                                   29.75                             27.0
+[tabla]  07_test_variabilidad_semanal.csv (4 filas)
+                                        modelo  desvianza_semanal_minima  desvianza_semanal_mediana  desvianza_semanal_maxima semanas_con_menor_desvianza_que_linea_base  semanas
+                             Árbol de decisión                     0.551                      2.158                    19.339                                          8       47
+                               Media constante                     0.318                      1.147                     2.388                                         29       47
+Promedio de las últimas 4 semanas (línea base)                     0.473                      1.209                     2.516                                       <NA>       47
+                       Repetir semana anterior                     0.322                      2.417                    34.962                                          6       47
+[figura] fig3_test_totales_semanales.png
+[figura] fig4_test_desvianza_semanal.png
+
+Entrenamiento finalizado en 1.6 s.
+Resultados guardados en: /outputs/runs/20260918_132608
+Para citarlos desde el informe con las mismas rutas que el notebook, copiar
+  /outputs/runs/20260918_132608/tablas/*  ->  experiments/base_2/tablas/
+  /outputs/runs/20260918_132608/figuras/* ->  experiments/base_2/figuras/
+=================================
+ Trabajo CPU finalizado
+ Fin: vie 18 sep 2026 13:26:10 -03
+ Resultados en: /data/models/grp04
+=================================
