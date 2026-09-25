@@ -154,6 +154,12 @@ en `base_2.ipynb`, que sólo guardaba 3 decimales) — redondeo, no discrepancia
 - **`t_anios` en el árbol candidato no extrapola.** Es la causa identificada de por qué
   el árbol rinde peor en el test: la tendencia creciente de la serie deja esa variable
   fuera del rango visto en entrenamiento.
+- **MUNICIPIO C se eligió mirando el período completo, incluido el bloque final** (fuga
+  leve en la selección de la serie, no en el ajuste de ningún modelo de este notebook —
+  ver `resumen_preparacion_montevideo.md` §7.5). Verificado (2026-09-25): el ranking de
+  municipios por siniestros es el mismo si se calcula sólo con el entrenamiento inicial
+  o sólo con el desarrollo, así que en este caso puntual no cambió qué municipio se
+  estudia. No se verificó que siga siendo inocua con otro criterio de selección de zonas.
 
 **Frases que no deben aparecer en el informe a partir de este notebook:**
 

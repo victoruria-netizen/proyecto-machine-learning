@@ -513,6 +513,21 @@ para poder **rearmar el panel con otra zonificación** sin volver a limpiar desd
 > cuestan nada, pero **la evaluación seria es la del panel completo con métricas desagregadas por
 > municipio**. No presentar esta comparación en el informe como evidencia de generalización.
 
+> ### ⚠️ Fuga leve en la selección de la serie (no en el ajuste de ningún modelo)
+>
+> `zona_top` y `zona_contraste` se calculan con `construir_catalogo_zonas(df_mvd)` sobre el
+> **período completo** (2021-07-01 a 2025-12-31), incluido el tramo que `linea_base.ipynb`
+> reserva después como bloque final (2025-02-06 a 2025-12-31). Es decir, qué municipio se
+> estudia en detalle se decidió mirando datos que incluyen ese tramo. Verificado (2026-09-25,
+> solo lectura sobre `data/processed/siniestros_montevideo.csv`): el ranking por cantidad de
+> siniestros es **idéntico** (C > B > D > A > F > G > E > CH) si se calcula sólo con el
+> entrenamiento inicial (hasta 2024-03-13, 20.939 siniestros: C=3.290, A=2.780) o sólo con el
+> desarrollo completo (hasta 2025-02-05, 28.535 siniestros: C=4.508, A=3.879). **La selección de
+> C como más activo y A como contraste no depende del bloque final** — es una fuga leve pero
+> inocua en este caso puntual. No se verificó que siga siéndolo bajo otro criterio de selección
+> ni en el panel de 8 municipios del Entregable 3, donde debería recalcularse sólo con
+> entrenamiento si el criterio de selección de zonas influye en alguna decisión de modelado.
+
 ---
 
 ## 8. Verificaciones — `tablas/10_verificaciones.csv`
