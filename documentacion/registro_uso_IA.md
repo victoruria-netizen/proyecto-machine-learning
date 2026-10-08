@@ -2626,3 +2626,22 @@ evaluarla el equipo. Verificado: el notebook se reejecutó (0 errores, 0 stderr)
 (sólo cambió texto); los números de línea del informe se contrastaron contra el `.md` vigente. **Archivos afectados:**
 `notebooks/diagnostico_municipios.ipynb`, `documentacion/resumen_diagnostico_municipios.md`,
 `documentacion/cambios_para_informe.md`, `HANDOFF.md`.
+
+### Prompt 9
+> Deciciones:
+> - Al final haremos la comparacion de ambas ventanas ya que es un objetivo del proyecto. Pero lo vamos a hacer mas adelante, con los modelos candidatos finales.
+> - Deja el notebook como está, pero ajusta el archivo "cambios_para_informe.md" para que solamente queden las deciciones implementadas y que en ese documento esté solo lo que hay que cambiar en el informe
+
+**Respuesta (extracto relevante):** se reescribió `documentacion/cambios_para_informe.md`: quedó sólo con las decisiones
+implementadas y con lo que hay que cambiar en el informe (cambios por sección con número de línea, cifras de reemplazo y
+equivalencia de artefactos). Se quitaron la narrativa de la sesión, las preguntas abiertas, las recomendaciones no
+confirmadas, los pendientes y el chequeo de estabilidad (7.6). La decisión de la ventana deslizante quedó sin efecto: el
+informe mantiene la comparación de ambas ventanas (L321) y sólo se agrega al plan del E3 que se hará con los modelos
+candidatos finales.
+
+**Uso y verificación:** `linea_base.ipynb` **no se modificó**, tal cual se pidió. La IA decidió **qué es «sólo lo que hay
+que cambiar»**: retiró las recomendaciones no confirmadas (p. ej. la salvedad de los 26,51 % del calendario de 8 niveles) y las
+menciones al chequeo con sólo el entrenamiento, salvo la ACF recalculada de los rezagos (`dm/12`, `dm/12b`) porque corrige
+una afirmación del informe. Verificado releyendo el documento completo y recontrastando las cifras con las tablas
+generadas; se renumeraron las secciones y sus referencias cruzadas. **Archivos afectados:**
+`documentacion/cambios_para_informe.md`, `HANDOFF.md`.

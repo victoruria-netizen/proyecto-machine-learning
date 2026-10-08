@@ -1628,13 +1628,15 @@ citables**, y la sección 7.6 del notebook queda como **chequeo de estabilidad e
 del notebook, del resumen y de `cambios_para_informe.md` reencuadrados. Sigue vigente evitar el leakage en el ajuste y la
 evaluación de modelos.
 
-**Decisión 9 — ventana deslizante:** `linea_base` usa **ventana expansiva** y el informe (L321) anuncia comparar ambas.
-El equipo decidió **usar sólo ventana deslizante** y explicarlo en el informe. **Estado: `linea_base.ipynb` NO se
-cambió** (sigue expansiva; cambiarlo modifica las Tablas 4 y 5 y `referencia_no_regresion.csv`). Detalle de las líneas del
-informe a corregir en `cambios_para_informe.md` §C.8. **Advertencia anotada:** la sobredispersión leve no justifica por sí
-sola descartar días lejanos; el argumento que sí respalda la ventana deslizante es la **deriva del nivel**
-(+5,03 % / +8,83 %, `dm/24`). **Pendiente:** decidir si se reejecuta ahora o en el E3, y el largo de la ventana (fijado con
-la validación; opción sin arbitrariedad: 987 días).
+**Decisión 9 — ventanas (versión final, 2026-10-09):** el equipo decidió **comparar ambas ventanas (expansiva y deslizante)**, porque es un
+objetivo del proyecto, pero **más adelante, con los modelos candidatos finales**. **`linea_base.ipynb` queda como está**
+(ventana expansiva) y el informe mantiene su objetivo (L321); las Tablas 4 y 5 siguen siendo de ventana expansiva. *(Un
+día antes se había decidido usar sólo ventana deslizante; quedó sin efecto. Si se retoma el tema: el argumento que sí
+respalda una ventana corta es la deriva del nivel, +5,03 % / +8,83 %, `dm/24`, y no la sobredispersión leve; el largo de la
+ventana es un hiperparámetro a fijar con la validación.)*
+
+**`documentacion/cambios_para_informe.md` se reescribió** para contener **sólo lo que hay que cambiar en el informe** y sólo
+decisiones **implementadas**.
 
 ### Segunda ronda de decisiones y robustez con sólo el entrenamiento (2026-10-07)
 
