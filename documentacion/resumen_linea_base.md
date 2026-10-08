@@ -35,7 +35,19 @@ artefactos y de nombres.
 5. **Respetar los límites de la sección 4.** Hay afirmaciones que este notebook *no*
    sostiene, listadas explícitamente.
 
-**Documentos hermanos:** [`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md)
+> ### Nota (2026-10-05): el diagnóstico de datos se retiró de `main`
+>
+> `diagnostico_datos.ipynb`, `diagnostico_datos_municipio.ipynb`, `diagnostico_zona_contraste.ipynb`, sus
+> resúmenes (`resumen_diagnostico_datos.md` y hermanos) y sus tablas en `experiments/` ya no están en `main`:
+> se centralizó el diagnóstico en `notebooks/diagnostico_municipios.ipynb`. **Siguen disponibles en la rama
+> `entregable_2`** y en el historial de git. Las referencias de este documento a esos archivos **son
+> históricas y ya no se pueden abrir en `main`**. Además, esas cifras se calcularon sobre el período
+> completo (**incluido el test**), por lo que **no deben usarse como evidencia nueva** sin recalcularlas
+> sólo con desarrollo. **La medición de aporte por bloque de variables (tasa, calendario, lluvia, celdas
+> saturadas) ya se rehízo sólo con desarrollo** en `diagnostico_municipios.ipynb`, §7.5
+> (`documentacion/resumen_diagnostico_municipios.md`); la verificación cruzada con el ETL no se rehízo.
+
+**Documentos hermanos:** `resumen_diagnostico_datos.md` (retirado de `main`; vive en la rama `entregable_2`)
 (calidad, cobertura, adecuación) y
 [`resumen_preparacion_montevideo.md`](resumen_preparacion_montevideo.md) (ETL). Las
 decisiones de métrica, forma de la línea base y tendencia se **justifican con

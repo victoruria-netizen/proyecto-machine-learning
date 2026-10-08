@@ -264,11 +264,11 @@ De ahí las dos propiedades que los definen:
 
 | Notebook | Documento |
 | --- | --- |
-| `notebooks/diagnostico_datos.ipynb` | `documentacion/resumen_diagnostico_datos.md` |
+| `notebooks/diagnostico_municipios.ipynb` | `documentacion/resumen_diagnostico_municipios.md` |
 | `notebooks/preparacion_montevideo.ipynb` | `documentacion/resumen_preparacion_montevideo.md` |
 
 El prefijo `resumen_` se mantiene por continuidad con el primero. **Referencia de estructura y
-tono:** `documentacion/resumen_diagnostico_datos.md`.
+tono:** `documentacion/resumen_diagnostico_municipios.md`.
 
 ### Estructura mínima
 

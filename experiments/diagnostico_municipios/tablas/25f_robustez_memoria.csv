@@ -1,0 +1,9 @@
+municipio,Ljung-Box p (7) entrenamiento,p (14) entrenamiento,p (28) entrenamiento,rechaza en algún horizonte (entrenamiento),rechaza en algún horizonte (desarrollo)
+C,0.0689,0.147,0.364,False,True
+B,0.119,0.142,0.444,False,True
+D,0.582,0.0535,0.125,False,True
+A,0.808,0.85,0.921,False,False
+F,0.249,0.361,0.226,False,False
+G,0.273,0.644,0.918,False,False
+E,0.755,0.187,0.127,False,False
+CH,0.000553,0.000756,0.00902,True,True

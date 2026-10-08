@@ -1,0 +1,7 @@
+pliegue,comparación,reducción relativa (%),IC95 inf (%),IC95 sup (%),el IC excluye 0
+A,B3 → B4 (agregar lluvia),-0.36,-0.65,-0.07,True
+A,B3 → B6 (saturar con el mes),-21.83,-32.83,-13.2,True
+A,B2 → B3 (agregar calendario a la tasa),4.71,3.31,6.07,True
+B,B3 → B4 (agregar lluvia),-0.01,-0.14,0.11,False
+B,B3 → B6 (saturar con el mes),-16.9,-32.84,-6.23,True
+B,B2 → B3 (agregar calendario a la tasa),4.42,2.89,5.96,True

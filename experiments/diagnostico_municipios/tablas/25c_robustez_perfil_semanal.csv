@@ -1,0 +1,9 @@
+municipio,sábado (entrenamiento),sábado (desarrollo),vie ÷ dom (entrenamiento),vie ÷ dom (desarrollo),correlación con el agregado (entrenamiento),correlación con el agregado (desarrollo)
+C,0.885,0.897,2.23,2.19,0.993,0.992
+B,0.907,0.883,1.61,1.58,0.967,0.972
+D,0.951,0.896,1.48,1.45,0.982,0.975
+A,1.111,1.143,1.54,1.43,0.769,0.609
+F,0.967,0.916,1.47,1.44,0.902,0.953
+G,1.003,0.991,1.39,1.41,0.868,0.962
+E,0.829,0.853,1.95,1.88,0.923,0.959
+CH,0.89,0.865,1.85,1.79,0.929,0.954

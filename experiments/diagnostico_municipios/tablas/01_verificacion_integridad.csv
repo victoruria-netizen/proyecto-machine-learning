@@ -1,0 +1,8 @@
+comprobación,esperado,obtenido,resultado
+municipios presentes,8,8,coincide
+filas del panel de desarrollo,10528,10528,coincide
+días de calendario sin hueco,1316,1316,coincide
+"pares (fecha, municipio) repetidos",0,0,coincide
+feriados que difieren de tipo_dia del ETL,0,0,coincide
+el clima difiere entre municipios (1 = sí),0,0,coincide
+filas posteriores al último día de desarrollo,0,0,coincide

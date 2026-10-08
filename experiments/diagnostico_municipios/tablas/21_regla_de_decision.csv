@@ -1,0 +1,9 @@
+municipio,cumple en pliegue A,cumple en pliegue B,necesita calendario propio (A y B)
+C,False,False,False
+B,False,False,False
+D,False,False,False
+A,True,True,True
+F,False,False,False
+G,False,False,False
+E,False,False,False
+CH,False,False,False

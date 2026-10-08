@@ -1,0 +1,5 @@
+fuente,archivo,tamaño,sha256,modificado
+panel_diario_montevideo,data\processed\panel_diario_montevideo.csv,1.00 MB,82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06,2026-09-07 14:30
+siniestros_montevideo,data\processed\siniestros_montevideo.csv,2.23 MB,b62851732c2ad9740c24cf3128ba265c074a26a40a446b2d7302a984788c0596,2026-09-07 14:30
+uru_siniestros_unificado (crudo),data\raw\uru_siniestros_unificado.csv,26.19 MB,48a8a7e8f06ed8aa1d138b9921995d81a2c86cb3858354e22b03c75cfc4a99f2,2026-08-24 11:21
+municipios_montevideo (capa),data\raw\municipios_montevideo.geojson,2.87 MB,ed0ba13e53b08f1e35eead16ffdef16d57e518aff30c7cc77dc0082713b489bd,2026-09-07 13:36

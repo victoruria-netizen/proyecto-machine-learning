@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-09-25_
+_Última actualización: 2026-10-05_
 
 ---
 
@@ -24,6 +24,14 @@ _Última actualización: 2026-09-25_
 - **Identidad git (local):** Victor Uria / victor.uria@estudiantes.utec.edu.uy
 
 ## 3. Estado actual (hecho)
+
+> ⚠️ **Nota (2026-10-05): los tres notebooks de diagnóstico se retiraron de `main`.**
+> `diagnostico_datos.ipynb`, `diagnostico_datos_municipio.ipynb` y `diagnostico_zona_contraste.ipynb`, con sus
+> resúmenes (`resumen_diagnostico_*.md`) y sus tablas y figuras en `experiments/`, ya no están en `main`; el
+> diagnóstico quedó centralizado en `notebooks/diagnostico_municipios.ipynb` (ver la entrada del 2026-10-05).
+> **Siguen en la rama `entregable_2` y en el historial de git.** Las secciones de este documento fechadas
+> antes del 2026-10-05 que los mencionan son **históricas**: describen archivos que ya no están en `main`.
+
 
 - [x] Estructura de carpetas recomendada (sección 4.1 de la guía) creada:
       `data/ notebooks/ src/ models/ experiments/ app/ documentacion/ tests/`
@@ -1530,6 +1538,173 @@ Entregable 3". Marcados como resueltos, verificados en los hechos: "Borrar artef
 **No se hizo:** push a `origin` (el equipo lo hace después de revisar); tocar `origin/rama1`,
 `notebooks/Ejemplos/`, `diagnostico_datos_municipio.ipynb`, los pines de versión ni el PDF del
 informe (todo fuera de alcance); ningún commit en `entregable_2`.
+
+### Diagnóstico por municipio: ¿un solo modelo para los ocho? (2026-10-05, sesión de Claude)
+
+A pedido del equipo: repetir para **los ocho municipios** el diagnóstico que ya existía para C y A y usarlo
+para decidir si un solo modelo puede generalizar o hay que entrenar más. Notebook
+`notebooks/diagnostico_municipios.ipynb` (87 celdas, ejecutado con `nbconvert` en el `.venv`: 0 errores, 0
+stderr), 41 tablas y 9 figuras en `experiments/diagnostico_municipios/`, documento
+`documentacion/resumen_diagnostico_municipios.md`. **Las lecturas e inferencias las redactó Claude: el equipo
+tiene que validarlas antes de citarlas.**
+
+> ⚠️ **Regla del equipo (2026-10-05): el conjunto de test no se consulta en ningún diagnóstico.** El bloque
+> final (329 días, 2025-02-06 → 2025-12-31) es el futuro del proyecto y sólo se usa para evaluar el modelo al
+> final. **La primera versión de este notebook la violó:** sus secciones descriptivas (2 a 6) calcularon
+> sobre el período completo. Se rehízo el mismo día: ahora las filas posteriores a 2025-02-05 se descartan al
+> leer los archivos, un `assert` verifica que no queda ninguna, y todo usa sólo el desarrollo (1.316 días). La
+> versión anterior quedó superada. Cambiaron cifras y conclusiones (tendencia: de «creciente en los ocho» a
+> «detectable en C, A, F y G»; memoria temporal: de «5 de 8» a «sólo C y CH»); la sección de decisión no
+> cambió ninguna cifra porque ya usaba sólo desarrollo.
+
+**Qué hace.** Parte de `panel_diario_montevideo.csv` y verifica su integridad sin mirar el test. **No se
+cruza con las cifras de C, A ni del período completo** (incluyen el test). Secciones descriptivas (calidad,
+tendencia, calendario semanal y anual, ACF/Ljung-Box, ADF/KPSS/Box-Cox, co-movimiento) y una sección de
+**decisión** (7): pruebas F de cuasi-verosimilitud y comparación predictiva de seis modelos mínimos (nivel ×
+calendario), dos pliegues de 329 días, bootstrap por bloques semanales y una **regla fijada antes de
+ejecutar** (M3 mejora a M2 ≥ 1 % con IC95 que excluye 0, en los dos pliegues).
+
+**Respuesta (inferencia del equipo, no evidencia directa).** Los datos respaldan **un modelo único con
+variable de nivel por municipio**; no respaldan un modelo por municipio.
+
+| Hallazgo | Cifra | Tabla |
+| --- | --- | --- |
+| El **nivel** es la heterogeneidad dominante | 1,71× entre municipios; F = 134; 7,5 % de la desvianza; M1 → M2 ≈ +7,7 % | `16`, `20` |
+| Un municipio sin datos propios cuesta ~10 % | M4 → M2: +9,81 % y +10,20 % | `20` |
+| El calendario propio **no mejora en promedio** | M2 → M3: −0,22 % y +0,32 %, ICs con 0 | `20` |
+| **Sólo A** necesita calendario propio (regla) | +4,06 % y +4,24 %; prestarle el de los otros 7 le cuesta ~5 % | `20`, `21` |
+| C y CH son distintos en muestra y no ganan fuera de muestra | C −2,05 % / +1,22 %; CH +1,53 % / −0,56 % | `17`, `20` |
+| A es distinto en calendario: **único con el sábado alto** | sábado 1,14 (otros 0,85–0,99); correlación 0,609 con el agregado (otros ≥ 0,953) | `08`, `09` |
+| La tendencia **no es común** | −0,07 a 7,34 %/año (agregado 3,72); detectable sólo en C, A, F, G; A la más empinada | `07` |
+| Memoria temporal débil | r1 residual −0,018 a 0,055; sólo C y CH rechazan Ljung-Box en los tres horizontes | `12` |
+| La decisión de no diferenciar ni usar logaritmo se extiende a los 8 | λ de Box-Cox 0,25–0,50 | `13` |
+| Municipios casi independientes dado el calendario | correlación residual media 0,033 | `14` |
+
+**Salvedades declaradas.** Modelo mínimo (no es el desempeño del modelo final); 8 municipios, ~3,6 años y 2
+pliegues (poder bajo); p-valores con supuestos de independencia; M4 es hipotético; la causa del patrón de A
+**no se investigó**; el test no se consultó, así que si el último tramo se comporta distinto, el diagnóstico
+no lo sabe.
+
+**Pendiente que deja esta sesión:**
+
+- [x] ~~Decidir qué hacer con los diagnósticos que usan el test~~ — **resuelto el 2026-10-05: se retiraron
+      de `main`** (ver el bloque siguiente). Queda abierto qué se rehace sólo con desarrollo.
+- [ ] **Commitear** `notebooks/diagnostico_municipios.ipynb`, `experiments/diagnostico_municipios/`,
+      `documentacion/resumen_diagnostico_municipios.md`, `README.md`, este HANDOFF y el registro de IA.
+- [ ] Validar con el equipo las lecturas del notebook y de su resumen.
+- [ ] Investigar el patrón de A (sábado alto, pendiente mayor) con la fuente.
+- [ ] Entregable 3: probar con el **modelo final** (1) modelo común con nivel por municipio y recalibración,
+      (2) término propio para A, (3) modelo separado para A sólo si no alcanza.
+
+### Decisiones del equipo y diagnóstico ampliado (2026-10-05, tercera parte)
+
+**Decisiones del equipo:** (1) el test sigue siendo el mismo bloque final (el uso en el E2 ya se declaró en el
+informe); (2) cifras de descripción del conjunto se mantienen, las estadísticas del diagnóstico pasan a desarrollo;
+(3) banda nula analítica, como el notebook; (4) se **quita** la verificación cruzada con el ETL (Tabla E1); (5) se
+**rehace con el bloque de desarrollo** lo que dependía de los notebooks retirados. **Directriz permanente:
+evitar el data leakage tanto en test como en validación.** Registrado en `documentacion/cambios_para_informe.md`.
+
+**Qué se agregó a `diagnostico_municipios.ipynb`** (ahora 87 celdas, 41 tablas, 9 figuras; las tablas 01–22 salen
+idénticas): 2.4 faltantes codificados (`05b`); 2.5 evidencia del corte de la pandemia con 2022–2024 (`05c`–`05e2`:
+−21,4 % en lugar de −23,7 %, la decisión se sostiene); 2.6 cobertura temporal, objetivo y serie departamental (`05f`,
+`03b`, `05g`, `fig8`); 2.7 mapa (`05h`, `fig9`, usa `geopandas`); 4.3 varianza explicada por el calendario (`11b`:
+tres niveles 21,42 %, siete 19,94 %, **ocho 26,51 %**); 5.3 **rezagos con sólo el entrenamiento inicial** (`12b`).
+**El archivo crudo y los eventos se leen descartando el test en el mismo paso.**
+
+**Hallazgos nuevos:** con sólo el entrenamiento **no queda memoria detectable** una vez descontado el calendario
+(ningún municipio supera la banda en los rezagos 1, 7, 14, 21 ni 28): los rezagos 7/14/21 del árbol candidato no
+tienen sustento adicional al calendario; la memoria de C y CH de la sección 5.1 aparece al incluir la validación.
+El calendario de tres niveles del ETL pierde ~5 puntos de varianza frente al de ocho.
+
+**Preguntas abiertas:** calendario de 3 u 8 niveles (no se tocó el ETL); si los diagnósticos que orientan el
+modelado deben usar sólo el entrenamiento inicial (hoy 2–6 usan todo el desarrollo, validación incluida; sólo 5.3 usa
+entrenamiento); qué hacer con la Tabla C2 del informe. `geopandas` vuelve a tener uso (el mapa).
+
+### Validación usable y ventana deslizante (2026-10-08)
+
+**Decisión 7 (reemplaza la del 2026-10-07):** el equipo lo habló con el docente: **la ventana de validación SÍ puede
+usarse en los diagnósticos**; el test sigue vedado. Por lo tanto **los diagnósticos con todo el desarrollo son válidos y
+citables**, y la sección 7.6 del notebook queda como **chequeo de estabilidad entre ventanas** (no un requisito). Textos
+del notebook, del resumen y de `cambios_para_informe.md` reencuadrados. Sigue vigente evitar el leakage en el ajuste y la
+evaluación de modelos.
+
+**Decisión 9 — ventana deslizante:** `linea_base` usa **ventana expansiva** y el informe (L321) anuncia comparar ambas.
+El equipo decidió **usar sólo ventana deslizante** y explicarlo en el informe. **Estado: `linea_base.ipynb` NO se
+cambió** (sigue expansiva; cambiarlo modifica las Tablas 4 y 5 y `referencia_no_regresion.csv`). Detalle de las líneas del
+informe a corregir en `cambios_para_informe.md` §C.8. **Advertencia anotada:** la sobredispersión leve no justifica por sí
+sola descartar días lejanos; el argumento que sí respalda la ventana deslizante es la **deriva del nivel**
+(+5,03 % / +8,83 %, `dm/24`). **Pendiente:** decidir si se reejecuta ahora o en el E3, y el largo de la ventana (fijado con
+la validación; opción sin arbitrariedad: 987 días).
+
+### Segunda ronda de decisiones y robustez con sólo el entrenamiento (2026-10-07)
+
+**Decisiones del equipo:** (6) **no se toca el ETL** (calendario de 3 niveles; el de 8 se derivará de la fecha en el
+modelado); (7) **sólo las secciones puramente descriptivas usan todo el desarrollo** y se dejan como están; (8) la
+**Tabla C2 del informe se conserva como antecedente histórico**, con nota (período completo, versiones previas, no
+reproducible), sin recalcular.
+
+**Qué se hizo:** clasificadas las secciones del notebook (sección 1.2): descriptivas = 1, 2, 4.3, 6; **orientan
+decisiones** = 3, 4.1, 4.2, 5.1, 5.2, 7.1, que **no son puramente descriptivas**. Se agregó la **sección 7.6**
+(tablas `25b`–`25f`, 90 celdas, 46 tablas, 9 figuras): se repiten con **sólo el entrenamiento** (987 días).
+
+**Resultado:** la **conclusión central se sostiene** (nivel domina; calendario común salvo A; sábado de A real; no
+transformar; la regla de A cumple en el pliegue cuya validación está dentro del entrenamiento, +4,06 %). **Dos
+afirmaciones secundarias no se sostienen sin la validación:** (a) **A con la pendiente mayor** (entrenamiento: 3,89
+%/año, p = 0,13, no se aparta del agregado de 2,61 %); y la diferencia de tendencia entre municipios deja de ser
+significativa (p = 0,123); (b) **memoria de C** (Ljung-Box no rechaza con el entrenamiento; sí rechaza CH). Citarlas
+sólo como «observadas en el desarrollo».
+
+**Corrección propia:** una lectura previa decía que la memoria de «C y CH» aparecía al incluir la validación; para CH
+**no es cierto** (Ljung-Box rechaza también con el entrenamiento). Corregido en el notebook y los documentos.
+
+### Puente para el informe (2026-10-05)
+
+`documentacion/cambios_para_informe.md` se **reescribió por completo** (lo anterior ya estaba aplicado al informe):
+ahora documenta esta sesión y los cambios pendientes en `documentacion/informe/Entregable2_PAA_20-09-26.md`, con
+decisiones del equipo previas (B.1–B.5), cambios por sección, cifras de reemplazo y pendientes. **Decisión clave sin
+resolver:** el informe declara que el bloque final ya fue consultado en el E2; la regla nueva dice que el test no se
+toca hasta el final. El informe no se editó.
+
+### Retiro de los tres notebooks de diagnóstico (2026-10-05, sesión de Claude)
+
+**Decisión del equipo:** descartar `diagnostico_datos`, `diagnostico_datos_municipio` y
+`diagnostico_zona_contraste` y centralizar el diagnóstico en `diagnostico_municipios.ipynb`, para que el
+repositorio quede ordenado, limpio y sencillo de entender. Además calculaban sobre el período completo,
+**test incluido**.
+
+**Qué se quitó de `main`** (con `git rm`; **sin commit todavía**): los tres notebooks; sus tres carpetas de
+`experiments/` (48 + 17 + 16 tablas y 4 + 7 + 7 figuras); y `resumen_diagnostico_datos.md`,
+`resumen_diagnostico_datos_municipio.md` y `resumen_diagnostico_zona_contraste.md`. **Recuperable** en la rama
+`entregable_2` (verificado: contiene los tres notebooks, los tres resúmenes y las tablas) y en el historial.
+Ningún notebook ni script leía esos artefactos en código (sólo había citas en texto).
+
+**Referencias corregidas:** `README.md` (tabla de ejecución: ahora 1 `preparacion_montevideo`, 2
+`diagnostico_municipios`, 3 `linea_base`; registro del entorno; mención de pandas), `CLAUDE.md` (tabla de
+ejemplos y «referencia de estructura y tono», ahora `resumen_diagnostico_municipios.md`), `requirements.txt`
+(comentario de `geopandas`), los notebooks `linea_base` y `preparacion_montevideo` (sólo markdown y
+comentarios, sin reejecutar), `resumen_linea_base.md` y `resumen_preparacion_montevideo.md` (nota al inicio y
+enlaces rotos convertidos en texto), `cambios_para_informe.md` (actualización) y `diagnostico_municipios`
+(sus propios textos; reejecutado, **tablas idénticas**). **No se reescribieron** las entradas históricas de
+este HANDOFF, de `registro_uso_IA.md` ni el log del servidor.
+
+**Qué se recuperó y qué no (decisión del equipo, mismo día):** (i) la **fuente cruda** (duplicados, fecha,
+coordenadas, asignación a municipios, clima) **no hace falta rehacerla**: la documenta el ETL
+(`preparacion_montevideo`, `experiments/etl_montevideo/`); (ii) la **medición del aporte por bloque de
+variables fuera de muestra** (la que justifica la línea base) **se rehízo sólo con desarrollo** como sección
+7.5 de `diagnostico_municipios` (resumen abajo); (iii) la **verificación cruzada independiente con el ETL no se
+rehízo** (pérdida aceptada: el ETL sólo se verifica a sí mismo). El informe del Entregable 2 y los dos
+`resumen_*` siguen citando las cifras antiguas, calculadas con el test (nota al inicio de cada uno).
+
+**Sección 7.5 — aporte de cada bloque, sólo desarrollo** (mejora de la desvianza vs constante; pliegues A / B;
+`tablas/23`, `23b`, `24`, `25`): calendario +4,36 % / +4,09 %; **tasa del municipio +7,28 % / +7,54 %**;
+**tasa × calendario +11,65 % / +11,63 %**; + lluvia +11,33 % / +11,61 % (B3 → B4: −0,36 % y −0,01 %: no
+aporta); celdas saturadas con el mes **−7,64 % / −3,31 %** (peor que la constante). El nivel sube 5,03 % /
+8,83 % entre ajuste y validación (las mejoras son conservadoras); varianza entre municipios 7,71 %, entre días
+18,04 % (de lo cual ≈ 11,54 % es azar de Poisson). **Las cifras no son comparables con las del diagnóstico
+retirado; la conclusión cualitativa coincide.**
+
+**`geopandas` quedó sin uso** (sólo lo importaba `diagnostico_datos_municipio`); sigue en `requirements.txt` y
+en el lock porque tocar los pines exige revalidar los notebooks. Decisión pendiente: quitarlo.
 
 ## 4. Pendiente (próximos pasos)
 

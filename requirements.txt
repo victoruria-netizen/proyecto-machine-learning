@@ -36,7 +36,7 @@ holidays==0.103          # feriados de Uruguay para el calendario
 requests==2.34.2         # carga histórica puntual de Open-Meteo (cacheada)
 
 # --- Geo / mapas ---
-geopandas==1.1.4         # cruce punto-polígono con los municipios (diagnostico_datos_municipio)
+geopandas==1.1.4         # sin uso actual: lo usaba diagnostico_datos_municipio (retirado de main, 2026-10-05)
 pyproj==3.7.2            # conversión de coordenadas UTM 21S (EPSG:32721) a lat/lon
 pyshp==3.1.6             # lectura de shapefiles; se importa como `shapefile`
 folium==0.20.0           # mapa de zonas del ETL

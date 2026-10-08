@@ -1,0 +1,9 @@
+municipio,viernes ÷ domingo,día máximo,día mínimo,correlación con el perfil del agregado,desvío máx. vs. perfil agregado,feriado: observado ÷ esperado por día de semana
+C,2.19,viernes,domingo,0.992,0.16,0.637
+B,1.58,viernes,domingo,0.972,0.048,0.581
+D,1.45,viernes,domingo,0.975,0.073,0.659
+A,1.43,viernes,domingo,0.609,0.212,0.757
+F,1.44,viernes,domingo,0.953,0.088,0.793
+G,1.41,viernes,domingo,0.962,0.079,0.75
+E,1.88,viernes,domingo,0.959,0.091,0.643
+CH,1.79,lunes,domingo,0.954,0.1,0.474

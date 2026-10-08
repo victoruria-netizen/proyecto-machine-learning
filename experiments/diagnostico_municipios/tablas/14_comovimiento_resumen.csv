@@ -1,0 +1,6 @@
+indicador,valor
+"correlación media entre pares, serie cruda",0.0799
+"correlación media entre pares, residuo de calendario",0.0327
+"mínima / máxima entre pares, residuo",-0.035 / 0.094
+"pares fuera de ±1,96/√n (residuo), de 28",4
+"banda ±1,96/√n",0.054

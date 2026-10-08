@@ -102,7 +102,7 @@ matplotlib `<3.12`) **ya no aplican**, pero los pines no se tocaron: subir esas 
 reejecutar y revalidar todos los notebooks, y es una decisión aparte, pendiente para el
 Entregable 3. Cambiar la versión de pandas, en particular, exige comparar las salidas: el
 2026-09-20 se comprobó que pandas 3.0.5 y 2.3.3 no dan lo mismo en un caso (`.astype(str)`
-convierte un nulo en el texto `"nan"` en pandas 2.x; ver `documentacion/resumen_diagnostico_datos.md`).
+convierte un nulo en el texto `"nan"` en pandas 2.x; el caso está documentado en la entrada del 2026-09-20 de `HANDOFF.md`).
 
 **Dependencias que hoy no están.** El 2026-09-20 se retiraron de `requirements.txt` las que
 ningún notebook importa: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
@@ -167,10 +167,8 @@ varios leen lo que escribe uno anterior:
 | # | Notebook | Lee | Escribe |
 | --- | --- | --- | --- |
 | 1 | `preparacion_montevideo` | `data/raw/` (siniestros, capas de zonas y caché de clima) | `data/processed/` y `experiments/etl_montevideo/` |
-| 2 | `diagnostico_datos` | `data/raw/` y `data/processed/` | `experiments/diagnostico_datos/` |
-| 3 | `diagnostico_datos_municipio` | `data/raw/` | `experiments/diagnostico_datos_municipio/` |
-| 4 | `diagnostico_zona_contraste` | `data/processed/` | `experiments/diagnostico_zona_contraste/` |
-| 5 | `linea_base` | `data/processed/panel_zona_top.csv` | `experiments/linea_base/` |
+| 2 | `diagnostico_municipios` | `data/processed/` y, para 2.4/2.5/2.7, `data/raw/` (siniestros crudos y capa de municipios). **Sólo el bloque de desarrollo: el test se descarta al leer** | `experiments/diagnostico_municipios/` |
+| 3 | `linea_base` | `data/processed/panel_zona_top.csv` | `experiments/linea_base/` |
 
 ```powershell
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 notebooks/preparacion_montevideo.ipynb
@@ -190,8 +188,8 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
   (`uru_siniestros_unificado.csv`, las capas geojson y `clima_montevideo.csv`). Si la caché de
   clima cubre el período, `preparacion_montevideo` no consulta Open-Meteo.
 - **Registro del entorno.** `linea_base` guarda las versiones en
-  `experiments/linea_base/tablas/00_entorno.csv`, y los tres notebooks de diagnóstico en
-  `experiments/<notebook>/tablas/00b_entorno.csv`; cada uno registra solo las bibliotecas que
+  `experiments/linea_base/tablas/00_entorno.csv`, y `diagnostico_municipios` en
+  `experiments/diagnostico_municipios/tablas/00b_entorno.csv`; cada uno registra solo las bibliotecas que
   importa. `preparacion_montevideo` no las registra.
 - **Cómo leer una reejecución.** La del 2026-09-20 dejó idénticas byte a byte todas las tablas de
   resultados; las diferencias fueron solo de versiones, fechas, tamaños de archivo, etiquetas de tipo

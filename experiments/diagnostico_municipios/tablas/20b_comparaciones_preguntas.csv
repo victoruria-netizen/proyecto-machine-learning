@@ -1,0 +1,6 @@
+comparación,Δ = desvianza(a) − desvianza(b),pregunta
+M0 → M1,M0 − M1,¿el calendario del agregado mejora la constante?
+M1 → M2,M1 − M2,¿conocer el nivel del municipio mejora?
+M2 → M3,M2 − M3,¿el calendario propio mejora al del agregado? (decide si hay que especializar)
+M5 → M3,M5 − M3,"¿el calendario propio mejora al prestado por los otros 7, con nivel propio?"
+M4 → M2,M4 − M2,¿un municipio sin datos propios cuesta algo frente a uno con nivel propio?

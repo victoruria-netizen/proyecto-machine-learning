@@ -1,0 +1,14 @@
+indicador,valor
+días con al menos un siniestro (de 1.316),1316
+serie diaria del departamento: mínimo / mediana / máximo,4 / 22.0 / 43
+"Tukey global: Q1, Q3, IQR","17, 26, 9"
+Tukey global: límites,3.5 y 39.5
+Tukey global: días atípicos (arriba / abajo),7 (7 / 0)
+Tukey por grupo de calendario: días atípicos (arriba / abajo),16 (14 / 2)
+marcados por ambos criterios / sólo global / sólo por grupo,7 / 0 / 9
+atípicos por grupo que son feriado,0
+días entre semana / fin de semana / feriado,891 / 364 / 61
+media departamental: entre semana / fin de semana / feriado,23.65 / 18.01 / 14.87
+media departamental: viernes / domingo,25.22 / 15.72
+temperatura media: mínimo – máximo (°C),4.9 – 31.7
+precipitación diaria: mínimo – máximo (mm),0 – 58.9

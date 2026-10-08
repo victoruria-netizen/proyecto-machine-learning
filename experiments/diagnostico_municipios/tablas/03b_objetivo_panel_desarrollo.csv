@@ -1,0 +1,11 @@
+indicador,valor
+filas del panel de desarrollo,10528.0
+siniestros,28535.0
+% de ceros,9.34
+"media por (día, municipio)",2.7104
+varianza (ddof=0),3.4415
+índice de dispersión (var/media),1.27
+máximo,13.0
+modo,2.0
+% de filas con 1 siniestro,19.05
+% de filas con 2 o más,71.61

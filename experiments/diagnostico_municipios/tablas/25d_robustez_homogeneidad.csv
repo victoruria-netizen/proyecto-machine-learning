@@ -1,0 +1,6 @@
+hipótesis alternativa,F entrenamiento,p entrenamiento,reducción de desvianza (%) entrenamiento,p desarrollo,reducción (%) desarrollo
+nivel propio por municipio,98.31,2.93e-138,7.36,2.06e-190,7.545
+perfil de calendario distinto por municipio,2.08,1.63e-05,1.165,1.46e-09,1.139
+tendencia distinta por municipio,1.63,0.123,0.131,0.0325,0.132
+estacionalidad anual distinta por municipio,1.32,0.0325,1.169,0.0156,0.919
+efecto de la lluvia distinto por municipio,1.15,0.33,0.093,0.354,0.067

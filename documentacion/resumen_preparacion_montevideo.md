@@ -25,7 +25,19 @@ criterio, y la referencia al artefacto que respalda cada cifra.
 3. **No escribir Introducción ni Marco teórico** a partir de este documento.
 4. **Respetar los límites de la sección 10.** Hay afirmaciones que este ETL *no* sostiene.
 
-**Documento hermano:** [`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md) cubre
+> ### Nota (2026-10-05): el diagnóstico de datos se retiró de `main`
+>
+> `diagnostico_datos.ipynb`, `diagnostico_datos_municipio.ipynb`, `diagnostico_zona_contraste.ipynb`, sus
+> resúmenes (`resumen_diagnostico_datos.md` y hermanos) y sus tablas en `experiments/` ya no están en `main`:
+> se centralizó el diagnóstico en `notebooks/diagnostico_municipios.ipynb`. **Siguen disponibles en la rama
+> `entregable_2`** y en el historial de git. Las referencias de este documento a esos archivos **son
+> históricas y ya no se pueden abrir en `main`**. Además, esas cifras se calcularon sobre el período
+> completo (**incluido el test**), por lo que **no deben usarse como evidencia nueva** sin recalcularlas
+> sólo con desarrollo. **La medición de aporte por bloque de variables (tasa, calendario, lluvia, celdas
+> saturadas) ya se rehízo sólo con desarrollo** en `diagnostico_municipios.ipynb`, §7.5
+> (`documentacion/resumen_diagnostico_municipios.md`); la verificación cruzada con el ETL no se rehízo.
+
+**Documento hermano:** `resumen_diagnostico_datos.md` (retirado de `main`; vive en la rama `entregable_2`) cubre
 *Metodología — datos* (calidad, cobertura, adecuación, limitaciones). Este cubre *preparación*.
 Las decisiones de **alcance** —qué zonas y desde cuándo— se justifican allá con evidencia; acá se
 aplican y se verifican.
@@ -565,7 +577,8 @@ período.
 
 ### Verificación cruzada independiente — diagnóstico `tablas/23_coherencia_etl.csv`
 
-`diagnostico_datos.ipynb` **reconstruye el panel desde las fuentes crudas** con su propia
+`diagnostico_datos.ipynb` (retirado de `main`; vive en la rama `entregable_2`; **esta verificación ya no puede reejecutarse en `main`**)
+**reconstruía el panel desde las fuentes crudas** con su propia
 implementación de la asignación punto-polígono, y compara:
 
 | Comprobación | Diagnóstico (recalculado) | ETL (`data/processed`) | Resultado |
@@ -681,7 +694,7 @@ Lo que este ETL deja planteado para el notebook de modelado:
 1. **Construir la tasa histórica del municipio**, ajustada sólo con el tramo de entrenamiento. Es
    el pendiente prioritario: el panel **no lleva ninguna variable de nivel de zona**, a propósito.
    El diagnóstico midió que es el bloque más útil fuera de muestra —−7,5 % contra −4,3 % del
-   calendario— ([`resumen_diagnostico_datos.md`](resumen_diagnostico_datos.md), §5.3).
+   calendario— (`resumen_diagnostico_datos.md`, §5.3; retirado de `main`; vive en la rama `entregable_2`).
 2. **Implementar la línea base multiplicativa** (tasa del municipio × factor de calendario), que
    el diagnóstico midió en −11,8 % fuera de muestra, y verificar que **la forma saturada no se
    usa**: cruzar municipio y calendario en celdas independientes empeora el resultado (+10,4 %).

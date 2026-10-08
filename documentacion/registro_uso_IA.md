@@ -2429,3 +2429,200 @@ Anexo F.1 texto por texto. Cada bloque terminó en un commit separado en `main`,
 `documentacion/resumen_preparacion_montevideo.md`, `documentacion/cambios_para_informe.md`,
 `documentacion/logs/log_servidor_base.txt` (nuevo), `documentacion/logs/log_servidor_base2.txt`
 (nuevo), `HANDOFF.md`, `README.md`, `CLAUDE.md`, `train/README.md`.
+
+
+## Sesión 2026-10-05 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** diagnóstico de calidad de datos y de heterogeneidad para los **ocho municipios**, para
+decidir si un solo modelo generaliza. Archivos: `notebooks/diagnostico_municipios.ipynb` (nuevo),
+`experiments/diagnostico_municipios/` (nuevo), `documentacion/resumen_diagnostico_municipios.md` (nuevo),
+`README.md`, `HANDOFF.md`.
+
+### Prompt 1
+> Claude, lee el claude.md y el handoff para que tengas mas contexto del proyecto y la metodologia de trabajo.
+> Necesito que hagas un diagnostico de calidad de datos para todos los municipios, ya tenemos hecho el diagnostico para el municipio A y C, pero necesitamos el diagnostico para cada uno de los municipios.
+> La idea con este diagnostico es revisar si un solo modelo puede generalizar en todos los municipios o si necesitaremos entrenar otros modelos.
+
+**Respuesta (extracto relevante):** se creó un notebook con la misma metodología de los diagnósticos de C
+y A aplicada a los ocho municipios (calidad, tendencia, calendario semanal y anual, ACF/Ljung-Box,
+ADF/KPSS/Box-Cox, co-movimiento) y una sección de decisión con pruebas F de cuasi-verosimilitud y una
+comparación predictiva de seis modelos mínimos (nivel × calendario) en dos pliegues cronológicos, con
+bootstrap por bloques semanales y una regla de decisión fijada antes de ejecutar. Conclusión redactada por
+la IA (inferencia, no evidencia directa): «un modelo único con variable de nivel por municipio; no se
+respalda un modelo por municipio, con la posible excepción de A» (nivel: M1→M2 +7,62 % / +7,86 %;
+calendario propio: M2→M3 −0,22 % / +0,32 %; sólo A cumple la regla, +4,06 % / +4,24 %).
+
+**Uso y verificación:** utilizado, con decisiones de diseño tomadas por la IA **sin consulta previa** que el
+equipo debe validar: (i) partir del panel del ETL en vez de reconstruir la asignación espacial (como hizo el
+notebook de C); (ii) usar un modelo mínimo y no una familia de modelos, para medir estructura y no
+desempeño; (iii) la regla de decisión (≥ 1 % y IC95 que excluya 0 en los dos pliegues) y los dos pliegues
+de 329 días; (iv) usar sólo el bloque de desarrollo en la sección de decisión. **Verificado** así: el
+notebook se ejecutó de punta a punta con `jupyter nbconvert --execute --inplace` (0 errores, 0 salidas por
+stderr); los `assert` internos confirman que el panel reproduce las 16 cifras ya documentadas y que media,
+varianza, días en cero, ACF residual y λ de Box-Cox de C y A coinciden con los notebooks previos; cada cifra
+citada en las celdas de lectura y en el resumen se contrastó contra las tablas CSV generadas. Una primera
+versión del código se ejecutó antes de redactar ninguna interpretación, y las lecturas se escribieron sobre
+las cifras reales; dos tablas se ampliaron después (ceros esperados bajo Poisson; atípicos de 5 o menos
+siniestros) para respaldar afirmaciones concretas, y se corrigió el formato del eje de la figura 1. **No se
+usó el bloque final.** **Pendiente de validación humana:** las lecturas e inferencias del notebook y del
+resumen. **Archivos afectados:** `notebooks/diagnostico_municipios.ipynb`,
+`experiments/diagnostico_municipios/`, `documentacion/resumen_diagnostico_municipios.md`, `README.md`,
+`HANDOFF.md`.
+
+### Prompt 2 (corrección del equipo)
+> Me olvide de aclarar algo muy importante, para no hacer data leakage, no se puede consultar en ningun momento el conjunto de datos de test, ya que ese es nuestro futuro. En este diagnostico no se puede consultar los datos de test en ningun momento, se utilizaran para evaluar el modelo al final del proyecto
+
+**Respuesta (extracto relevante):** la IA reconoció que la versión del Prompt 1 **había usado el test**: las
+secciones descriptivas (2 a 6) calcularon sobre el período completo (hasta 2025-12-31), y su resumen
+afirmaba, incorrectamente, que no se tocaba el bloque final. Se rehízo el notebook: los archivos se leen y se
+descartan al instante las filas posteriores a 2025-02-05 (límite calculado desde el calendario, 80 % de
+1.645 días), con un `assert` de que no queda ninguna; se eliminaron los cruces con cifras del período
+completo (totales, C y A); se excluyeron los períodos parciales del desarrollo (2025 y febrero de 2025).
+
+**Uso y verificación:** la versión del Prompt 1 se **descartó** (violaba la regla del test; sus cifras no
+deben citarse). Verificado: reejecución completa con `jupyter nbconvert --execute --inplace` (0 errores, 0
+stderr); la tabla `01_verificacion_integridad.csv` comprueba cero filas posteriores a 2025-02-05; la
+sección 7 (ya sólo con desarrollo) reprodujo exactamente las mismas cifras; todas las cifras de las lecturas
+se contrastaron contra las tablas nuevas. Cambiaron conclusiones: la tendencia deja de ser «creciente en los
+ocho» (detectable en C, A, F, G) y la memoria temporal pasa a ser detectable sólo en C y CH. **Hallazgo para
+el equipo:** `diagnostico_datos.ipynb`, `diagnostico_datos_municipio.ipynb` y
+`diagnostico_zona_contraste.ipynb` también usan el período completo; no se modificaron. **Archivos
+afectados:** `notebooks/diagnostico_municipios.ipynb`, `experiments/diagnostico_municipios/`,
+`documentacion/resumen_diagnostico_municipios.md`, `HANDOFF.md`.
+
+### Prompt 3
+> vamos a hacer lo siguiente:
+> Vamos a descartar estos tres notebooks de diagnosticos, la idea es centralizar todo en este notebook nuevo que armaste, asi el repo queda bien organizado, limpio y sencillo de entender.
+
+**Respuesta (extracto relevante):** se retiraron de `main` (`git rm`, sin commit) `diagnostico_datos`,
+`diagnostico_datos_municipio` y `diagnostico_zona_contraste`, sus carpetas de `experiments/` y sus tres
+resúmenes; se corrigieron las referencias vivas y se avisó lo que el notebook nuevo no cubre: diagnóstico de
+la fuente cruda, aporte por bloque de variables fuera de muestra y verificación cruzada con el ETL.
+
+**Uso y verificación:** ejecutado tal cual lo pidió el equipo. Antes de borrar se verificó que la rama
+`entregable_2` contiene los tres notebooks, los tres resúmenes y las tablas (red de seguridad), y con `grep`
+que ningún notebook ni script leía esos artefactos en código. Tras el cambio se reejecutó
+`diagnostico_municipios.ipynb` (0 errores; las 23 tablas de resultados idénticas byte a byte a la corrida
+anterior; sólo cambió texto). Se editaron sólo markdown y comentarios de `linea_base` y
+`preparacion_montevideo` (JSON válido, sin reejecutar). **Decisión de la IA sin consulta:** en
+`resumen_linea_base.md` y `resumen_preparacion_montevideo.md` no se borraron las cifras que citan los
+diagnósticos retirados; se agregó una nota que las declara históricas y calculadas con el test. **Pendiente
+del equipo:** decidir qué parte del diagnóstico retirado se rehace sólo con desarrollo, y si se quita
+`geopandas`. **Archivos afectados:** los retirados, `README.md`, `CLAUDE.md`, `requirements.txt`,
+`notebooks/linea_base.ipynb`, `notebooks/preparacion_montevideo.ipynb`, `notebooks/diagnostico_municipios.ipynb`,
+`documentacion/resumen_*.md`, `documentacion/cambios_para_informe.md`, `HANDOFF.md`.
+
+### Prompt 4
+> Pero si todo esto ya lo hace el "preparacion_montevideo", no seria redundante hacerlo en este notebook?
+
+> Vamos a rehacerlo solo con desarrollo, ya que el test no se debe tocar hasta el final
+
+> No hagas la verificacion cruzada, solo la medicion por bloques pero sin utilizar el test
+
+**Respuesta (extracto relevante):** la IA corrigió su afirmación anterior: la calidad de la fuente cruda ya la
+documenta el ETL, así que repetirla sería redundante. Quedaban dos pérdidas reales: la verificación cruzada
+independiente (el equipo decidió **no** rehacerla) y la medición del aporte de cada bloque de variables fuera de
+muestra, que se rehízo como sección 7.5 de `diagnostico_municipios.ipynb`, sólo con el bloque de desarrollo:
+mismos dos pliegues de la sección 7, predictores estimados sólo con el ajuste, bootstrap por bloques semanales.
+Resultado: tasa del municipio +7,28 % / +7,54 %, calendario +4,36 % / +4,09 %, tasa × calendario +11,65 % /
++11,63 %, la lluvia no aporta, las celdas saturadas con el mes empeoran (−7,64 % / −3,31 %).
+
+**Uso y verificación:** la IA **interpretó** el pedido «rehacerlo» como la medición por bloques (la que quedó
+sin cubrir tras retirar los diagnósticos) y la implementó con definiciones propias (p. ej. el efecto de lluvia
+como calibración multiplicativa del indicador `llovió`, el piso de 1e-6, la celda vacía que cae a B3); el
+equipo debe validarlas. Verificado: reejecución completa con `jupyter nbconvert --execute --inplace` (0 errores,
+0 stderr); B3 y B5 coinciden con M2 y M3 de la sección 7.2 (1,2278/1,2305 y 1,2385/1,2344); las 22 tablas
+anteriores salen idénticas byte a byte; la validación no invade el bloque final (hay un `assert`); las cifras de
+las lecturas se contrastaron con las tablas `23`–`25`. Las cifras **no son comparables** con las del diagnóstico
+retirado (otro protocolo, y aquel usaba el test), aunque coincide la conclusión cualitativa. **Archivos
+afectados:** `notebooks/diagnostico_municipios.ipynb`, `experiments/diagnostico_municipios/`,
+`documentacion/resumen_diagnostico_municipios.md`, `documentacion/resumen_linea_base.md`,
+`documentacion/resumen_preparacion_montevideo.md`, `HANDOFF.md`.
+
+### Prompt 5
+> Todo lo que esta en "cambios_para_informe.md" ya lo aplicamos.
+> Ahora quiero que hagas lo siguiente:
+> - Borra todo lo que esta escrito en ese documento, ya que eso ya esta aplicado.
+> - En ese documento pone todo lo que se hizo en esta seccion y los cambios que hay que hacer en el informe
+> - En la ruta "documentacion/informe/Entregable2_PAA_20-09-26.md" esta nuestro documento actualizado, puedes mirarlo para comparar lo que hay que actualizar
+
+**Respuesta (extracto relevante):** se reescribió por completo `documentacion/cambios_para_informe.md` (el contenido
+anterior, ya aplicado, queda en el historial de git). El nuevo documento resume la sesión, lista cinco decisiones
+del equipo previas a editar (la más importante: la contradicción entre la regla «el test no se consulta» y lo que
+el informe declara en 3.4.4 sobre el bloque final), los cambios por sección con número de línea del `.md`, las
+cifras de reemplazo y los pendientes sin respaldo en `main`.
+
+**Uso y verificación:** se leyeron los capítulos 1 a 4, los anexos y las listas del informe y se contrastaron con el
+estado del repositorio; las cifras de reemplazo salen de las tablas de `experiments/diagnostico_municipios/`. **Las
+cifras departamentales de desarrollo (D.2 y D.4) se calcularon con un script de la sesión y NO tienen artefacto en el
+repo**: el documento lo declara y exige llevarlas a un notebook antes de citarlas. Las referencias de línea se
+contrastaron contra el `.md` vigente. **No se editó el informe.** **Archivos afectados:**
+`documentacion/cambios_para_informe.md`.
+
+### Prompt 6
+> Desiciones:
+> 1. El test sigue siendo el mismo. Como el entregable 2 ya paso, tuvimos que declarar el uso de test en el documento.
+> 2. ok
+> 3. Usamos la misma que el notebook
+> 4. La quitamos.
+> 5. Se rehace con el bloque de desarrollo. Siempre tene presente evitar el data leakage, tanto en test como en validacion
+>
+> Registra todos estos cambios, para que otro agente pueda trazarlos y corregirlos en el informe, podes actualizar o crear cambios_para_informe.md
+
+**Respuesta (extracto relevante):** se registraron las cinco decisiones y sus consecuencias en
+`documentacion/cambios_para_informe.md` (reescrito), y se **rehízo sólo con desarrollo** lo que dependía de los
+notebooks retirados, agregándolo a `diagnostico_municipios.ipynb`: faltantes codificados, evidencia del corte de la
+pandemia (−21,4 % con 2022–2024), cobertura temporal, cifras del objetivo y de la serie departamental, mapa, varianza
+explicada por el calendario (tres niveles 21,42 %; ocho, 26,51 %) y ACF de los rezagos con sólo el entrenamiento inicial
+(ningún municipio supera la banda una vez descontado el calendario).
+
+**Uso y verificación:** la IA **interpretó** la decisión 5 como «rehacer ahora» y no sólo registrarla, y tomó
+decisiones de implementación sin consulta que el equipo debe validar: reutilizar los mismos centinelas de texto del
+diagnóstico retirado; usar los años 2022–2024 como referencia de la pandemia (2025 sólo trae 36 días en desarrollo);
+elegir los rezagos con la ACF del **entrenamiento inicial** para no filtrar la validación (la directriz de evitar el
+leakage en validación se interpretó así). Verificado: reejecución completa con `jupyter nbconvert --execute --inplace`
+(0 errores, 0 stderr); el archivo crudo y los eventos se filtran al leerlos y hay `assert`; las tablas 01–22
+previas salen idénticas byte a byte; las cifras de las lecturas se contrastaron con las tablas nuevas; los
+centinelas reproducen el orden de magnitud del diagnóstico retirado (18,14 % y 12,50 % en el archivo; 4,47 % y 2,32 %
+en el recorte). **Pendiente de validación humana:** las lecturas y las tres preguntas abiertas. **Archivos
+afectados:** `notebooks/diagnostico_municipios.ipynb`, `experiments/diagnostico_municipios/`,
+`documentacion/resumen_diagnostico_municipios.md`, `documentacion/cambios_para_informe.md`, `README.md`, `HANDOFF.md`.
+
+### Prompt 7
+> 1- No vamos a tocar el ETL
+> 2- Si las secciones que tocan todo el desarrollo son puramente descriptivas, lo dejamos como esta
+> 3- Lo vamos a conservar como antecedente historico
+
+**Respuesta (extracto relevante):** se registraron las tres decisiones en `documentacion/cambios_para_informe.md`. Para
+la 2, que es condicional, la IA **clasificó** las secciones del notebook: sólo 1, 2, 4.3 y 6 son puramente
+descriptivas; 3, 4.1, 4.2, 5.1, 5.2 y 7.1 orientan decisiones. Para esas se agregó la sección 7.6, que las repite con
+sólo el entrenamiento inicial (987 días). La conclusión central se sostiene; no se sostienen la pendiente mayor de A ni
+la memoria de C. Se corrigió además una frase propia inexacta sobre CH.
+
+**Uso y verificación:** la clasificación de qué es «puramente descriptivo» fue **criterio de la IA** y debe validarlo el
+equipo. Verificado: reejecución completa con `jupyter nbconvert --execute --inplace` (0 errores, 0 stderr); las 41
+tablas previas salen idénticas byte a byte; las cifras de las lecturas se contrastaron con `25b`–`25f`; en 7.6 hay un
+`assert` de que el entrenamiento termina antes de la validación. **Archivos afectados:**
+`notebooks/diagnostico_municipios.ipynb`, `experiments/diagnostico_municipios/`,
+`documentacion/resumen_diagnostico_municipios.md`, `documentacion/cambios_para_informe.md`, `HANDOFF.md`.
+
+### Prompt 8
+> decision 2:
+> Lo hablamos con el profesor y llegamos a la conclusion de que si se puede utilizar el conjunto de validacion. Entonces si estan bien estos diagnosticos que utilizan este conjunto.
+>
+> Una decision mas que tomamos:
+> En los modelos que creamos en el notebook de "linea_base" utilizan Expanding window (ventana expansiva). En el documento dijimos que ibamos a comparar los resultados con ambas ventanas. Pero optamos por utilizar solo Rolling Window (Ventana deslizante) y explicar en el informe que esta decision se tomo porque ternemos una pequeña sobre dispercion en los datos, entonces no conviene utilizar una ventana expansiva para no tomar en cuenta los dias muy lejanos al presente.
+
+**Respuesta (extracto relevante):** (1) Se reencuadraron el notebook, su resumen y `cambios_para_informe.md`: los diagnósticos
+con la validación son válidos; la sección 7.6 pasa a ser un chequeo de estabilidad. (2) Se registró la decisión de la
+ventana deslizante con las líneas del informe a corregir (L289, L321, L548, L553, Tablas 4 y 5) y se **advirtió** que la
+sobredispersión leve no es, por sí sola, argumento para descartar días lejanos; el que sí respalda la decisión es la deriva
+del nivel (+5,03 % / +8,83 %), y se propuso una redacción.
+
+**Uso y verificación:** el cambio de criterio sobre la validación se aplicó tal cual lo comunicó el equipo (con el docente).
+La IA **no modificó `linea_base.ipynb`**: cambiarlo altera resultados ya citados en el informe y requiere definir el largo
+de la ventana; queda como decisión del equipo. La observación sobre la fundamentación es **criterio de la IA** y debe
+evaluarla el equipo. Verificado: el notebook se reejecutó (0 errores, 0 stderr) y las 46 tablas salen idénticas
+(sólo cambió texto); los números de línea del informe se contrastaron contra el `.md` vigente. **Archivos afectados:**
+`notebooks/diagnostico_municipios.ipynb`, `documentacion/resumen_diagnostico_municipios.md`,
+`documentacion/cambios_para_informe.md`, `HANDOFF.md`.
