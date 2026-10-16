@@ -1,0 +1,14 @@
+artefacto
+figuras/fig1_referencias_por_corte.png
+figuras/fig2_referencias_por_municipio.png
+figuras/fig3_total_semanal_referencias.png
+tablas/00_entorno.csv
+tablas/01_verificacion_integridad.csv
+tablas/02_particiones.csv
+tablas/03_comprobacion_motor.csv
+tablas/04_control_cruzado_municipio_c.csv
+tablas/05_referencias_globales.csv
+tablas/06_referencias_por_municipio.csv
+tablas/07_referencias_por_corte.csv
+tablas/08_referencias_error_estandar_y_estabilidad.csv
+tablas/09_predicciones_referencias.csv

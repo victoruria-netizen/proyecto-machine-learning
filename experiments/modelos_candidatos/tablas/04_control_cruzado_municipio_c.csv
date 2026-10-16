@@ -1,0 +1,3 @@
+modelo,desvianza_motor,desvianza_linea_base,diferencia,mae_motor,mae_linea_base,n_cortes,n_dias,"ok (tolerancia 0,001)"
+Media constante,1.517768,1.5178,-3.2e-05,1.759104,1.7591,47,329,True
+"L1 (tasa x calendario, 3 niveles)",1.378246,1.3782,4.6e-05,1.611371,1.6114,47,329,True

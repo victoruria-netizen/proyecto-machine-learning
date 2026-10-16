@@ -30,6 +30,10 @@ matplotlib==3.11.1
 # --- Aprendizaje automático y series temporales ---
 scikit-learn==1.9.0      # baselines, métricas, árbol de decisión
 statsmodels==0.14.6      # diagnóstico de series temporales
+xgboost==3.4.1           # candidato XGBoost (objective="count:poisson"), Entregable 3; publicada 2026-08-15
+
+# --- Pruebas ---
+pytest==9.1.1            # tests/ (Entregable 3); publicada 2026-06-19
 
 # --- Variables exógenas ---
 holidays==0.103          # feriados de Uruguay para el calendario

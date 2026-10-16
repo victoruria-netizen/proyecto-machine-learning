@@ -1,0 +1,12 @@
+verificación,ok
+límite del desarrollo = 2025-02-05 (sale del calendario),True
+ninguna fila posterior a 2025-02-05,True
+el panel llega al último día de desarrollo,True
+8 municipios,True
+10.528 filas (1.316 días × 8),True
+"sin pares (fecha, municipio) repetidos",True
+calendario diario sin huecos,True
+"objetivo sin nulos, entero y no negativo",True
+987 días de entrenamiento inicial y 329 de validación,True
+47 cortes de 7 días,True
+el último corte termina en el último día de desarrollo,True

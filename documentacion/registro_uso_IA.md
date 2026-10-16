@@ -2645,3 +2645,220 @@ menciones al chequeo con sólo el entrenamiento, salvo la ACF recalculada de los
 una afirmación del informe. Verificado releyendo el documento completo y recontrastando las cifras con las tablas
 generadas; se renumeraron las secciones y sus referencias cruzadas. **Archivos afectados:**
 `documentacion/cambios_para_informe.md`, `HANDOFF.md`.
+
+## Sesión 2026-10-13/14 — Victor Uria — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** arranque del Entregable 3. Etapas 0a (dependencias), 0b (`src/variables.py`, `src/datos.py`, tests), 0c (revisión del
+dashboard del PID, sin código disponible) y Etapa 1 (`notebooks/modelos_candidatos.ipynb`: protocolo y referencias en el panel;
+**sin candidatos**). El trabajo se hizo por etapas con confirmación del equipo entre una y otra.
+
+**Incidente declarado — lectura del test.** Al explorar la estructura del panel, la IA ejecutó un comando suelto que leyó
+`panel_diario_montevideo.csv` completo, con las filas posteriores a 2025-02-05. Se calcularon conteos de `tipo_dia`, un `describe`
+de las columnas de lluvia y la fecha máxima. **No se leyó ni calculó nada sobre `n_siniestros` del test y no influyó en ningún
+código ni decisión.** La IA lo informó al equipo al cerrar la etapa y, desde ahí, todo el panel se lee con
+`src.datos.cargar_panel_desarrollo()`, que descarta el test por tramos al leer. El equipo pidió asentarlo y no llevarlo al informe.
+
+### Prompt 1
+> Empezamos el Entregable 3 del PAA. Antes de hacer nada, leé CLAUDE.md, HANDOFF.md,
+> documentacion/resumen_linea_base.md, documentacion/resumen_diagnostico_municipios.md y la
+> sección 5.3 de documentacion/Guia_estudiantes_PAA_2026.md. Respetá todas las reglas de
+> CLAUDE.md (ninguna cifra sin artefacto, registro de IA, documento acompañante, HANDOFF).
+>
+> Trabajá por etapas. Al terminar cada etapa, DETENETE y mostrame un resumen de lo hecho, los
+> archivos tocados y cualquier duda. No avances a la etapa siguiente sin mi confirmación. Si
+> alguna instrucción de este prompt choca con lo que encuentres en el repositorio, preguntame
+> antes de resolverlo por tu cuenta.
+>
+> ## Regla central: el test no se toca
+>
+> El bloque final (2025-02-06 → 2025-12-31) no se lee en ningún código de esta tarea. Toda
+> lectura del panel descarta las filas posteriores a 2025-02-05 en el mismo paso, y un `assert`
+> verifica que no quede ninguna. El límite sale del calendario (80 % de 1.645 días), igual que
+> en diagnostico_municipios.ipynb, no de los datos.
+>
+> ## Etapa 0a — Dependencias
+>
+> - Agregá `xgboost` y `pytest` a requirements.txt con versión exacta. Elegí versiones
+>   publicadas hace más de dos semanas, compatibles con Python 3.13.2 y con los pines actuales.
+> - Regenerá requirements-lock.txt en un entorno limpio, como se hizo el 2026-09-24.
+> - Verificá `pip check` e importá xgboost.
+> - No cambies ningún otro pin.
+>
+> ## Etapa 0b — Módulo de variables en src/
+>
+> Creá `src/variables.py`. Lo van a usar los dos notebooks y el prototipo, así que tiene que
+> ser la única implementación de estas variables. Funciones puras, documentadas, que reciban
+> el panel y una fecha de origen y no miren datos posteriores al origen:
+>
+> - **Calendario de 8 niveles:** lunes a domingo, más feriado. Se deriva de `fecha`; el feriado
+>   sale de `tipo_dia` del ETL y tiene prioridad sobre el día de la semana. El ETL no se toca.
+> - **Nivel del municipio:** media de cada municipio en la ventana de entrenamiento.
+> - **Nivel reciente:** media de cada municipio en los últimos N días antes del origen
+>   (N ∈ {28, 56, 91}). Queda fijo para los 7 días del horizonte.
+> - **Rezagos de 7, 14, 21 y 28 días.** Son siempre observados para un horizonte de 7 días,
+>   así que no hay recursión.
+> - **Indicador del municipio A,** para el término propio de calendario.
+> - **Lluvia,** tomada del panel.
+>
+> Agregá tests en `tests/test_variables.py`. Como mínimo deben verificar: que ninguna variable
+> use datos posteriores al origen, que los feriados coincidan con `tipo_dia`, las dimensiones
+> de salida y que no haya nulos en el horizonte.
+>
+> ## Etapa 0c — Revisión del dashboard del PID (solo lectura)
+>
+> El prototipo va a ser una pestaña nueva en el dashboard Streamlit del PID. Su
+> requirements.txt incluye streamlit==1.35.0, psycopg2-binary==2.9.9, SQLAlchemy==2.0.36,
+> pymongo==4.7.2, pandas==2.2.2, plotly==5.22.0, pydeck==0.9.1, python-dotenv==1.0.1 y
+> streamlit-option-menu==0.3.6.
+>
+> Buscá si el código del dashboard está en este repositorio (por ejemplo en app/) y, si está,
+> respondé sin modificar nada:
+>
+> 1. ¿Cómo obtiene los datos? ¿Arranca sin PostgreSQL ni MongoDB?
+> 2. ¿Esas versiones se instalan con Python 3.13.2? Sospecho que pandas 2.2.2 y
+>    psycopg2-binary 2.9.9 no tienen versiones para 3.13; verificalo.
+> 3. ¿Cómo se agregan las pestañas (streamlit-option-menu, páginas, otro mecanismo)?
+> 4. Proponé dos o tres formas de integrar una pestaña de predicción que funcione sin bases de
+>    datos, con sus ventajas y desventajas.
+>
+> Si el código no está en este repositorio, decímelo y no sigas con esta parte.
+>
+> **DETENETE AQUÍ.**
+>
+> ## Etapa 1 — notebooks/modelos_candidatos.ipynb: protocolo en el panel y referencias
+>
+> ### Sección 0 — Entorno
+> Verificación de entorno igual a la de linea_base.ipynb.
+>
+> ### Sección 1 — Reglas fijadas antes de ejecutar
+> Celda markdown que no se modifica después de ver resultados. Debe contener, textualmente:
+>
+> - **Lista cerrada de modelos.**
+>   - Referencias: media constante global; L0 (promedio de 7/14/21/28 días antes; se revisa su
+>     ventana con 2, 4 y 8 semanas); L1 en el panel (nivel del municipio × factor de calendario
+>     agregado de 8 niveles, el modelo M2 del diagnóstico).
+>   - Candidatos: GLM Poisson, GLM binomial negativa, XGBoost con `objective="count:poisson"`.
+> - **Árbol de decisión retirado antes de ejecutar.** En el E2 no extrapoló la tendencia, y
+>   XGBoost con pérdida Poisson es la extensión de la misma familia.
+> - **Conjuntos de variables, anidados:**
+>   - (0) sin exógenas: municipio + nivel reciente + rezagos 7/14/21/28
+>   - (a) municipio + calendario de 8 niveles
+>   - (b) (a) + término propio de calendario para A
+>   - (c) (b) + nivel reciente (28/56/91 días)
+>   - (d) (c) + lluvia
+> - **Grilla de XGBoost:** `max_depth` ∈ {2, 3, 4} × `n_estimators` ∈ {100, 300} ×
+>   `learning_rate` ∈ {0.05, 0.1}. El resto de los parámetros, fijos y declarados.
+> - **Ventanas de entrenamiento:** expansiva; deslizante de 364, 546 y 728 días.
+> - **Orden de la experimentación:**
+>   - A. Conjuntos con GLM Poisson y XGBoost por defecto, en ventana expansiva.
+>   - B. Grilla de XGBoost y ajuste de la binomial negativa sobre el conjunto elegido.
+>   - C. Ventanas para los dos mejores candidatos.
+> - **Regla de selección:**
+>   1. Desvianza de Poisson media en validación.
+>   2. Empate: candidatos a menos de 1 error estándar del mejor, con el error estándar
+>      calculado sobre los 47 cortes.
+>   3. Entre empatados, el más simple y explicable (GLM antes que XGBoost; menos variables
+>      antes que más).
+>   4. Desempate por estabilidad (peor municipio, dispersión entre semanas) y luego por
+>      calibración (total predicho / observado).
+> - **Binomial negativa:** se reporta la dispersión de Pearson del GLM Poisson y el α
+>   estimado. Su papel declarado son los intervalos de predicción y la inferencia sobre
+>   coeficientes, no mejorar la desvianza.
+> - **Sesgo declarado:** la búsqueda de hiperparámetros y la selección usan los mismos 47
+>   cortes; el desempeño del ganador en validación es optimista.
+>
+> ### Sección 2 — Carga sin test
+> `data/processed/panel_diario_montevideo.csv`, filas posteriores a 2025-02-05 descartadas al
+> leer, con `assert`. Particiones: 987 días de entrenamiento inicial y 329 de validación, en
+> los 8 municipios.
+>
+> ### Sección 3 — Motor de backtesting
+> - 47 cortes con horizonte de 7 días; origen móvil; reentrenamiento en cada corte.
+> - Parámetro de ventana: expansiva o deslizante de N días. Implementalo ya, aunque en esta
+>   etapa solo se use la expansiva.
+> - Todo lo que aprende de los datos se estima con la ventana de entrenamiento del corte,
+>   usando las funciones de src/variables.py.
+> - Guardá las predicciones por corte, día y municipio. La regla del error estándar las
+>   necesita.
+>
+> ### Sección 4 — Métricas
+> Desvianza de Poisson media (predicciones nulas reemplazadas por EPS = 1e-6), MAE, RMSE,
+> total predicho / observado y días con predicción cero. Calculalas globales, por municipio y
+> por corte.
+>
+> ### Sección 5 — Control cruzado del motor
+> Aplicá el motor a la serie del MUNICIPIO C sola, con la media constante y con L1 de 3
+> niveles (tipo_dia), en ventana expansiva. Tiene que reproducir los valores de
+> experiments/linea_base/tablas/04_desarrollo_backtesting.csv: desvianza 1,5178 y 1,3782, con
+> tolerancia 0,001. Si no coincide, detenete y avisame.
+>
+> ### Sección 6 — Referencias en el panel
+> Media constante global, L0 con 2, 4 y 8 semanas, y L1 de 8 niveles, en ventana expansiva.
+> Tablas globales y por municipio.
+>
+> ### Artefactos y documentación
+> - Tablas en `experiments/modelos_candidatos/tablas/`, numeradas, con `00_entorno.csv`.
+> - Figuras en `experiments/modelos_candidatos/figuras/`.
+> - Ejecutá con `jupyter nbconvert --execute` en el `.venv`: 0 errores.
+> - Creá `documentacion/resumen_modelos_candidatos.md` con la estructura de CLAUDE.md. Esta
+>   etapa cubre solo protocolo y referencias, así que marcá como PENDIENTE lo de los
+>   candidatos.
+> - Actualizá HANDOFF.md y documentacion/registro_uso_IA.md con esta sesión.
+> - No hagas commit ni push sin mi confirmación.
+>
+> **DETENETE AQUÍ.** No empieces con los candidatos (fase 2).
+
+**Respuesta (extracto relevante):** (0a) `xgboost==3.4.1` y `pytest==9.1.1`, lock regenerado en entorno limpio (+4 paquetes, ningún
+otro pin cambió). (0b) `src/datos.py` y `src/variables.py` con la compuerta `observado()` como única lectura del objetivo, y 15
+tests. (0c) «El código del dashboard no está en este repositorio»: se detuvo esa parte. Informe de la etapa con tres decisiones de
+diseño y una **advertencia propia**: la lluvia del día a predecir no está disponible con horizonte de 7 días (sólo existiría un
+pronóstico), por lo que el conjunto (d) equivale a suponer un pronóstico perfecto.
+
+**Uso y verificación:** **adaptado.** `src/datos.py` no fue pedido (la IA lo agregó para cumplir la regla de «toda lectura descarta
+el test»). Verificado: `pip check` limpio, `import xgboost`; `pytest` (15 pasan) y una **prueba de mutación** (se hizo que la
+compuerta dejara pasar el futuro y fallaron 5 tests); la ausencia del dashboard se comprobó en el árbol, en `entregable_2` y en todo
+el historial con `git grep`. **Archivos afectados:** `requirements.txt`, `requirements-lock.txt`, `pytest.ini`, `src/datos.py`,
+`src/variables.py`, `src/__init__.py`, `tests/test_variables.py`.
+
+### Prompt 2
+> Respuestas a tu informe de las etapas 0a y 0b:
+>
+> 1. Lectura del test: queda registrado. Asentalo en registro_uso_IA.md y en HANDOFF.md
+>    tal como lo describiste (qué se leyó, que no se tocó n_siniestros, que no influyó en
+>    ningún código ni decisión). No hace falta llevarlo al informe.
+>
+> 2. Tus tres decisiones de src/variables.py quedan confirmadas: origen simulado por
+>    bloques de 7 días para las filas de entrenamiento, mismas filas para todos los conjuntos
+>    y nivel del municipio como constante de la ventana.
+>
+> 3. Lluvia: tenés razón. Sacamos el conjunto (d) de la lista cerrada antes de ejecutar.
+>    Motivo, para escribir en la sección 1 del notebook: la lluvia del día a predecir no
+>    está disponible con horizonte de 7 días (solo existiría un pronóstico) y el diagnóstico
+>    no le encontró aporte fuera de muestra (§7.5). Quitá la lluvia de src/variables.py, o
+>    dejala marcada como no usada, lo que sea más limpio.
+>
+> 4. Dashboard: no lo integres todavía, va en la fase 5. Por ahora solo verificá, sin tocar
+>    requirements.txt, qué versiones de streamlit, plotly, pydeck, psycopg2-binary, pymongo y
+>    python-dotenv se instalan junto con los pines actuales en Python 3.13.2. Informame el
+>    resultado en dos líneas.
+>
+> 5. Actualizá el README (pytest y xgboost) junto con la documentación de la etapa 1.
+>
+> Después seguí con la etapa 1 tal como estaba en el prompt original, con el conjunto (d)
+> eliminado.
+
+**Respuesta (extracto relevante):** se quitó la lluvia de `src/variables.py` (función, columna y mención; el módulo deja constancia
+del motivo) y de los tests. Resolución con los pines actuales (`pip install --dry-run`, con el lock como constraints): streamlit
+1.65.0, plotly 7.1.0, pydeck 0.9.3, psycopg2-binary 2.9.13, pymongo 4.18.3, python-dotenv 1.2.4. Etapa 1: notebook de 22 celdas;
+**control cruzado superado** (1,517768 contra 1,5178 y 1,378246 contra 1,3782); referencias en el panel con L1 de 8 niveles en
+1,2319 y L0 de 8 semanas en 1,3626, media constante 1,3967, L0 de 4 semanas 1,5210 y L0 de 2 semanas 2,4384 (27 predicciones cero).
+
+**Uso y verificación:** **utilizado con adaptaciones menores.** Verificado: tras quitar la lluvia, `pytest` (15 pasan, incluida una
+aserción de que `lluvia_mm` no está en el horizonte); `jupyter nbconvert --execute --inplace` sin errores; el motor reproduce
+`linea_base` dentro de 0,001; el motor se comprobó con un modelo sonda (el objetivo de días ≥ origen no llega al modelo; ventana
+deslizante de 364 días exactos); todas las cifras del resumen se contrastaron contra las tablas generadas. **La resolución de
+versiones del dashboard no prueba que el dashboard arranque**, y no se pudo revisar su código (no está en el repositorio).
+**Observaciones de la IA que decide el equipo:** qué L0 se lleva a la comparación final (la de 4 semanas del E2 queda por detrás
+de la media constante) y cómo entra el nivel reciente en el conjunto (0). **Archivos afectados:** `src/variables.py`,
+`tests/test_variables.py`, `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/`,
+`documentacion/resumen_modelos_candidatos.md`, `README.md`, `HANDOFF.md`.

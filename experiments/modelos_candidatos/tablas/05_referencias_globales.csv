@@ -1,0 +1,6 @@
+modelo,desvianza_poisson,mae,rmse,razon_total,dias_prediccion_cero,n
+Media constante,1.396707,1.520904,1.921242,0.930538,0,2632
+L0 (2 semanas),2.438438,1.717895,2.174148,1.00441,27,2632
+L0 (4 semanas),1.521011,1.572283,1.998771,1.005365,0,2632
+L0 (8 semanas),1.362644,1.495678,1.895783,1.006698,0,2632
+L1 (nivel x calendario de 8 niveles),1.231879,1.400586,1.796007,0.93049,0,2632

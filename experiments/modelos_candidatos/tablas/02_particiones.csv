@@ -1,0 +1,4 @@
+bloque,desde,hasta,dias
+entrenamiento inicial,2021-07-01,2024-03-13,987
+validación (47 cortes de 7 días),2024-03-14,2025-02-05,329
+bloque final (test),2025-02-06,2025-12-31,no cargado

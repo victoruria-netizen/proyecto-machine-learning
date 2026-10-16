@@ -1,0 +1,6 @@
+comprobación del motor,ok
+el objetivo de los días ≥ origen no llega al modelo,True
+la vista termina en el último día del horizonte,True
+el entrenamiento nunca incluye el origen ni después,True
+ventana expansiva: crece desde el primer día (987 días en el primer corte),True
+ventana deslizante de 364 días: exactamente 364 días en cada corte,True

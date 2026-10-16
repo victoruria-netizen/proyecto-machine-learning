@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-05_
+_Última actualización: 2026-10-14_
 
 ---
 
@@ -1707,6 +1707,51 @@ retirado; la conclusión cualitativa coincide.**
 
 **`geopandas` quedó sin uso** (sólo lo importaba `diagnostico_datos_municipio`); sigue en `requirements.txt` y
 en el lock porque tocar los pines exige revalidar los notebooks. Decisión pendiente: quitarlo.
+
+### Entregable 3, Etapa 0 y Etapa 1: dependencias, variables y referencias en el panel (2026-10-13/14, sesión de Claude)
+
+**Alcance de la sesión.** Arranque del Entregable 3. Hecho: dependencias (0a), `src/variables.py` (0b) y
+`notebooks/modelos_candidatos.ipynb` **sólo con protocolo y referencias** (Etapa 1). **No se ejecutó ningún candidato**
+(GLM Poisson, binomial negativa, XGBoost). Sin commit ni push.
+
+> **Incidente: lectura del test (2026-10-13).** Para ver la estructura del panel, un comando exploratorio suelto leyó
+> `data/processed/panel_diario_montevideo.csv` **completo, con las filas del test** (calculó conteos de `tipo_dia`, un
+> `describe` de `precipitacion_mm`/`lluvia_mm` y la fecha máxima). **No se leyó ni calculó nada sobre `n_siniestros` del test**
+> y **no influyó en ningún código ni decisión** (el máximo de lluvia, 58,9 mm, ya figuraba en el resumen del desarrollo). Se
+> declara igual. Medida: todo el panel entra desde entonces por `src.datos.cargar_panel_desarrollo()`. Decisión del equipo:
+> asentarlo aquí y en `registro_uso_IA.md`; no llevarlo al informe.
+
+**0a — Dependencias.** `xgboost==3.4.1` (2026-08-15) y `pytest==9.1.1` (2026-06-19) en `requirements.txt`; lock regenerado en
+entorno limpio con Python 3.13.2 (+4 paquetes: xgboost, pytest, iniconfig, pluggy; ningún otro pin cambió); `pip check` limpio;
+`import xgboost` OK. **Verificación de resolución con los pines actuales** (sin tocar `requirements.txt`, `pip install --dry-run`
+con el lock como constraints): streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3, psycopg2-binary 2.9.13, pymongo 4.18.3 y
+python-dotenv 1.2.4 resuelven en Python 3.13.2 junto con pandas 2.3.3 y numpy 2.5.2. Es una **resolución**, no una instalación
+ni una prueba del dashboard.
+
+**0b — `src/`.** `src/datos.py` (`cargar_panel_desarrollo()`: lee por tramos, recorta a ≤ 2025-02-05 —límite del calendario— y
+verifica con `assert`), `src/variables.py` (calendario de 8 niveles con prioridad del feriado, nivel del municipio, nivel
+reciente 28/56/91, rezagos 7/14/21/28, indicador de A y su término de calendario, `variables_horizonte`,
+`matriz_entrenamiento`), `tests/test_variables.py` (15 pasan) y `pytest.ini`. Decisiones confirmadas por el equipo: origen
+simulado por bloques de 7 días para las filas de entrenamiento; mismas filas para todos los conjuntos; nivel del municipio como
+constante de la ventana. **Lluvia: no está** (ver el conjunto (d) abajo).
+
+**0c — Dashboard del PID.** El código **no está en este repositorio** (ni en `entregable_2` ni en el historial). No se integra
+todavía: va en la fase 5.
+
+**Etapa 1 — `modelos_candidatos.ipynb`.** Reglas fijadas antes de ejecutar (sección 1; no se modifican). **Conjunto (d) (lluvia)
+eliminado** de la lista cerrada, decisión del equipo (2026-10-14): la lluvia del día a predecir no está disponible con horizonte
+de 7 días y no aportó fuera de muestra (§7.5 del diagnóstico). Motor de backtesting (47 cortes, origen móvil, parámetro de
+ventana, el objetivo de días ≥ origen no llega al modelo). **Control cruzado: reproduce `linea_base`** en MUNICIPIO C (1,5178 y
+1,3782; diferencias de 3·10⁻⁵ y 5·10⁻⁵). Referencias en el panel, desvianza de Poisson media en validación (47 cortes): **L1 de
+8 niveles 1,2319**; L0 8 semanas 1,3626; media constante 1,3967; L0 4 semanas 1,5210; L0 2 semanas 2,4384 (27 predicciones cero).
+Ejecutado con `jupyter nbconvert --execute --inplace`: 0 errores. 11 tablas y 3 figuras en `experiments/modelos_candidatos/`.
+Documento acompañante: `documentacion/resumen_modelos_candidatos.md` (lo de los candidatos, `PENDIENTE`).
+
+**Pendiente de decisión del equipo (surgido de la Etapa 1).**
+- **Qué L0 se lleva a la comparación final.** La del E2 (4 semanas) queda por detrás de la media constante; la de 8 semanas es la
+  mejor de las tres. La sección 1 no fija regla para esto.
+- **Cómo entra el nivel reciente en el conjunto (0)** (la lista no fija N; en (c) son 28/56/91).
+- **Lluvia en el prototipo:** el conjunto (d) se retiró; si más adelante se quisiera usarla, haría falta un pronóstico.
 
 ## 4. Pendiente (próximos pasos)
 

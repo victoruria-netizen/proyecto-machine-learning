@@ -1,0 +1,6 @@
+modelo,desvianza_media,error_estandar_47_cortes,n_cortes,desvio_entre_cortes,peor_municipio,desvianza_peor_municipio,a_menos_de_1_ee_del_mejor
+L1 (nivel x calendario de 8 niveles),1.231879,0.035821,47,0.245574,MUNICIPIO E,1.402559,True
+L0 (8 semanas),1.362644,0.041407,47,0.283869,MUNICIPIO E,1.626708,False
+Media constante,1.396707,0.044654,47,0.306131,MUNICIPIO C,1.829912,False
+L0 (4 semanas),1.521011,0.044278,47,0.303558,MUNICIPIO E,1.865502,False
+L0 (2 semanas),2.438438,0.168622,47,1.156012,MUNICIPIO E,3.99303,False

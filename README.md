@@ -78,9 +78,9 @@ probablemente por el límite de 260 caracteres): si pasa, crear el entorno en un
 **Qué es cada archivo**
 
 - `requirements.txt` lista las dependencias directas con versión exacta: lo que importan los
-  notebooks (numpy, pandas, scipy, scikit-learn, statsmodels, matplotlib, holidays,
-  geopandas, pyproj, pyshp, folium, branca, requests) y lo necesario para ejecutarlos (jupyter,
-  ipykernel, ipython).
+  notebooks (numpy, pandas, scipy, scikit-learn, statsmodels, xgboost, matplotlib, holidays,
+  geopandas, pyproj, pyshp, folium, branca, requests), `pytest` para `tests/` y lo necesario
+  para ejecutarlos (jupyter, ipykernel, ipython).
 - `requirements-lock.txt` es el `pip freeze` del entorno verificado. Se usa como
   *constraints* (`-c`): fija la versión de todo el árbol de dependencias sin agregar paquetes.
   Se validó instalando en un entorno limpio con `-r requirements.txt -c requirements-lock.txt`: dio
@@ -105,9 +105,10 @@ Entregable 3. Cambiar la versión de pandas, en particular, exige comparar las s
 convierte un nulo en el texto `"nan"` en pandas 2.x; el caso está documentado en la entrada del 2026-09-20 de `HANDOFF.md`).
 
 **Dependencias que hoy no están.** El 2026-09-20 se retiraron de `requirements.txt` las que
-ningún notebook importa: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
-python-dotenv y pytest. Cuando `src/`, `app/` o `tests/` las necesiten, agregarlas de nuevo con
-versión exacta. Hasta entonces `streamlit` y `pytest` no están instalados en este entorno.
+ningún notebook importaba: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
+python-dotenv y pytest. **El 2026-10-13 volvieron `xgboost==3.4.1` y `pytest==9.1.1`** (Entregable 3:
+candidato XGBoost y pruebas de `tests/`); el lock se regeneró en un entorno limpio y ningún otro pin
+cambió. `streamlit` sigue sin estar instalado: llega con el prototipo.
 
 **Agregar una dependencia.** Instalarla con versión exacta, anotarla en `requirements.txt` con un
 comentario de para qué se usa, reejecutar lo que dependa de ella y regenerar
@@ -169,6 +170,7 @@ varios leen lo que escribe uno anterior:
 | 1 | `preparacion_montevideo` | `data/raw/` (siniestros, capas de zonas y caché de clima) | `data/processed/` y `experiments/etl_montevideo/` |
 | 2 | `diagnostico_municipios` | `data/processed/` y, para 2.4/2.5/2.7, `data/raw/` (siniestros crudos y capa de municipios). **Sólo el bloque de desarrollo: el test se descarta al leer** | `experiments/diagnostico_municipios/` |
 | 3 | `linea_base` | `data/processed/panel_zona_top.csv` | `experiments/linea_base/` |
+| 4 | `modelos_candidatos` | `data/processed/panel_diario_montevideo.csv` **sólo hasta 2025-02-05** (el test se descarta al leer, con `assert`) y `experiments/linea_base/tablas/04_desarrollo_backtesting.csv` | `experiments/modelos_candidatos/` |
 
 ```powershell
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 notebooks/preparacion_montevideo.ipynb
@@ -189,7 +191,8 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
   clima cubre el período, `preparacion_montevideo` no consulta Open-Meteo.
 - **Registro del entorno.** `linea_base` guarda las versiones en
   `experiments/linea_base/tablas/00_entorno.csv`, y `diagnostico_municipios` en
-  `experiments/diagnostico_municipios/tablas/00b_entorno.csv`; cada uno registra solo las bibliotecas que
+  `experiments/diagnostico_municipios/tablas/00b_entorno.csv`, y `modelos_candidatos` en
+  `experiments/modelos_candidatos/tablas/00_entorno.csv`; cada uno registra solo las bibliotecas que
   importa. `preparacion_montevideo` no las registra.
 - **Cómo leer una reejecución.** La del 2026-09-20 dejó idénticas byte a byte todas las tablas de
   resultados; las diferencias fueron solo de versiones, fechas, tamaños de archivo, etiquetas de tipo
@@ -199,10 +202,10 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
 
 ### Pipeline previsto
 
-> **Estado (2026-09-25):** `src/`, `app/` y `tests/` todavía no tienen código. Los comandos de esta
-> sección y de las dos siguientes (dashboard y pruebas) son el diseño previsto y hoy no
-> funcionan. `streamlit` y `pytest` no están instalados en este entorno (ver «Requisitos e
-> instalación»).
+> **Estado (2026-10-14):** `src/` tiene sólo `datos.py` (carga del panel sin el bloque final) y
+> `variables.py` (variables del Entregable 3); `tests/` tiene `test_variables.py` y `pytest tests/`
+> **ya funciona**. Los comandos de `src.models.*` y del dashboard son el diseño previsto y hoy no
+> funcionan. `streamlit` no está instalado en este entorno (ver «Requisitos e instalación»).
 
 El flujo completo se ejecutará en cuatro etapas. Los scripts leerán su configuración
 (granularidad temporal y territorial, período, rutas) desde `src/config.py`.
@@ -233,11 +236,15 @@ El dashboard carga el modelo serializado y el pipeline de preprocesamiento desde
 `models/`, por lo que puede ejecutarse sin repetir el entrenamiento. Los notebooks de
 exploración y análisis descriptivo se encuentran en `notebooks/`.
 
-Pruebas del pipeline de inferencia:
+Pruebas (hoy: las de `src/variables.py` y `src/datos.py`; las del pipeline de inferencia llegan
+con el prototipo):
 
 ```bash
 pytest tests/
 ```
+
+Las pruebas con el panel real se saltan si `data/processed/` no está generado y siempre lo leen
+por `src.datos.cargar_panel_desarrollo()`, que descarta el bloque final al leer.
 
 ## Resultados esperados
 
