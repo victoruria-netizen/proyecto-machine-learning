@@ -78,6 +78,22 @@ conjunto (0) y cuál L0 se lleva a la comparación). Las demás reglas de la tab
 
 La fila 6 es posterior a las cinco primeras: la celda de la adenda del notebook la lleva marcada con su fecha y motivo, y las filas 1 a 5 no cambiaron.
 
+**Precisiones de la fase 2, fijadas el 19/10/2026 antes de ejecutar candidatos** (D31 a D34 y el ítem 5). Espejo de la celda del mismo
+nombre del notebook, que está **debajo de la adenda** y no modifica ni la sección 1 ni la adenda. Cubren decisiones que la fase 2
+necesita y que ninguna de las dos fijaba; se tomaron con las referencias de la fase 1 como único resultado visto.
+
+| N.º | Precisión | Detalle |
+| --- | --- | --- |
+| D31 | **Matriz de indicadoras** | Misma matriz para GLM y XGBoost: 8 columnas de municipio **sin constante**; calendario con 7 columnas, **lunes como referencia**; término de A con 7 columnas `a_x_*`, **sin `a_x_lunes`** (con las 8 sería colineal con la indicadora de A). En el GLM la parametrización no cambia las predicciones; en XGBoost sí, y así A queda en una sola columna |
+| D32 | **Error estándar del ítem 4 de la adenda** | El de (0): el conjunto (0) reemplaza al elegido entre (a), (b) y (c) solo si **desv(elegido) − desv(0) > EE(0)**. Coherente con el paso 2 de la regla de selección (el EE es el del mejor) |
+| D33 | **Registro de experimentos** | `experiments/modelos_candidatos/registro_experimentos.csv` se **reescribe en cada ejecución**, con todas las configuraciones evaluadas en ella (incluidos los resultados negativos) y su fecha y hora; historial en git, con un commit en cada parada (después de A, B y C) |
+| D34 | **Forma de las variables** | En (0) y en (c): **log(nivel_reciente_N)** (con coeficiente 1 la predicción escala con el nivel reciente) y **rezagos 7/14/21/28 como conteos crudos** (hay ceros: log(y) no está definido). En XGBoost el logaritmo no cambia los árboles. Una verificación detiene la ejecución si algún nivel reciente vale 0 |
+| 5 | **Parámetros de XGBoost fuera de D19** | Valores por defecto de xgboost 3.4.1 (`tree_method="hist"`, `subsample=1`, `colsample_bytree=1`, `min_child_weight=1`, `reg_lambda=1`), más `random_state=SEMILLA` y `n_jobs=1` para que los resultados sean deterministas |
+
+*Comprobación previa a fijar D34* (no es un resultado del proyecto ni se cita como tal): sobre el panel de desarrollo leído con
+`cargar_panel_desarrollo()`, la media móvil por municipio de 28, 56 y 91 días nunca vale 0 (mínimos 1,0; 1,2321 y 1,3846). El
+notebook repite la verificación en cada corte y se detiene si falla.
+
 **Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
 que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
 mismos 47 cortes con los que se compararán los candidatos, la ventaja de L0 de 8 semanas sobre la de 4 es optimista en
