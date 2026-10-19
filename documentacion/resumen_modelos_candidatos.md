@@ -63,7 +63,7 @@ Contexto autocontenido para redactar *Metodología — diseño de evaluación*, 
 | **Sesgo declarado** | La búsqueda de hiperparámetros y la selección usan los **mismos 47 cortes**: el desempeño del ganador en validación es optimista | Se declara antes de ver resultados |
 
 **Adenda del 19/10/2026 — precisiones fijadas después de la fase 1 y antes de ejecutar cualquier candidato**
-(cada precisión con su decisión del plan: D17 a D20, D27 y D28). Espejo de la celda «Adenda a la sección 1» del notebook, que está **debajo** de la
+(cada precisión con su decisión del plan: D17 a D20, D27 y D28; la sexta se agregó después, D29). Espejo de la celda «Adenda a la sección 1» del notebook, que está **debajo** de la
 sección 1 y **no la modifica**. Sustituye al «pendiente de precisión» que este documento arrastraba (cómo entra N en el
 conjunto (0) y cuál L0 se lleva a la comparación). Las demás reglas de la tabla anterior siguen como estaban.
 
@@ -74,6 +74,9 @@ conjunto (0) y cuál L0 se lleva a la comparación). Las demás reglas de la tab
 | 3 (D19) | XGBoost en el paso A | `max_depth=3`, `n_estimators=300`, `learning_rate=0.05`; resto de los parámetros fijos y declarados; semilla fija |
 | 4 (D20) | Elección del conjunto por familia | Entre (a), (b) y (c), con la regla de 1 error estándar y el orden de simplicidad a < b < c. El conjunto (0) se reporta para el objetivo 1.2.2 y solo reemplaza al elegido si lo mejora por más de 1 error estándar |
 | 5 (D27 y D28) | Binomial negativa = **NB2** | Varianza μ + αμ², con α estimado por máxima verosimilitud **en cada corte**: `statsmodels.discrete.discrete_model.NegativeBinomial` con `loglike_method="nb2"` (verificado en la firma y el docstring de statsmodels 0.14.6). La familia `NegativeBinomial` del GLM deja α fijo (1,0 si no se le pasa), por eso no es el estimador principal. **Plan B (D28):** si NB2 por máxima verosimilitud no converge en un corte, se reporta y en ese corte se usa el GLM NB con α estimado por momentos en el mismo corte: regresión auxiliar sin intercepto de ((y − μ)² − y)/μ sobre μ, con μ del GLM Poisson ajustado en el entrenamiento de ese corte (Cameron y Trivedi, 1990) |
+| 6 (D29) | Criterio de convergencia de NB2 — **agregado el 19/10/2026 en el fix de la ronda 2, antes de ejecutar candidatos (D29)** | NB2 se ajusta con `method="newton"` y `maxiter=100`. Un corte cuenta como **no convergido** si `mle_retvals["converged"]` es `False`, si se emite un `ConvergenceWarning` o si α no es finito o no es positivo; en ese caso se aplica el plan B (D28) de la fila 5. Respuesta al riesgo R7 de la ronda 2 de R1 (`documentacion/reviews/E3_fase_0-1_r2.md`): `discrete_model.NegativeBinomial.fit` puede terminar con advertencias de convergencia que no son excepciones, así que el criterio se fija antes de ejecutar. Es una regla, no código: se implementa en la fase 2 |
+
+La fila 6 es posterior a las cinco primeras: la celda de la adenda del notebook la lleva marcada con su fecha y motivo, y las filas 1 a 5 no cambiaron.
 
 **Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
 que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
@@ -318,3 +321,17 @@ cite este documento debe saber qué cubría antes:
 - **Verificación de que nada numérico cambió:** reejecutado el notebook, los 14 artefactos de `experiments/modelos_candidatos/` son
   idénticos a los anteriores (`git hash-object --path` contra el índice); `pytest` 15 pasados, 0 saltados. Las cifras de §3 siguen
   respaldadas por las mismas tablas.
+
+### Fix de la ronda 2 de R1 (19/10/2026)
+
+La ronda 2 de la review (`documentacion/reviews/E3_fase_0-1_r2.md`, veredicto APROBADA CON OBSERVACIONES; falló solo el criterio no
+bloqueante N2) motivó este cambio, que es **solo de documentación**:
+
+- **Adenda, ítem 6 nuevo (D29):** criterio de convergencia de NB2, agregado antes de ejecutar candidatos y marcado como tal en la celda
+  del notebook y en la fila 6 de §1.1. La sección 1 y los ítems 1 a 5 de la adenda no se tocaron. El texto de apertura de la celda de la
+  adenda sigue diciendo «cinco precisiones»: se dejó así a propósito, para no editar lo ya commiteado; el ítem 6 aclara que es posterior.
+- **Notebook no reejecutado:** el cambio es una celda de texto, no cambia ninguna salida. Los 14 artefactos de
+  `experiments/modelos_candidatos/` no se tocaron (`git diff --stat experiments/` vacío).
+- **Antes de fijar el criterio** se comprobó, con datos sintéticos generados en memoria (no el panel) y statsmodels 0.14.6, que
+  `NegativeBinomial(..., loglike_method="nb2").fit(method="newton", maxiter=100)` es una llamada válida, que el resultado trae
+  `mle_retvals["converged"]` y que `params` termina en el parámetro `alpha`. Esa comprobación no es un resultado del proyecto y no se cita como tal.

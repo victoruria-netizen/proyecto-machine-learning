@@ -1793,6 +1793,33 @@ artefactos de `experiments/modelos_candidatos/` quedan **idénticos** al índice
 
 **Sigue pendiente de esta fase:** el plan B de D28 y NB2 son reglas, no código; se implementan en la fase 2.
 
+### Entregable 3, fases 0 y 1: ronda 2 de R1 y su fix (2026-10-19, sesión de Claude)
+
+**Resultado de la ronda 2** (`documentacion/reviews/E3_fase_0-1_r2.md`, revisor Claude Opus 5.5 según D25, sobre `e484dcb`):
+**APROBADA CON OBSERVACIONES**. Los 14 criterios bloqueantes cumplen, incluido F1-B2 (sección 1 idéntica a la de `74eafbd`; adenda de
+`cf76a36` anterior al fix). Falló solo N2 (el prompt de R1 en el registro seguía como `PENDIENTE`). Las 8 observaciones de la ronda 1
+quedan corregidas o aceptadas como deuda (mensaje «E3» y factor de calendario, ambas ya declaradas arriba). Sigue abierto el riesgo R4
+(la L0 de 8 semanas supera a la media constante por 0,0341, menos de 1 EE de 0,0447: no presentarlo como mejora).
+
+**Fix de la ronda 2** (solo documentación; ni código ni artefactos):
+- **Prompts de las reviews:** el `PENDIENTE` de la entrada de R1 ronda 1 se reemplazó por el prompt textual, tomado de las transcripciones
+  locales de Claude Code; se agregaron las entradas de R1 ronda 2 y de esta sesión; en la entrada del fix anterior, «ver en la sesión»
+  pasó a los hashes `cf76a36` y `e484dcb` y a la salida de `git ls-remote`. **Queda cerrado el pendiente del prompt de R1**.
+- **D29 — criterio de convergencia de NB2** (ítem 6 de la adenda del notebook, espejo en el resumen §1.1 y §8; agregado antes de
+  ejecutar candidatos y marcado como tal): ajuste con `method="newton"` y `maxiter=100`; un corte es **no convergido** si
+  `mle_retvals["converged"]` es `False`, si se emite `ConvergenceWarning` o si α no es finito o no es positivo; entonces plan B (D28).
+  Responde al riesgo R7 de la ronda 2. La sección 1 y los ítems 1 a 5 no se tocaron.
+- **D30 — validación del equipo.** Lucas revisó los veredictos de las dos rondas de R1 y confirmó el 19/10 las decisiones **D17, D18, D23,
+  D26 a D30**, con apoyo de Claude en el chat del Project. Queda asentado aparte de las reviews (R8: fix y reviews son de modelos
+  distintos, pero de la misma familia). Es una declaración del equipo; no hay otro artefacto que la respalde.
+
+**Verificación.** `pytest`: 15 pasados, 0 saltados. `git diff --stat experiments/`: vacío. El notebook no se reejecutó (solo cambió una
+celda de texto).
+
+**Sigue pendiente de esta fase:** NB2, su plan B y el criterio de convergencia de D29 son reglas, no código; se implementan en la
+fase 2 (con la bandera de convergencia por corte en la salida). Siguen abiertos R1 (commitear las reglas antes del código), R2, R3, R5
+y R6 de la ronda 1.
+
 ## 4. Pendiente (próximos pasos)
 
 **Reorganizado el 2026-09-25** en dos partes: lo que cierra con el Entregable 2 (histórico, no

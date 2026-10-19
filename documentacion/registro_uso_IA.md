@@ -2872,9 +2872,115 @@ modelo distinto del que escribió el código (decisión D25). El revisor no modi
 `documentacion/reviews/E3_fase_0-1.md`, que es el artefacto de esta sesión.
 
 ### Prompt 1
-> <!-- PENDIENTE: transcripción textual del prompt de la sesión de review. La sesión del revisor no consta en la sesión de
-> trabajo que redactó esta entrada; el equipo debe pegarlo aquí tal cual lo escribió. El resultado verificable es el informe
-> `documentacion/reviews/E3_fase_0-1.md`. -->
+> Sos el revisor de las fases 0 y 1 del Entregable 3. No trabajaste en estas fases. Tu tarea es
+> verificar, no corregir: el único archivo que podés crear es el informe de review. Modelo de esta
+> sesión: opus (D25); anotalo en el informe.
+>
+> ## Paso 0 — Rama y prerrequisitos (detenete si algo no cumple)
+>
+> 1. Creá la rama: `git switch main`, `git pull`, `git switch -c e3/fase-0-1-protocolo`.
+>    Verificá con `git log -1 --oneline` que HEAD es 74eafbd. Si main avanzó más allá de 74eafbd,
+>    detenete y avisame.
+> 2. Activá el .venv (`.venv\Scripts\Activate.ps1`) y verificá que `python -c "import sys;
+>    print(sys.executable, sys.version)"` apunta a .venv y dice 3.13.2. Todo comando de Python,
+>    pytest y nbconvert se corre con el .venv activado: con el venv sin activar, el kernel de
+>    nbconvert usa el Python 3.13.9 del sistema.
+> 3. Panel: data/processed/panel_diario_montevideo.csv tiene que existir y su sha256
+>    (`Get-FileHash -Algorithm SHA256`) tiene que ser
+>    82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06, el registrado en
+>    experiments/diagnostico_municipios/tablas/00_procedencia.csv. Calculá solo el hash: no abras
+>    el archivo ni leas filas. Si falta o el hash no coincide, detenete.
+>
+> ## Paso 1 — Lectura
+>
+> Leé CLAUDE.md, HANDOFF.md, documentacion/resumen_modelos_candidatos.md y la sección 1 de
+> notebooks/modelos_candidatos.ipynb. El trabajo se commiteó directo en main (D23), así que la base
+> de comparación es el commit padre: `git diff 34ff44d...e3/fase-0-1-protocolo --stat` y después el
+> diff completo. No uses `git diff main...`: sale vacío.
+>
+> ## Paso 2 — Ejecución
+>
+> 1. `pytest` desde la raíz: tienen que pasar los 15 tests, sin saltados.
+> 2. `jupyter nbconvert --to notebook --execute --inplace notebooks/modelos_candidatos.ipynb`.
+>    Tiene que terminar con 0 errores. Verificá en la salida de la sección 0 que el Python es
+>    3.13.2.
+> 3. La ejecución reescribe el notebook y los artefactos de experiments/modelos_candidatos/.
+>    Corré `git status` y `git diff --stat`, y compará cada CSV regenerado con el commiteado:
+>    reportá qué archivos cambiaron y si las cifras difieren o solo cambian metadatos (fechas,
+>    rutas, bytes de PNG). Una cifra que cambia es un hallazgo. Después dejá el árbol como estaba
+>    con `git restore notebooks/ experiments/` y confirmá con `git status`.
+> 4. F0-B2: en una copia temporal FUERA del repo, hacé que una variable de src/variables.py lea
+>    el día del origen o posteriores y verificá que al menos un test falla. Borrá la copia al
+>    terminar.
+>
+> ## Paso 3 — Criterios
+>
+> Evaluá cada criterio: CUMPLE o NO CUMPLE, con evidencia concreta (comando y salida, archivo y
+> línea, cifra contra el CSV). Sin evidencia, el criterio es NO CUMPLE.
+>
+> Comunes:
+> - B1 Fuera de evaluacion_final.ipynb, ningún código lee filas posteriores a 2025-02-05 (buscar
+>   lecturas del panel fuera de cargar_panel_desarrollo(); comprobar el assert del notebook).
+> - B2 Los notebooks de la fase ejecutan de punta a punta sin errores (nbconvert en el .venv).
+> - B3 pytest pasa entero (15 pasados, 0 saltados).
+> - B4 Toda cifra del resumen, del HANDOFF y del informe coincide con un artefacto.
+> - B5 Las reglas fijadas no se modificaron después de ejecutar (sección 1 del notebook).
+> - B6 Entorno coherente: verificación de entorno del notebook en verde; pip check limpio;
+>   requirements.txt y el lock coinciden.
+> - N1 El documento acompañante sigue la estructura de CLAUDE.md, incluida la lista de frases que
+>   no deben aparecer en el informe.
+> - N2 HANDOFF y registro de IA actualizados con la sesión.
+> - N3 Las lecturas separan evidencia de inferencia.
+> - N4 Los resultados negativos quedan registrados.
+> - N5 Código legible: sin código muerto, funciones de src/ documentadas, nombres consistentes.
+> - N6 El alcance coincide con lo pedido: no se hizo de más ni de menos.
+>
+> Fase 0:
+> - F0-B1 xgboost y pytest con versión exacta; el diff del lock contra 34ff44d suma solo xgboost,
+>   pytest, iniconfig y pluggy.
+> - F0-B2 Los tests detectan fugas (Paso 2.4).
+> - F0-B3 Ninguna función de src/variables.py lee n_siniestros sin pasar por la función
+>   compuerta.
+> - F0-N1 La lluvia no aparece en src/variables.py y el motivo de su retiro está escrito en el
+>   módulo.
+> - F0-N2 pytest.ini silencia solo el aviso de numpy 2.5 con pandas 2.3.3, con un comentario que
+>   lo justifica.
+> - F0-N3 README actualizado con pytest y xgboost.
+> - F0-N4 La lectura accidental del test está asentada en HANDOFF y en el registro de IA (D22).
+>
+> Fase 1:
+> - F1-B1 Control cruzado: el motor reproduce 1,5178 y 1,3782 en el Municipio C, con tolerancia
+>   0,001.
+> - F1-B2 La sección 1 del notebook coincide con "Reglas fijadas antes de ejecutar" del plan, sin
+>   el conjunto (d): lista cerrada (media constante, L0 de 8 semanas, L1 de 8 niveles, GLM
+>   Poisson, NB2, XGBoost count:poisson), conjuntos (0), (a), (b), (c), grilla de 12
+>   combinaciones, ventanas expansiva y deslizante de 364/546/728 días, regla de selección de 5
+>   pasos.
+> - F1-B3 Ningún nivel ni factor se estima con datos del horizonte: alterar los valores
+>   posteriores al origen de un corte no cambia sus predicciones (probalo en la copia temporal o
+>   en memoria, sin escribir en el repo).
+> - F1-B4 La ventana deslizante tiene exactamente N días en cada corte.
+> - F1-N1 Las métricas quedan guardadas globales, por municipio y por corte, y las predicciones
+>   por corte, día y municipio.
+> - F1-N2 Las cifras del diagnóstico citadas en el resumen (M0 1,4014; M2 1,2385) están marcadas
+>   como chequeo de coherencia y no como cifras citables.
+>
+> ## Paso 4 — Veredicto e informe
+>
+> Veredicto, aplicando la regla sin interpretación:
+> - DESAPROBADA si falla al menos un criterio bloqueante (B).
+> - APROBADA CON OBSERVACIONES si fallan solo criterios no bloqueantes (N).
+> - APROBADA si cumplen todos.
+>
+> Escribí documentacion/reviews/E3_fase_0-1.md con: fecha, modelo, commit revisado (hash
+> completo), base de comparación (34ff44d), sha256 del panel, tabla de criterios (ID, criterio,
+> resultado, evidencia), resultado de la reejecución (archivos que cambiaron y si cambió alguna
+> cifra), veredicto, lista numerada de observaciones con lo que habría que hacer para corregir
+> cada una, y riesgos fuera de criterios (sin afectar el veredicto).
+>
+> Mostrame el veredicto y las observaciones. No hagas commit ni push.
+
+*Prompt completado el 19/10/2026 en el fix de la ronda 2 (D29, D30): transcripción textual del primer mensaje de la sesión del revisor (`88463c61-b062-42b9-ad62-da91e958eac5.jsonl`, transcripciones locales de Claude Code), extraída por programa y no reescrita a mano.*
 
 **Respuesta (extracto relevante):** veredicto **DESAPROBADA**. Falla un criterio bloqueante, **F1-B2** (la sección 1 del notebook
 no coincide con la lista cerrada del plan en «L0 de 8 semanas» y «NB2»), y dos no bloqueantes, **N5** (código muerto `exp_dias` y una
@@ -3031,11 +3137,179 @@ ninguna cifra cambió. **Archivos afectados:** `notebooks/modelos_candidatos.ipy
 >    mensaje "Corrige las observaciones de la review R1 (N5, N6 y precisiones menores)".
 > 4. git push -u origin e3/fase-0-1-protocolo. No mergees.
 
+*Nota del 19/10/2026 (fix de la ronda 2): el prompt se deja como se envió. El marcador `<pegar acá el prompt del plan>` del punto 1 no se completó en ese momento; el prompt de R1 se completó después, en la entrada de la review R1 (ronda 1), en la sesión que documenta la entrada «Sesión 2026-10-19 (fix de la ronda 2 de R1)», más abajo.*
+
 **Respuesta (extracto relevante):** el punto 1 llegó con el marcador `<pegar acá el prompt del plan>` sin reemplazar, es decir, sin el
 texto del prompt de la review: **el `PENDIENTE` de la entrada de la review R1 sigue abierto** y se avisó al equipo. Punto 2 asentado
 aquí y en el §8 del resumen. Puntos 3 y 4 ejecutados (commit y push de la rama, sin merge).
 
 **Uso y verificación:** **decisión del equipo (punto 2):** `modelo_media_constante` queda como está, porque la sección 1 fija la media
 constante **global**; por eso no usa `var.nivel_municipio` y el punto 3 del Paso 2 se aplicó solo a `modelo_L1`. Verificación del
-commit y del push: ver el resultado de `git log` y `git push` en la sesión. **Archivos afectados:**
+commit y del push: `git log --oneline 34ff44d..HEAD` da `74eafbd` (E3) → `cf76a36` (adenda) → `e484dcb` (fix); `git ls-remote origin e3/fase-0-1-protocolo`, ejecutado el 19/10/2026 antes del commit de la ronda 2, devuelve `e484dcb78fa65af135b56c7430eb369c846fbbdc	refs/heads/e3/fase-0-1-protocolo`. **Archivos afectados:**
 `documentacion/registro_uso_IA.md`, `documentacion/resumen_modelos_candidatos.md`.
+
+---
+
+## Sesión 2026-10-19 (review R1, ronda 2) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** segunda revisión independiente de las fases 0 y 1 del Entregable 3, sobre el fix `e484dcb` de la rama
+`e3/fase-0-1-protocolo` (decisión D25: revisor distinto del que escribió el código). El revisor no modificó código ni notebooks: dejó
+`documentacion/reviews/E3_fase_0-1_r2.md`, que es el artefacto de esta sesión.
+
+### Prompt 1
+> Sos el revisor de las fases 0 y 1 del Entregable 3, ronda 2. No trabajaste en estas fases ni en
+> el fix. Tu tarea es verificar, no corregir: el único archivo que podés crear es el informe de
+> review. Modelo de esta sesión: opus (D25); anotalo en el informe.
+>
+> ## Paso 0 — Rama y prerrequisitos (detenete si algo no cumple)
+>
+> 1. `git switch e3/fase-0-1-protocolo` y `git pull`. Mostrá `git log --oneline 34ff44d..HEAD`:
+>    tienen que aparecer 74eafbd, después cf76a36 (adenda) y después el commit del fix, en ese
+>    orden.
+> 2. Activá el .venv (`.venv\Scripts\Activate.ps1`) y verificá que `python -c "import sys;
+>    print(sys.executable, sys.version)"` apunta a .venv y dice 3.13.2.
+> 3. El sha256 de data/processed/panel_diario_montevideo.csv tiene que ser
+>    82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06. Calculá solo el hash.
+>
+> ## Paso 1 — Lectura
+>
+> Leé CLAUDE.md, HANDOFF.md, documentacion/resumen_modelos_candidatos.md,
+> documentacion/reviews/E3_fase_0-1.md (ronda 1) y las secciones 1 y "Adenda a la sección 1" del
+> notebook. Diff contra la base: `git diff 34ff44d...HEAD --stat` y completo. Además
+> `git diff 74eafbd HEAD -- notebooks/modelos_candidatos.ipynb` para ver qué cambió en el fix.
+>
+> ## Paso 2 — Ejecución
+>
+> 1. `pytest`: 15 pasados, 0 saltados.
+> 2. `jupyter nbconvert --to notebook --execute --inplace notebooks/modelos_candidatos.ipynb`
+>    con 0 errores; la sección 0 dice Python 3.13.2.
+> 3. Compará los artefactos regenerados con los commiteados (`git diff --stat experiments/`):
+>    ninguna cifra puede cambiar. Restaurá con `git restore notebooks/ experiments/` y confirmá
+>    con `git status`.
+> 4. F0-B2 y F1-B3 se repiten igual que en la ronda 1, en una copia FUERA del repo o en memoria.
+>
+> ## Paso 3 — Criterios
+>
+> Evaluá todos los criterios de la ronda 1 (B1–B6, N1–N6, F0-B1 a F0-N4, F1-B1 a F1-N2), cada uno
+> con evidencia. Precisiones para esta ronda:
+> - F1-B2 se evalúa sobre la sección 1 más la adenda: la sección 1 tiene que estar idéntica a la
+>   de 74eafbd, la adenda tiene que fijar L0 de 8 semanas (declarando que se eligió con la
+>   validación), N ∈ {28, 56, 91} para (0), XGBoost del paso A, la regla por familia y NB2 con α
+>   por máxima verosimilitud y plan B por momentos en el mismo corte, y su commit (cf76a36) tiene
+>   que ser anterior al del fix.
+> - N6: la media constante es global por definición de la sección 1; no es una observación que
+>   modelo_media_constante no use nivel_municipio. Sí verificá que modelo_L1 use
+>   var.nivel_municipio.
+> - Verificá una por una las 8 observaciones de la ronda 1: corregida, aceptada como deuda
+>   (mensaje del commit "E3"; factor de calendario a src/ para la fase 5) o pendiente.
+> - N2: el registro de IA tiene las entradas de la review R1 y del fix con los prompts textuales,
+>   sin marcas de pendiente.
+>
+> ## Paso 4 — Veredicto e informe
+>
+> Misma regla: DESAPROBADA si falla un B; APROBADA CON OBSERVACIONES si fallan solo N; APROBADA si
+> cumplen todos. Escribí documentacion/reviews/E3_fase_0-1_r2.md con: fecha, modelo, commit
+> revisado (hash completo), base (34ff44d), sha256 del panel, tabla de criterios con evidencia,
+> estado de cada observación de la ronda 1, resultado de la reejecución, veredicto, observaciones
+> nuevas numeradas y riesgos fuera de criterios. Mostrame el veredicto. No hagas commit ni push.
+
+*Transcripción textual del primer mensaje de la sesión del revisor (`07b59f2d-b7fe-4f5e-8794-396a1ae662d9.jsonl`, transcripciones locales
+de Claude Code), extraída por programa y no reescrita a mano.*
+
+**Respuesta (extracto relevante):** veredicto **APROBADA CON OBSERVACIONES**. Los 14 criterios bloqueantes cumplen, incluido **F1-B2**
+(la sección 1 es idéntica a la de `74eafbd`; la adenda de `cf76a36`, anterior al fix, fija todo lo que pedía el criterio). Falla un
+criterio no bloqueante, **N2**: el Prompt 1 de la entrada de R1 (ronda 1) conserva el marcador `<!-- PENDIENTE -->`. Observaciones
+nuevas: (1) falta ese prompt; (2) el HANDOFF no lista el pendiente; (3) la verificación del commit y del push en el registro no es
+trazable (menor). Las 8 observaciones de la ronda 1 quedan corregidas, o aceptadas como deuda (mensaje «E3»; factor de calendario a
+`src/` en la fase 5). Riesgos fuera de criterios nuevos: **R7** (NB2 y su plan B son reglas, no código; conviene fijar el criterio de no
+convergencia, por ejemplo `mle_retvals["converged"]`, antes de ejecutar) y **R8** (fix y reviews son de modelos distintos pero de la
+misma familia; conviene que la validación del equipo conste aparte).
+
+**Uso y verificación:** el informe se usó como entrada del fix de la ronda 2 (sesión siguiente): las observaciones 1 a 3 se corrigen allí,
+R7 se responde con la decisión D29 y R8 con la validación del equipo (D30). Verificación del revisor (según el propio informe):
+`pytest` 15 pasados; `nbconvert --execute` con 0 errores; los 14 artefactos de `experiments/modelos_candidatos/` idénticos a los
+commiteados; mutaciones M1–M4 detectadas (2/4/4/5 fallan); F1-B3 sin fuga (705 comparaciones, diferencia máxima 0,0); sha256 del panel
+igual al esperado. **Archivos afectados:** `documentacion/reviews/E3_fase_0-1_r2.md` (nuevo).
+
+---
+
+## Sesión 2026-10-19 (fix de la ronda 2 de R1) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** Entregable 3, fases 0 y 1, rama `e3/fase-0-1-protocolo`. Corrección de las observaciones de la ronda 2 de R1
+(`documentacion/reviews/E3_fase_0-1_r2.md`). Solo documentación: no se tocó código ni artefactos.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase Fix corto de las obs. de la review, en la rama e3/fase-0-1-protocolo.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en <rama>. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en <rama> solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fix de la review R1, ronda 2 (documentacion/reviews/E3_fase_0-1_r2.md, APROBADA CON
+> OBSERVACIONES). Solo documentación: no toques código ni artefactos.
+>
+> 1. Prompts textuales de las reviews: Claude Code guarda las transcripciones locales en
+>    %USERPROFILE%\.claude\projects\ (carpeta de este repo), en archivos .jsonl. Buscá la sesión
+>    cuyo primer mensaje empieza con "Sos el revisor de las fases 0 y 1 del Entregable 3. No
+>    trabajaste en estas fases. Tu tarea" (R1, ronda 1) y la de "…, ronda 2" (R1, ronda 2).
+>    Transcribí cada primer mensaje tal cual. Si no las encontrás, detenete y avisame; no
+>    reconstruyas el texto.
+> 2. registro_uso_IA.md: reemplazá el <!-- PENDIENTE --> de la entrada de R1 ronda 1 con su
+>    prompt, agregá la entrada de R1 ronda 2 (prompt y veredicto) y la de esta sesión. En la
+>    entrada del fix anterior, reemplazá "ver en la sesión" por los hashes cf76a36 y e484dcb y la
+>    salida de `git ls-remote origin e3/fase-0-1-protocolo`. El prompt del fix anterior se deja
+>    como se envió, con una nota de que el marcador no se completó.
+> 3. Adenda, ítem 6 nuevo, marcado "agregado el 19/10/2026 en el fix de la ronda 2, antes de
+>    ejecutar candidatos (D29)": NB2 se ajusta con method="newton" y maxiter=100; un corte cuenta
+>    como no convergido si mle_retvals["converged"] es False, si se emite ConvergenceWarning o si
+>    α no es finito o no es positivo; en ese caso se aplica el plan B (D28). Espejo en el resumen
+>    §1.1. No toques la sección 1 ni los ítems 1 a 5.
+> 4. HANDOFF y registro, validación del equipo (D30): Lucas revisó los veredictos de las dos
+>    rondas de R1 y confirmó el 19/10 las decisiones D17, D18, D23, D26 a D30, con apoyo de
+>    Claude en el chat del Project. En el HANDOFF, cerrá el pendiente del prompt de R1.
+> 5. Verificación: pytest con 15 pasados y 0 saltados; `git diff --stat experiments/` vacío.
+> 6. Commit con todo lo anterior más documentacion/reviews/E3_fase_0-1_r2.md sin modificar,
+>    mensaje "Completa el registro de R1 y fija el criterio de convergencia de NB2 (D29, D30)", y
+>    push de la rama. No mergees.
+
+**Respuesta (extracto relevante):** se verificó la rama y se leyeron CLAUDE.md, HANDOFF.md, el resumen, el registro y el informe de la
+ronda 2. (1) Las sesiones del revisor existen en las transcripciones locales (`%USERPROFILE%\.claude\projects\`, carpeta de este
+repositorio): R1 ronda 1 es `88463c61-…` y R1 ronda 2 es `07b59f2d-…`; se identificaron por el primer mensaje y se extrajeron por
+programa (6.232 y 3.279 caracteres). (2) Registro: el `PENDIENTE` de R1 ronda 1 se reemplazó por su prompt; se agregaron las entradas de
+R1 ronda 2 y de esta sesión; en el Prompt 3 del fix anterior se dejó el prompt como se envió, con una nota, y «ver en la sesión» se
+reemplazó por los hashes `cf76a36` y `e484dcb` y la salida de `git ls-remote`. (3) Ítem 6 de la adenda (D29): NB2 con `method="newton"`
+y `maxiter=100`; no convergido si `mle_retvals["converged"]` es `False`, si se emite `ConvergenceWarning` o si α no es finito o no es
+positivo; entonces plan B (D28). Espejo en el resumen §1.1 (fila 6) y §8. (4) HANDOFF: entrada nueva con la validación del equipo (D30)
+y cierre del pendiente del prompt de R1.
+
+**Uso y verificación:** **utilizado tal cual, con dos precisiones declaradas:** (a) la celda de la adenda abre diciendo «cinco
+precisiones»; no se editó para no tocar texto ya commiteado, y el ítem 6 lo aclara («sexta precisión, posterior»); (b) en el diff del
+notebook la última línea del ítem 5 aparece modificada solo por el salto de línea que se le agregó al encadenar el ítem 6, sin cambio de
+contenido. **La validación del equipo (D30) la declaró el equipo en el prompt** (Lucas revisó los veredictos de las dos rondas de R1 y
+confirmó el 19/10 las decisiones D17, D18, D23, D26 a D30, con apoyo de Claude en el chat del Project); la IA la asentó, no la
+comprobó. Verificación: antes de fijar D29 se comprobó con datos sintéticos en memoria (no el panel) y statsmodels 0.14.6 que
+`NegativeBinomial(..., loglike_method="nb2").fit(method="newton", maxiter=100)` es válido, que el resultado trae
+`mle_retvals["converged"]` y que `params` termina en `alpha` (comprobación de API, no resultado del proyecto); `pytest` → 15 pasados,
+0 saltados; `git diff --stat experiments/` vacío; el notebook no se reejecutó (solo cambió una celda de texto). Los prompts del registro
+se contrastaron con las transcripciones por programa. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb` (celda de texto de la
+adenda), `documentacion/resumen_modelos_candidatos.md`, `documentacion/registro_uso_IA.md`, `HANDOFF.md`,
+`documentacion/reviews/E3_fase_0-1_r2.md` (sin modificar, se incluye en el commit).
