@@ -3313,3 +3313,52 @@ comprobó. Verificación: antes de fijar D29 se comprobó con datos sintéticos 
 se contrastaron con las transcripciones por programa. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb` (celda de texto de la
 adenda), `documentacion/resumen_modelos_candidatos.md`, `documentacion/registro_uso_IA.md`, `HANDOFF.md`,
 `documentacion/reviews/E3_fase_0-1_r2.md` (sin modificar, se incluye en el commit).
+
+---
+
+## Sesión 2026-10-19 (review R1, ronda 3) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** review corta de las fases 0 y 1 del Entregable 3, ronda 3. Verifica solo las observaciones de
+`documentacion/reviews/E3_fase_0-1_r2.md` sobre el commit `ce6a18a` de la rama `e3/fase-0-1-protocolo` (decisión D25: revisor
+distinto del que hizo el fix). El revisor no modificó código, notebooks ni artefactos: dejó `documentacion/reviews/E3_fase_0-1_r3.md`
+y esta entrada.
+
+### Prompt 1
+> Sos el revisor de la review corta de las fases 0 y 1 del Entregable 3 (R1, ronda 3). Verificá
+> solo las observaciones de documentacion/reviews/E3_fase_0-1_r2.md. Modelo: opus (D25).
+>
+> 1. `git switch e3/fase-0-1-protocolo`, `git pull`. Mostrá `git log --oneline e484dcb..HEAD` y
+>    `git diff e484dcb..HEAD --stat`: solo pueden cambiar registro_uso_IA.md, HANDOFF.md,
+>    resumen_modelos_candidatos.md, la celda de la adenda del notebook y el informe r2. Ningún
+>    archivo de src/, tests/ ni experiments/.
+> 2. Verificá, con evidencia:
+>    - Obs. 1 (N2): no queda ningún "PENDIENTE" en registro_uso_IA.md; los prompts de R1 ronda 1
+>      y ronda 2 están completos y textuales.
+>    - Obs. 2: el HANDOFF cierra ese pendiente.
+>    - Obs. 3: la entrada del fix tiene los hashes cf76a36 y e484dcb y la verificación del push.
+>    - D29: la adenda tiene el ítem 6 con method, maxiter y las tres condiciones de no
+>      convergencia, marcado como agregado en el fix; la sección 1 y los ítems 1 a 5 no cambiaron
+>      (compará contra e484dcb); el resumen §1.1 lo refleja.
+>    - D30: consta la validación del equipo en el HANDOFF y en el registro.
+>    - pytest: 15 pasados, 0 saltados.
+> 3. Veredicto: APROBADA si todo cumple; si algo no cumple, listalo.
+> 4. Escribí documentacion/reviews/E3_fase_0-1_r3.md y agregá la entrada de esta sesión en
+>    registro_uso_IA.md con este prompt textual (D30). Mostrame el veredicto. No hagas commit.
+
+**Respuesta (extracto relevante):** veredicto **APROBADA**. `git log --oneline e484dcb..HEAD` muestra solo `ce6a18a`, y el diff toca
+los cinco archivos permitidos; `src/`, `tests/` y `experiments/` no cambian. En el notebook solo cambió la celda `a7d19f27`.
+(1) No queda ningún marcador `PENDIENTE` abierto en el registro: las 7 coincidencias de `grep` son citas o texto histórico. Los
+prompts de R1 ronda 1 y ronda 2 coinciden con el primer mensaje de las transcripciones locales `88463c61-…` y `07b59f2d-…`; la única
+diferencia son las etiquetas del bloque pegado. (2) El HANDOFF dice «Queda cerrado el pendiente del prompt de R1». (3) La entrada del
+fix anterior tiene `74eafbd` → `cf76a36` → `e484dcb` y la salida de `git ls-remote` (`e484dcb…`). (D29) El ítem 6 tiene `method="newton"`,
+`maxiter=100` y las tres condiciones, marcado como agregado en el fix. La sección 1 (`5efc0a58`) es idéntica en `74eafbd`, `e484dcb` y
+`HEAD`, y el texto de la adenda en `e484dcb` es prefijo exacto del de `HEAD`. El resumen §1.1 tiene la fila 6. (D30) La validación del
+equipo consta en el HANDOFF y en el registro, como declaración del equipo. `pytest`: 15 pasados, 0 saltados. Notas menores, sin efecto
+en el veredicto: se editaron 4 líneas de entradas anteriores del registro, como pidió la ronda 2; la entrada del fix de la ronda 2 no
+trae el hash de su propio commit; la apertura de la adenda sigue diciendo «cinco precisiones», como decisión declarada.
+
+**Uso y verificación:** informe de review, sin cambios de código. Verificación: comparación por programa (script en el scratchpad de
+la sesión, fuera del repo) de los prompts del registro contra las transcripciones `.jsonl` y de las fuentes de las celdas del notebook
+por `id` entre `74eafbd`, `e484dcb` y `HEAD`; `python -m pytest -rA -q` → `15 passed`; `git ls-remote origin e3/fase-0-1-protocolo`
+→ `ce6a18ae3a435fcda2cbc2844d22967c57f6d1da`, igual a `HEAD`, así que el commit del fix de la ronda 2 está en el remoto. Sin commit ni
+push. **Archivos afectados:** `documentacion/reviews/E3_fase_0-1_r3.md` (nuevo), `documentacion/registro_uso_IA.md` (esta entrada).
