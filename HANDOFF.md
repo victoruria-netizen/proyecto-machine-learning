@@ -1748,9 +1748,14 @@ Ejecutado con `jupyter nbconvert --execute --inplace`: 0 errores. 11 tablas y 3 
 Documento acompañante: `documentacion/resumen_modelos_candidatos.md` (lo de los candidatos, `PENDIENTE`).
 
 **Pendiente de decisión del equipo (surgido de la Etapa 1).**
-- **Qué L0 se lleva a la comparación final.** La del E2 (4 semanas) queda por detrás de la media constante; la de 8 semanas es la
-  mejor de las tres. La sección 1 no fija regla para esto.
-- **Cómo entra el nivel reciente en el conjunto (0)** (la lista no fija N; en (c) son 28/56/91).
+- ~~**Qué L0 se lleva a la comparación final.**~~ **Cerrado el 2026-10-19** (adenda del notebook, debajo de la sección 1; la
+  sección 1 no se tocó): **L0 de 8 semanas**, elegida **mirando los 47 cortes de validación** (1,3626 contra 1,5210 de 4 semanas
+  y 2,4384 de 2 semanas, `tablas/05`; a menos de 1 error estándar de la media constante, 1,3967 con EE 0,0447, `tablas/05` y
+  `08`). Es una elección informada por la validación, no una regla previa.
+- ~~**Cómo entra el nivel reciente en el conjunto (0).**~~ **Cerrado el 2026-10-19** (misma adenda): N ∈ {28, 56, 91}, elegido en el
+  paso A por familia. La adenda fija además XGBoost del paso A (`max_depth=3`, `n_estimators=300`, `learning_rate=0.05`), la regla
+  de elección del conjunto por familia (a < b < c; (0) solo si mejora por más de 1 EE) y la binomial negativa como **NB2** con α
+  por máxima verosimilitud en cada corte (plan B, D28: GLM NB con α por momentos en el mismo corte, regresión auxiliar de Cameron y Trivedi, 1990).
 - **Lluvia en el prototipo:** el conjunto (d) se retiró; si más adelante se quisiera usarla, haría falta un pronóstico.
 
 ## 4. Pendiente (próximos pasos)

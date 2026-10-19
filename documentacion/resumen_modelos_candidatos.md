@@ -60,8 +60,23 @@ Contexto autocontenido para redactar *Metodología — diseño de evaluación*, 
 | Binomial negativa | Se reporta la dispersión de Pearson del GLM Poisson y el α estimado; su papel son los intervalos de predicción y la inferencia sobre coeficientes, no mejorar la desvianza | **PENDIENTE** |
 | **Sesgo declarado** | La búsqueda de hiperparámetros y la selección usan los **mismos 47 cortes**: el desempeño del ganador en validación es optimista | Se declara antes de ver resultados |
 
-**Pendiente de precisión para la etapa de candidatos.** Los conjuntos (0) y (c) dicen «nivel reciente» sin fijar N en (0);
-(c) lo fija en 28/56/91. Cómo entra N en (0) se resuelve antes de ejecutar los candidatos.
+**Adenda del 19/10/2026 — precisiones fijadas después de la fase 1 y antes de ejecutar cualquier candidato**
+(cada precisión con su decisión del plan: D17 a D20, D27 y D28). Espejo de la celda «Adenda a la sección 1» del notebook, que está **debajo** de la
+sección 1 y **no la modifica**. Sustituye al «pendiente de precisión» que este documento arrastraba (cómo entra N en el
+conjunto (0) y cuál L0 se lleva a la comparación). Las demás reglas de la tabla anterior siguen como estaban.
+
+| N.º | Precisión | Detalle y respaldo |
+| --- | --- | --- |
+| 1 (D17) | **L0 que pasa a la comparación: 8 semanas** | Elegida **después de fijar la lista y mirando los 47 cortes de validación**: desvianza 1,3626 (8 semanas), 1,5210 (4 semanas, la del Entregable 2) y 2,4384 (2 semanas) (`tablas/05`). Es una elección **informada por la validación**, no una regla previa. Queda por debajo de la media constante (1,3967, `tablas/05`) por 0,0341, **menos de 1 error estándar** de ella (0,0447, `tablas/08`). El bloque final no intervino |
+| 2 (D18) | Nivel reciente del conjunto (0) | N ∈ {28, 56, 91} días, elegido en el paso A por desvianza media en validación, **por separado en cada familia** (GLM Poisson y XGBoost), igual que en (c) |
+| 3 (D19) | XGBoost en el paso A | `max_depth=3`, `n_estimators=300`, `learning_rate=0.05`; resto de los parámetros fijos y declarados; semilla fija |
+| 4 (D20) | Elección del conjunto por familia | Entre (a), (b) y (c), con la regla de 1 error estándar y el orden de simplicidad a < b < c. El conjunto (0) se reporta para el objetivo 1.2.2 y solo reemplaza al elegido si lo mejora por más de 1 error estándar |
+| 5 (D27 y D28) | Binomial negativa = **NB2** | Varianza μ + αμ², con α estimado por máxima verosimilitud **en cada corte**: `statsmodels.discrete.discrete_model.NegativeBinomial` con `loglike_method="nb2"` (verificado en la firma y el docstring de statsmodels 0.14.6). La familia `NegativeBinomial` del GLM deja α fijo (1,0 si no se le pasa), por eso no es el estimador principal. **Plan B (D28):** si NB2 por máxima verosimilitud no converge en un corte, se reporta y en ese corte se usa el GLM NB con α estimado por momentos en el mismo corte: regresión auxiliar sin intercepto de ((y − μ)² − y)/μ sobre μ, con μ del GLM Poisson ajustado en el entrenamiento de ese corte (Cameron y Trivedi, 1990) |
+
+**Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
+que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
+mismos 47 cortes con los que se compararán los candidatos, la ventaja de L0 de 8 semanas sobre la de 4 es optimista en
+la misma medida que el resto de la validación (sesgo declarado en la tabla de arriba).
 
 ### 1.2 Variables (`src/variables.py`) — única implementación, compartida con el prototipo
 
@@ -166,8 +181,9 @@ negativo y sin nulos; 987 / 329; 47 cortes; el último termina en el último dí
 **Inferencia del equipo.** El calendario de 8 niveles con nivel propio es la referencia que hay que superar. Que L0 mejore
 con la ventana sugiere que promediar pocos días mete ruido de Poisson, no que la memoria semanal sirva: coincide con el
 diagnóstico (el calendario explica la señal semanal y el residuo no tiene memoria detectable, `resumen_diagnostico_municipios.md`
-§5.3). **Decisión pendiente (del equipo):** cuál L0 se lleva a la comparación final. En el Entregable 2 la referencia era
-la de 4 semanas; con estos números la de 8 semanas es la mejor de las tres.
+§5.3). **Decisión (adenda del 19/10/2026, §1.1):** la L0 que se lleva a la comparación final es la de **8 semanas**, elegida
+mirando estos mismos 47 cortes. En el Entregable 2 la referencia era la de 4 semanas; con estos números la de 8 semanas es
+la mejor de las tres.
 
 ### 3.2 Coherencia con el diagnóstico (no es una verificación formal)
 
@@ -239,7 +255,8 @@ semanal observado contra tres referencias.
 | Frase | Por qué los datos no la sostienen |
 | --- | --- |
 | «El modelo final mejora a la línea base en X %» | No hay modelo final: los candidatos no se ejecutaron |
-| «La línea base es L0 de 4 semanas» (con estas cifras) | Con 2.632 predicciones, L0 de 4 semanas (1,5210) queda por detrás de la media constante (1,3967); la elección de L0 está **pendiente** |
+| «La línea base es L0 de 4 semanas» (con estas cifras) | Con 2.632 predicciones, L0 de 4 semanas (1,5210) queda por detrás de la media constante (1,3967); la L0 que pasa a la comparación es la de 8 semanas (adenda del 19/10/2026) |
+| «La L0 de 8 semanas se fijó antes de ver los resultados» | Se eligió mirando los 47 cortes de validación (`tablas/05`), después de fijar la lista; la adenda lo declara. «Es mejor que la media constante» tampoco: la diferencia (0,0341) es menor que 1 error estándar (0,0447, `tablas/08`) |
 | «L1 es el mejor modelo del proyecto» | Es la mejor **referencia**; no compitió con ningún candidato |
 | «El calendario de 8 niveles explica la mayor parte de la variación» | L1 mejora sobre la media constante (1,2319 contra 1,3967), pero la desvianza sigue por encima de 1 |
 | «El test confirma…» / cualquier cifra del test | El test no se leyó |
@@ -272,8 +289,9 @@ semanal observado contra tres referencias.
 
 1. **Candidatos** (etapa siguiente): conjuntos (0), (a), (b), (c) con GLM Poisson y XGBoost por defecto; grilla de XGBoost y
    binomial negativa; ventanas para los dos mejores. Sobre el motor y las referencias de este notebook, sin tocarlos.
-2. **Decidir qué L0 se lleva a la comparación final** (§3.1).
-3. Precisar cómo entra el nivel reciente en el conjunto (0) (§1.1).
+2. ~~Decidir qué L0 se lleva a la comparación final~~ — **cerrado** el 19/10/2026: 8 semanas (adenda de §1.1, precisión 1).
+3. ~~Precisar cómo entra el nivel reciente en el conjunto (0)~~ — **cerrado** el 19/10/2026: N ∈ {28, 56, 91} por familia
+   (adenda de §1.1, precisión 2).
 4. Selección con la regla fijada, evaluación en el test **una sola vez**, explicabilidad, análisis de errores y prototipo.
 5. Actualizar `resumen_linea_base.md`: su L0 de 4 semanas y sus cifras son de una sola serie; en el panel la referencia
    cambia (esta etapa).
