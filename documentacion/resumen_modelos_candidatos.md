@@ -3,8 +3,9 @@
 **Notebook:** [`notebooks/modelos_candidatos.ipynb`](../notebooks/modelos_candidatos.ipynb)
 **Artefactos:** `experiments/modelos_candidatos/` (11 tablas CSV en `tablas/` y 3 figuras PNG en `figuras/`)
 **Código que usa:** `src/variables.py`, `src/datos.py`; pruebas en `tests/test_variables.py`
-**Fecha de ejecución:** 2026-10-14 (`jupyter nbconvert --execute --inplace` en el `.venv`; 0 errores; entorno en
-`tablas/00_entorno.csv`)
+**Fecha de ejecución:** 2026-10-14; **reejecutado el 2026-10-19** tras la review R1 (`jupyter nbconvert --execute --inplace` en el
+`.venv`; 0 errores; entorno en `tablas/00_entorno.csv`). Las 11 tablas y 3 figuras quedaron **idénticas** a las del 2026-10-14
+(ninguna cifra cambió; ver §8)
 **Alcance:** los **ocho municipios** de Montevideo, **sólo el bloque de desarrollo (2021-07-01 → 2025-02-05,
 1.316 días)**; 987 días de entrenamiento inicial y 329 de validación en 47 cortes de 7 días.
 
@@ -17,7 +18,8 @@
 >
 > **El test no se lee.** El bloque final (2025-02-06 → 2025-12-31) no se carga en ningún código de este
 > notebook: `src.datos.cargar_panel_desarrollo()` recorta cada tramo del CSV a `fecha <= 2025-02-05` antes de
-> acumularlo y hay `assert` que verifican que no quedó ninguna fila posterior. El límite sale del calendario
+> acumularlo: ninguna fila del test se conserva ni se acumula; cada tramo se lee y se filtra antes de acumularse. Hay
+> `assert` que verifican que no quedó ninguna fila posterior. El límite sale del calendario
 > (80 % de 1.645 días), no de los datos.
 
 ---
@@ -33,7 +35,7 @@ Contexto autocontenido para redactar *Metodología — diseño de evaluación*, 
    falta se marca `<!-- PENDIENTE: ... -->` y no se completa.
 2. **Distinguir evidencia de inferencia.** Las inferencias están rotuladas.
 3. **No escribir Introducción ni Marco teórico** a partir de este documento.
-4. **Respetar la sección 6** («frases que no deben aparecer en el informe»).
+4. **Respetar la sección 5** («frases que no deben aparecer en el informe»).
 5. **Las cifras de este documento no son comparables con las de `resumen_linea_base.md`** (una sola serie, MUNICIPIO
    C, bloque final incluido) ni con las del modelo mínimo de `resumen_diagnostico_municipios.md` §7 (ajuste fijo
    por pliegue, no reentrenado cada semana). Ver §3.2.
@@ -295,3 +297,24 @@ semanal observado contra tres referencias.
 4. Selección con la regla fijada, evaluación en el test **una sola vez**, explicabilidad, análisis de errores y prototipo.
 5. Actualizar `resumen_linea_base.md`: su L0 de 4 semanas y sus cifras son de una sola serie; en el panel la referencia
    cambia (esta etapa).
+
+---
+
+## 8. Cambios posteriores a la primera versión de este documento (19/10/2026, review R1)
+
+La review R1 (`documentacion/reviews/E3_fase_0-1.md`, veredicto DESAPROBADA por un criterio bloqueante) motivó estos cambios. Quien
+cite este documento debe saber qué cubría antes:
+
+- **Adenda a la sección 1** (§1.1): precisiones D17 a D20, D27 y D28, fijadas antes de ejecutar candidatos. Antes, este documento
+  dejaba pendiente cuál L0 pasa a la comparación y cómo entra N en (0); ya no.
+- **Código:** se borró código muerto del notebook (`exp_dias`), `modelo_L1` usa `var.nivel_municipio` en lugar de un cálculo propio y
+  la celda de imports filtra el aviso `DeprecationWarning` de `pd.Timedelta` (pandas 2.3.3 con numpy 2.5.2). `modelo_media_constante`
+  no cambió, y así queda por decisión del equipo (19/10/2026): la sección 1 fija la media constante **global**, no un nivel por
+  municipio, así que no corresponde que use `var.nivel_municipio`. El factor de calendario de L1 sigue en el notebook y no en `src/` (deuda aceptada
+  hasta la fase 5).
+- **Redacción:** la carga del test se describe ahora como «ninguna fila del test se conserva ni se acumula; cada tramo se lee y se
+  filtra antes de acumularse» (antes decía que no llegaba a memoria, lo cual no es exacto: cada tramo se lee completo y recién
+  después se filtra).
+- **Verificación de que nada numérico cambió:** reejecutado el notebook, los 14 artefactos de `experiments/modelos_candidatos/` son
+  idénticos a los anteriores (`git hash-object --path` contra el índice); `pytest` 15 pasados, 0 saltados. Las cifras de §3 siguen
+  respaldadas por las mismas tablas.

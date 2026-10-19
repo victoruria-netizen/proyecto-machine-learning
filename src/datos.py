@@ -30,9 +30,9 @@ def cargar_panel_desarrollo(ruta=RUTA_PANEL) -> pd.DataFrame:
     """Lee el panel (fecha x municipio) y devuelve sólo el bloque de desarrollo.
 
     El archivo se lee por tramos y cada tramo se recorta a ``fecha <= ULTIMO_DIA_DESARROLLO``
-    antes de acumularse, de modo que ninguna fila del test queda en memoria. Un ``assert``
-    verifica que no sobrevivió ninguna y que el panel está completo (1.316 días x 8
-    municipios, sin pares repetidos).
+    antes de acumularse: ninguna fila del test se conserva ni se acumula; cada tramo se lee y se
+    filtra antes de acumularse. Un ``assert`` verifica que no sobrevivió ninguna y que el panel
+    está completo (1.316 días x 8 municipios, sin pares repetidos).
 
     Devuelve un DataFrame con ``fecha`` (datetime64) y ``zona_id`` como columnas, ordenado por
     ambas.

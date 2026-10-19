@@ -2862,3 +2862,180 @@ versiones del dashboard no prueba que el dashboard arranque**, y no se pudo revi
 de la media constante) y cómo entra el nivel reciente en el conjunto (0). **Archivos afectados:** `src/variables.py`,
 `tests/test_variables.py`, `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/`,
 `documentacion/resumen_modelos_candidatos.md`, `README.md`, `HANDOFF.md`.
+
+---
+
+## Sesión 2026-10-19 (review R1) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** revisión independiente de las fases 0 y 1 del Entregable 3 (commit `74eafbd`, rama `e3/fase-0-1-protocolo`), hecha por un
+modelo distinto del que escribió el código (decisión D25). El revisor no modificó código ni notebooks: dejó
+`documentacion/reviews/E3_fase_0-1.md`, que es el artefacto de esta sesión.
+
+### Prompt 1
+> <!-- PENDIENTE: transcripción textual del prompt de la sesión de review. La sesión del revisor no consta en la sesión de
+> trabajo que redactó esta entrada; el equipo debe pegarlo aquí tal cual lo escribió. El resultado verificable es el informe
+> `documentacion/reviews/E3_fase_0-1.md`. -->
+
+**Respuesta (extracto relevante):** veredicto **DESAPROBADA**. Falla un criterio bloqueante, **F1-B2** (la sección 1 del notebook
+no coincide con la lista cerrada del plan en «L0 de 8 semanas» y «NB2»), y dos no bloqueantes, **N5** (código muerto `exp_dias` y una
+viñeta residual en `src/variables.py`) y **N6** (el nivel del municipio duplicado en `modelo_L1` en lugar de
+`var.nivel_municipio`). Cumplen los otros 13 criterios bloqueantes. Además: pytest 15 pasados; los 14 artefactos de
+`experiments/modelos_candidatos/` se reescribieron idénticos; mutaciones M1–M4 detectadas por los tests (2/4/4/5 fallan); F1-B3
+sin fuga (705 comparaciones, diferencia máxima 0,0). Ocho observaciones y seis riesgos fuera de criterios (R1: sin trazabilidad
+temporal en git; R2: la resolución del dashboard no se reproduce, hoy streamlit 1.66.0 y pymongo 4.19.0).
+
+**Uso y verificación:** el informe se usó como entrada del fix de la sesión siguiente. Verificación del revisor (según el propio
+informe): reejecución con `nbconvert`, comparación de hashes de artefactos, mutaciones en copia temporal fuera del repo, contraste de
+cifras contra tablas y de fechas de publicación contra PyPI. **Archivos afectados:** `documentacion/reviews/E3_fase_0-1.md` (nuevo).
+
+---
+
+## Sesión 2026-10-19 — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** Entregable 3, fases 0 y 1, fix de la review R1 en la rama `e3/fase-0-1-protocolo`. Tres pasos: (1) adenda a la sección 1
+de `notebooks/modelos_candidatos.ipynb` (corrige F1-B2); (2) observaciones restantes 2 a 9 de la review; (3) verificación.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase <N="0 y 1 (fix de R1)">, en la rama e3/fase-0-1-protocolo.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en <rama>. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en <rama> solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+>
+> Fix de la review R1 (documentacion/reviews/E3_fase_0-1.md, veredicto DESAPROBADA). Leé el informe
+> de review antes de empezar. No cambies nada que la review no pida. Activá el .venv antes de
+> cualquier comando de Python.
+>
+> ## Paso 1 — Adenda (corrige F1-B2; D27)
+>
+> Agregá debajo de la sección 1 de notebooks/modelos_candidatos.ipynb, sin tocar el texto original,
+> un bloque "Precisiones fijadas el 19/10/2026, después de la fase 1 y antes de ejecutar cualquier
+> candidato" (decisiones D17 a D20 y D27 del plan):
+> 1. L0 que pasa a la comparación: 8 semanas. Se eligió mirando los 47 cortes de validación
+>    (desvianza 1,3626, contra 1,5210 de 4 semanas y 2,4384 de 2 semanas), después de fijar la
+>    lista. Queda a menos de 1 error estándar de la media constante (1,3967). Tomá las cifras de
+>    las tablas y citá el archivo de cada una.
+> 2. Nivel reciente del conjunto (0): N ∈ {28, 56, 91}, elegido en el paso A por desvianza media
+>    en validación, por separado en cada familia (igual que en el conjunto (c)).
+> 3. XGBoost en el paso A: max_depth=3, n_estimators=300, learning_rate=0.05; resto de los
+>    parámetros fijos y declarados; semilla fija.
+> 4. Elección del conjunto por familia (GLM y XGBoost): entre (a), (b) y (c) con la regla de 1
+>    error estándar, orden de simplicidad a < b < c. (0) se reporta para el objetivo 1.2.2 y solo
+>    reemplaza al elegido si lo mejora por más de 1 error estándar.
+> 5. Binomial negativa: NB2, varianza μ + αμ², con α estimado por máxima verosimilitud en cada
+>    corte (statsmodels.discrete NegativeBinomial con loglike_method="nb2"; verificá el nombre
+>    exacto en la documentación de statsmodels 0.14.6). La familia NegativeBinomial del GLM fija α
+>    si no se le pasa, así que no se usa como estimador principal. Plan B declarado: si no
+>    converge en un corte, se reporta y en ese corte se usa el GLM NB con el α del corte anterior.
+> Espejo en el resumen §1.1 y cierre del pendiente de L0 en HANDOFF y en el resumen.
+> DETENETE. Commit solo con esto (notebook, resumen y HANDOFF), con el mensaje
+> "Adenda de precisiones previas a los candidatos (D27)", cuando yo lo confirme.
+>
+> ## Paso 2 — Observaciones restantes
+>
+> 2. Borrá exp_dias (celda 9) y el resto de la viñeta de la lluvia en src/variables.py:12-13.
+> 3. modelo_L1 y modelo_media_constante usan var.nivel_municipio en lugar del groupby propio. El
+>    factor de calendario no se mueve a src/ (deuda aceptada, fase 5).
+> 4. Resumen §0, regla 4: la referencia a las frases prohibidas es la §5, no la §6.
+> 5. HANDOFF: el trabajo de las fases 0 y 1 está en 74eafbd (mensaje "E3", que no se corrige
+>    porque reescribiría main); registrá D23 y el resultado de R1.
+> 6. Donde diga que ninguna fila del test "llega a memoria" o "queda en memoria" (src/datos.py,
+>    resumen, HANDOFF): "ninguna fila del test se conserva ni se acumula; cada tramo se lee y se
+>    filtra antes de acumularse".
+> 7. Comentario de pytest.ini: el aviso lo disparan llamadas a pd.Timedelta en src/variables.py,
+>    por la combinación pandas 2.3.3 con numpy 2.5.2.
+> 8. En la celda de imports, filtrá solo ese aviso (misma categoría y mensaje que pytest.ini) para
+>    que el notebook no arrastre las salidas con rutas locales.
+> 9. Registro de IA: una entrada para la sesión de review R1 y otra para esta sesión.
+>
+> ## Paso 3 — Verificación
+>
+> - pytest: 15 pasados, 0 saltados.
+> - nbconvert --execute --inplace con 0 errores.
+> - `git diff --stat experiments/`: los 14 artefactos tienen que quedar idénticos. Si cambia
+>   cualquier cifra (el cambio del punto 3 no debería cambiar ninguna), detenete y mostrame el
+>   antes y el después.
+> - Mostrame git status y el resumen de archivos tocados. Commit en la rama, incluido
+>   documentacion/reviews/E3_fase_0-1.md sin modificar, cuando yo lo confirme.
+
+**Respuesta (extracto relevante):** se verificó la rama (`e3/fase-0-1-protocolo`) y se leyeron CLAUDE.md, HANDOFF.md, el resumen y la
+review. Se agregó la celda «Adenda a la sección 1» (id `a7d19f27`) debajo de la sección 1, sin tocarla, con las cifras tomadas de
+`tablas/05` y `tablas/08` (L0 de 8 semanas 1,3626; 4 semanas 1,5210; 2 semanas 2,4384; media constante 1,3967 con EE 0,0447; diferencia
+0,0341, menos de 1 EE). Se comprobó en el paquete instalado que `statsmodels.discrete.discrete_model.NegativeBinomial` acepta
+`loglike_method` con valor por omisión `'nb2'`, y que la familia `NegativeBinomial` del GLM tiene `alpha=1.0` fijo. La IA señaló que el
+plan B pedido («α del corte anterior») no cubría el primer corte.
+
+**Uso y verificación:** **adaptado en el paso siguiente.** La IA dejó el plan B como estaba y lo preguntó; el equipo lo reemplazó
+(Prompt 2). Verificación del Paso 1: el diff del notebook son solo líneas insertadas (41, luego 43), sin tocar la celda original.
+**Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`.
+
+### Prompt 2
+> Dos ajustes a la adenda antes del commit:
+>
+> 1. Ítem 5, reemplazá el plan B por: "Plan B (D28): si NB2 por máxima verosimilitud no converge
+>    en un corte, se reporta y en ese corte se usa el GLM NB con α estimado por momentos en el
+>    mismo corte: regresión auxiliar sin intercepto de ((y − μ)² − y)/μ sobre μ, con μ del GLM
+>    Poisson ajustado en el entrenamiento de ese corte (Cameron y Trivedi, 1990)." Mismo cambio en
+>    el espejo del resumen §1.1.
+> 2. Asigná las referencias ítem por ítem: 1 → D17, 2 → D18, 3 → D19, 4 → D20, 5 → D27 y D28.
+>    Sacá la lista conjunta del encabezado.
+>
+> Mostrame el diff de la celda de la adenda. Si solo cambian esos dos puntos, hacé el commit
+> "Adenda de precisiones previas a los candidatos (D27)" con solo esos tres archivos (notebook,
+> resumen y HANDOFF) y seguí con el Paso 2 sin detenerte. La próxima parada es antes del commit
+> final.
+
+**Respuesta (extracto relevante):** plan B (D28) y referencias D17 a D28 por ítem, en la adenda, en el espejo del resumen y en el
+HANDOFF. Commit `cf76a36` («Adenda de precisiones previas a los candidatos (D27)»), con solo esos tres archivos. Paso 2: se borró
+`exp_dias`; la viñeta residual de `src/variables.py` (terminaba en «;») pasó a terminar en «.»; `modelo_L1` usa
+`var.nivel_municipio(vista, origen, ventana)`; la regla 4 del resumen apunta a la §5; la frase de la carga del test se reformuló en
+`src/datos.py`, en la celda de la sección 2 del notebook y en el resumen (HANDOFF y registro no la contenían con esa redacción);
+comentario de `pytest.ini` corregido; la celda de imports filtra solo el aviso de `pd.Timedelta` (misma categoría y mensaje que
+`pytest.ini`).
+
+**Uso y verificación:** **utilizado, con una desviación declarada:** el punto 3 pedía el cambio también en `modelo_media_constante`,
+pero esa función no tiene un `groupby` por municipio (calcula la media global de la ventana), así que **no se tocó**; solo
+`modelo_L1` tenía el cálculo duplicado. Verificado: `pytest` → 15 pasados, 0 saltados; `jupyter nbconvert --execute --inplace` →
+0 salidas de tipo `error`, 0 salidas de `stderr` y ninguna ruta local en las salidas (antes, ~1.100 líneas de avisos);
+`git hash-object --path` de los 14 artefactos de `experiments/modelos_candidatos/` contra el índice → los 14 idénticos, así que
+ninguna cifra cambió. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `src/datos.py`, `src/variables.py`, `pytest.ini`,
+`documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 3
+> 1. Este es el prompt textual de la sesión de review R1. Reemplazá con él el
+>    <!-- PENDIENTE --> de su entrada en documentacion/registro_uso_IA.md:
+>    <pegar acá el prompt del plan>
+> 2. Aceptado: modelo_media_constante queda como está (la sección 1 fija la media constante
+>    global). Dejalo asentado en la entrada de esta sesión del registro y en el §8 del resumen.
+> 3. Commit final con los 7 archivos más documentacion/reviews/E3_fase_0-1.md sin modificar,
+>    mensaje "Corrige las observaciones de la review R1 (N5, N6 y precisiones menores)".
+> 4. git push -u origin e3/fase-0-1-protocolo. No mergees.
+
+**Respuesta (extracto relevante):** el punto 1 llegó con el marcador `<pegar acá el prompt del plan>` sin reemplazar, es decir, sin el
+texto del prompt de la review: **el `PENDIENTE` de la entrada de la review R1 sigue abierto** y se avisó al equipo. Punto 2 asentado
+aquí y en el §8 del resumen. Puntos 3 y 4 ejecutados (commit y push de la rama, sin merge).
+
+**Uso y verificación:** **decisión del equipo (punto 2):** `modelo_media_constante` queda como está, porque la sección 1 fija la media
+constante **global**; por eso no usa `var.nivel_municipio` y el punto 3 del Paso 2 se aplicó solo a `modelo_L1`. Verificación del
+commit y del push: ver el resultado de `git log` y `git push` en la sesión. **Archivos afectados:**
+`documentacion/registro_uso_IA.md`, `documentacion/resumen_modelos_candidatos.md`.
