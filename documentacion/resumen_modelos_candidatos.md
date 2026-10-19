@@ -3,8 +3,9 @@
 **Notebook:** [`notebooks/modelos_candidatos.ipynb`](../notebooks/modelos_candidatos.ipynb)
 **Artefactos:** `experiments/modelos_candidatos/` (11 tablas CSV en `tablas/` y 3 figuras PNG en `figuras/`)
 **Código que usa:** `src/variables.py`, `src/datos.py`; pruebas en `tests/test_variables.py`
-**Fecha de ejecución:** 2026-10-14 (`jupyter nbconvert --execute --inplace` en el `.venv`; 0 errores; entorno en
-`tablas/00_entorno.csv`)
+**Fecha de ejecución:** 2026-10-14; **reejecutado el 2026-10-19** tras la review R1 (`jupyter nbconvert --execute --inplace` en el
+`.venv`; 0 errores; entorno en `tablas/00_entorno.csv`). Las 11 tablas y 3 figuras quedaron **idénticas** a las del 2026-10-14
+(ninguna cifra cambió; ver §8)
 **Alcance:** los **ocho municipios** de Montevideo, **sólo el bloque de desarrollo (2021-07-01 → 2025-02-05,
 1.316 días)**; 987 días de entrenamiento inicial y 329 de validación en 47 cortes de 7 días.
 
@@ -17,7 +18,8 @@
 >
 > **El test no se lee.** El bloque final (2025-02-06 → 2025-12-31) no se carga en ningún código de este
 > notebook: `src.datos.cargar_panel_desarrollo()` recorta cada tramo del CSV a `fecha <= 2025-02-05` antes de
-> acumularlo y hay `assert` que verifican que no quedó ninguna fila posterior. El límite sale del calendario
+> acumularlo: ninguna fila del test se conserva ni se acumula; cada tramo se lee y se filtra antes de acumularse. Hay
+> `assert` que verifican que no quedó ninguna fila posterior. El límite sale del calendario
 > (80 % de 1.645 días), no de los datos.
 
 ---
@@ -33,7 +35,7 @@ Contexto autocontenido para redactar *Metodología — diseño de evaluación*, 
    falta se marca `<!-- PENDIENTE: ... -->` y no se completa.
 2. **Distinguir evidencia de inferencia.** Las inferencias están rotuladas.
 3. **No escribir Introducción ni Marco teórico** a partir de este documento.
-4. **Respetar la sección 6** («frases que no deben aparecer en el informe»).
+4. **Respetar la sección 5** («frases que no deben aparecer en el informe»).
 5. **Las cifras de este documento no son comparables con las de `resumen_linea_base.md`** (una sola serie, MUNICIPIO
    C, bloque final incluido) ni con las del modelo mínimo de `resumen_diagnostico_municipios.md` §7 (ajuste fijo
    por pliegue, no reentrenado cada semana). Ver §3.2.
@@ -60,8 +62,26 @@ Contexto autocontenido para redactar *Metodología — diseño de evaluación*, 
 | Binomial negativa | Se reporta la dispersión de Pearson del GLM Poisson y el α estimado; su papel son los intervalos de predicción y la inferencia sobre coeficientes, no mejorar la desvianza | **PENDIENTE** |
 | **Sesgo declarado** | La búsqueda de hiperparámetros y la selección usan los **mismos 47 cortes**: el desempeño del ganador en validación es optimista | Se declara antes de ver resultados |
 
-**Pendiente de precisión para la etapa de candidatos.** Los conjuntos (0) y (c) dicen «nivel reciente» sin fijar N en (0);
-(c) lo fija en 28/56/91. Cómo entra N en (0) se resuelve antes de ejecutar los candidatos.
+**Adenda del 19/10/2026 — precisiones fijadas después de la fase 1 y antes de ejecutar cualquier candidato**
+(cada precisión con su decisión del plan: D17 a D20, D27 y D28; la sexta se agregó después, D29). Espejo de la celda «Adenda a la sección 1» del notebook, que está **debajo** de la
+sección 1 y **no la modifica**. Sustituye al «pendiente de precisión» que este documento arrastraba (cómo entra N en el
+conjunto (0) y cuál L0 se lleva a la comparación). Las demás reglas de la tabla anterior siguen como estaban.
+
+| N.º | Precisión | Detalle y respaldo |
+| --- | --- | --- |
+| 1 (D17) | **L0 que pasa a la comparación: 8 semanas** | Elegida **después de fijar la lista y mirando los 47 cortes de validación**: desvianza 1,3626 (8 semanas), 1,5210 (4 semanas, la del Entregable 2) y 2,4384 (2 semanas) (`tablas/05`). Es una elección **informada por la validación**, no una regla previa. Queda por debajo de la media constante (1,3967, `tablas/05`) por 0,0341, **menos de 1 error estándar** de ella (0,0447, `tablas/08`). El bloque final no intervino |
+| 2 (D18) | Nivel reciente del conjunto (0) | N ∈ {28, 56, 91} días, elegido en el paso A por desvianza media en validación, **por separado en cada familia** (GLM Poisson y XGBoost), igual que en (c) |
+| 3 (D19) | XGBoost en el paso A | `max_depth=3`, `n_estimators=300`, `learning_rate=0.05`; resto de los parámetros fijos y declarados; semilla fija |
+| 4 (D20) | Elección del conjunto por familia | Entre (a), (b) y (c), con la regla de 1 error estándar y el orden de simplicidad a < b < c. El conjunto (0) se reporta para el objetivo 1.2.2 y solo reemplaza al elegido si lo mejora por más de 1 error estándar |
+| 5 (D27 y D28) | Binomial negativa = **NB2** | Varianza μ + αμ², con α estimado por máxima verosimilitud **en cada corte**: `statsmodels.discrete.discrete_model.NegativeBinomial` con `loglike_method="nb2"` (verificado en la firma y el docstring de statsmodels 0.14.6). La familia `NegativeBinomial` del GLM deja α fijo (1,0 si no se le pasa), por eso no es el estimador principal. **Plan B (D28):** si NB2 por máxima verosimilitud no converge en un corte, se reporta y en ese corte se usa el GLM NB con α estimado por momentos en el mismo corte: regresión auxiliar sin intercepto de ((y − μ)² − y)/μ sobre μ, con μ del GLM Poisson ajustado en el entrenamiento de ese corte (Cameron y Trivedi, 1990) |
+| 6 (D29) | Criterio de convergencia de NB2 — **agregado el 19/10/2026 en el fix de la ronda 2, antes de ejecutar candidatos (D29)** | NB2 se ajusta con `method="newton"` y `maxiter=100`. Un corte cuenta como **no convergido** si `mle_retvals["converged"]` es `False`, si se emite un `ConvergenceWarning` o si α no es finito o no es positivo; en ese caso se aplica el plan B (D28) de la fila 5. Respuesta al riesgo R7 de la ronda 2 de R1 (`documentacion/reviews/E3_fase_0-1_r2.md`): `discrete_model.NegativeBinomial.fit` puede terminar con advertencias de convergencia que no son excepciones, así que el criterio se fija antes de ejecutar. Es una regla, no código: se implementa en la fase 2 |
+
+La fila 6 es posterior a las cinco primeras: la celda de la adenda del notebook la lleva marcada con su fecha y motivo, y las filas 1 a 5 no cambiaron.
+
+**Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
+que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
+mismos 47 cortes con los que se compararán los candidatos, la ventaja de L0 de 8 semanas sobre la de 4 es optimista en
+la misma medida que el resto de la validación (sesgo declarado en la tabla de arriba).
 
 ### 1.2 Variables (`src/variables.py`) — única implementación, compartida con el prototipo
 
@@ -166,8 +186,9 @@ negativo y sin nulos; 987 / 329; 47 cortes; el último termina en el último dí
 **Inferencia del equipo.** El calendario de 8 niveles con nivel propio es la referencia que hay que superar. Que L0 mejore
 con la ventana sugiere que promediar pocos días mete ruido de Poisson, no que la memoria semanal sirva: coincide con el
 diagnóstico (el calendario explica la señal semanal y el residuo no tiene memoria detectable, `resumen_diagnostico_municipios.md`
-§5.3). **Decisión pendiente (del equipo):** cuál L0 se lleva a la comparación final. En el Entregable 2 la referencia era
-la de 4 semanas; con estos números la de 8 semanas es la mejor de las tres.
+§5.3). **Decisión (adenda del 19/10/2026, §1.1):** la L0 que se lleva a la comparación final es la de **8 semanas**, elegida
+mirando estos mismos 47 cortes. En el Entregable 2 la referencia era la de 4 semanas; con estos números la de 8 semanas es
+la mejor de las tres.
 
 ### 3.2 Coherencia con el diagnóstico (no es una verificación formal)
 
@@ -239,7 +260,8 @@ semanal observado contra tres referencias.
 | Frase | Por qué los datos no la sostienen |
 | --- | --- |
 | «El modelo final mejora a la línea base en X %» | No hay modelo final: los candidatos no se ejecutaron |
-| «La línea base es L0 de 4 semanas» (con estas cifras) | Con 2.632 predicciones, L0 de 4 semanas (1,5210) queda por detrás de la media constante (1,3967); la elección de L0 está **pendiente** |
+| «La línea base es L0 de 4 semanas» (con estas cifras) | Con 2.632 predicciones, L0 de 4 semanas (1,5210) queda por detrás de la media constante (1,3967); la L0 que pasa a la comparación es la de 8 semanas (adenda del 19/10/2026) |
+| «La L0 de 8 semanas se fijó antes de ver los resultados» | Se eligió mirando los 47 cortes de validación (`tablas/05`), después de fijar la lista; la adenda lo declara. «Es mejor que la media constante» tampoco: la diferencia (0,0341) es menor que 1 error estándar (0,0447, `tablas/08`) |
 | «L1 es el mejor modelo del proyecto» | Es la mejor **referencia**; no compitió con ningún candidato |
 | «El calendario de 8 niveles explica la mayor parte de la variación» | L1 mejora sobre la media constante (1,2319 contra 1,3967), pero la desvianza sigue por encima de 1 |
 | «El test confirma…» / cualquier cifra del test | El test no se leyó |
@@ -272,8 +294,44 @@ semanal observado contra tres referencias.
 
 1. **Candidatos** (etapa siguiente): conjuntos (0), (a), (b), (c) con GLM Poisson y XGBoost por defecto; grilla de XGBoost y
    binomial negativa; ventanas para los dos mejores. Sobre el motor y las referencias de este notebook, sin tocarlos.
-2. **Decidir qué L0 se lleva a la comparación final** (§3.1).
-3. Precisar cómo entra el nivel reciente en el conjunto (0) (§1.1).
+2. ~~Decidir qué L0 se lleva a la comparación final~~ — **cerrado** el 19/10/2026: 8 semanas (adenda de §1.1, precisión 1).
+3. ~~Precisar cómo entra el nivel reciente en el conjunto (0)~~ — **cerrado** el 19/10/2026: N ∈ {28, 56, 91} por familia
+   (adenda de §1.1, precisión 2).
 4. Selección con la regla fijada, evaluación en el test **una sola vez**, explicabilidad, análisis de errores y prototipo.
 5. Actualizar `resumen_linea_base.md`: su L0 de 4 semanas y sus cifras son de una sola serie; en el panel la referencia
    cambia (esta etapa).
+
+---
+
+## 8. Cambios posteriores a la primera versión de este documento (19/10/2026, review R1)
+
+La review R1 (`documentacion/reviews/E3_fase_0-1.md`, veredicto DESAPROBADA por un criterio bloqueante) motivó estos cambios. Quien
+cite este documento debe saber qué cubría antes:
+
+- **Adenda a la sección 1** (§1.1): precisiones D17 a D20, D27 y D28, fijadas antes de ejecutar candidatos. Antes, este documento
+  dejaba pendiente cuál L0 pasa a la comparación y cómo entra N en (0); ya no.
+- **Código:** se borró código muerto del notebook (`exp_dias`), `modelo_L1` usa `var.nivel_municipio` en lugar de un cálculo propio y
+  la celda de imports filtra el aviso `DeprecationWarning` de `pd.Timedelta` (pandas 2.3.3 con numpy 2.5.2). `modelo_media_constante`
+  no cambió, y así queda por decisión del equipo (19/10/2026): la sección 1 fija la media constante **global**, no un nivel por
+  municipio, así que no corresponde que use `var.nivel_municipio`. El factor de calendario de L1 sigue en el notebook y no en `src/` (deuda aceptada
+  hasta la fase 5).
+- **Redacción:** la carga del test se describe ahora como «ninguna fila del test se conserva ni se acumula; cada tramo se lee y se
+  filtra antes de acumularse» (antes decía que no llegaba a memoria, lo cual no es exacto: cada tramo se lee completo y recién
+  después se filtra).
+- **Verificación de que nada numérico cambió:** reejecutado el notebook, los 14 artefactos de `experiments/modelos_candidatos/` son
+  idénticos a los anteriores (`git hash-object --path` contra el índice); `pytest` 15 pasados, 0 saltados. Las cifras de §3 siguen
+  respaldadas por las mismas tablas.
+
+### Fix de la ronda 2 de R1 (19/10/2026)
+
+La ronda 2 de la review (`documentacion/reviews/E3_fase_0-1_r2.md`, veredicto APROBADA CON OBSERVACIONES; falló solo el criterio no
+bloqueante N2) motivó este cambio, que es **solo de documentación**:
+
+- **Adenda, ítem 6 nuevo (D29):** criterio de convergencia de NB2, agregado antes de ejecutar candidatos y marcado como tal en la celda
+  del notebook y en la fila 6 de §1.1. La sección 1 y los ítems 1 a 5 de la adenda no se tocaron. El texto de apertura de la celda de la
+  adenda sigue diciendo «cinco precisiones»: se dejó así a propósito, para no editar lo ya commiteado; el ítem 6 aclara que es posterior.
+- **Notebook no reejecutado:** el cambio es una celda de texto, no cambia ninguna salida. Los 14 artefactos de
+  `experiments/modelos_candidatos/` no se tocaron (`git diff --stat experiments/` vacío).
+- **Antes de fijar el criterio** se comprobó, con datos sintéticos generados en memoria (no el panel) y statsmodels 0.14.6, que
+  `NegativeBinomial(..., loglike_method="nb2").fit(method="newton", maxiter=100)` es una llamada válida, que el resultado trae
+  `mle_retvals["converged"]` y que `params` termina en el parámetro `alpha`. Esa comprobación no es un resultado del proyecto y no se cita como tal.

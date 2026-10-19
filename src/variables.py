@@ -9,7 +9,7 @@ Qué usa cada variable y cuándo se conoce:
 
 * calendario de 8 niveles, indicador de A y su término de calendario: se derivan de ``fecha`` y
   ``tipo_dia`` (los feriados se conocen de antemano);
-* nivel del municipio, nivel reciente y rezagos: sólo de ``n_siniestros`` anterior al origen;
+* nivel del municipio, nivel reciente y rezagos: sólo de ``n_siniestros`` anterior al origen.
 
 Sin lluvia: se descartó antes de ejecutar (2026-10-14). La lluvia del día a predecir no está
 disponible con un horizonte de 7 días (sólo existiría un pronóstico) y el diagnóstico no le

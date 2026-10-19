@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-14_
+_Última actualización: 2026-10-19_
 
 ---
 
@@ -1712,7 +1712,8 @@ en el lock porque tocar los pines exige revalidar los notebooks. Decisión pendi
 
 **Alcance de la sesión.** Arranque del Entregable 3. Hecho: dependencias (0a), `src/variables.py` (0b) y
 `notebooks/modelos_candidatos.ipynb` **sólo con protocolo y referencias** (Etapa 1). **No se ejecutó ningún candidato**
-(GLM Poisson, binomial negativa, XGBoost). Sin commit ni push.
+(GLM Poisson, binomial negativa, XGBoost). Sin commit ni push durante la sesión; después se commiteó directo en `main` como
+`74eafbd` (ver la entrada del 2026-10-19, más abajo).
 
 > **Incidente: lectura del test (2026-10-13).** Para ver la estructura del panel, un comando exploratorio suelto leyó
 > `data/processed/panel_diario_montevideo.csv` **completo, con las filas del test** (calculó conteos de `tipo_dia`, un
@@ -1748,10 +1749,76 @@ Ejecutado con `jupyter nbconvert --execute --inplace`: 0 errores. 11 tablas y 3 
 Documento acompañante: `documentacion/resumen_modelos_candidatos.md` (lo de los candidatos, `PENDIENTE`).
 
 **Pendiente de decisión del equipo (surgido de la Etapa 1).**
-- **Qué L0 se lleva a la comparación final.** La del E2 (4 semanas) queda por detrás de la media constante; la de 8 semanas es la
-  mejor de las tres. La sección 1 no fija regla para esto.
-- **Cómo entra el nivel reciente en el conjunto (0)** (la lista no fija N; en (c) son 28/56/91).
+- ~~**Qué L0 se lleva a la comparación final.**~~ **Cerrado el 2026-10-19** (adenda del notebook, debajo de la sección 1; la
+  sección 1 no se tocó): **L0 de 8 semanas**, elegida **mirando los 47 cortes de validación** (1,3626 contra 1,5210 de 4 semanas
+  y 2,4384 de 2 semanas, `tablas/05`; a menos de 1 error estándar de la media constante, 1,3967 con EE 0,0447, `tablas/05` y
+  `08`). Es una elección informada por la validación, no una regla previa.
+- ~~**Cómo entra el nivel reciente en el conjunto (0).**~~ **Cerrado el 2026-10-19** (misma adenda): N ∈ {28, 56, 91}, elegido en el
+  paso A por familia. La adenda fija además XGBoost del paso A (`max_depth=3`, `n_estimators=300`, `learning_rate=0.05`), la regla
+  de elección del conjunto por familia (a < b < c; (0) solo si mejora por más de 1 EE) y la binomial negativa como **NB2** con α
+  por máxima verosimilitud en cada corte (plan B, D28: GLM NB con α por momentos en el mismo corte, regresión auxiliar de Cameron y Trivedi, 1990).
 - **Lluvia en el prototipo:** el conjunto (d) se retiró; si más adelante se quisiera usarla, haría falta un pronóstico.
+
+### Entregable 3, fases 0 y 1: review R1 y su fix (2026-10-19, sesión de Claude)
+
+**Dónde está el trabajo de las fases 0 y 1.** Se commiteó directo en `main` como **`74eafbd`** (mensaje «E3», poco descriptivo: **no se
+corrige**, porque reescribiría `main`). Es la decisión **D23**; la sesión anterior dice «Sin commit ni push» porque el commit se hizo
+después. Desde la review, el trabajo sigue en la rama `e3/fase-0-1-protocolo`.
+
+**Resultado de la review R1** (`documentacion/reviews/E3_fase_0-1.md`, revisor Claude Opus 5.5 según D25, sobre `74eafbd`):
+**DESAPROBADA**. Falló un criterio bloqueante, **F1-B2** (la sección 1 del notebook no coincidía con la lista cerrada del plan en
+«L0 de 8 semanas» y «NB2»), y dos no bloqueantes, **N5** (código muerto) y **N6** (nivel del municipio duplicado). Los otros 13
+criterios bloqueantes cumplían (pytest 15 pasados; los tests detectan fugas con mutaciones; sin fuga en el motor; sha256 del panel
+igual al de `diagnostico_municipios/tablas/00_procedencia.csv`). Riesgos que **siguen abiertos** y no se tocaron: R1 (git no prueba
+que la sección 1 preceda a la ejecución; commitear las reglas antes de ejecutar, en su propia rama), R2 (la resolución del dashboard
+citada arriba no se reproduce: hoy da streamlit 1.66.0 y pymongo 4.19.0; fijar versiones exactas en la fase 5), R3 (doble redondeo
+1,5156 / 1,5155), R4 (validación optimista), R5 (`matriz_entrenamiento` y los niveles recientes aún sin uso con datos reales) y R6
+(sin `data/processed/`, pytest da 13 pasados y 2 saltados).
+
+**Fix aplicado** (commit `cf76a36` para la adenda; el resto, en el commit final de la rama):
+- **Adenda** debajo de la sección 1 del notebook (celda nueva; la sección 1 no se tocó) y su espejo en el resumen §1.1: L0 de **8
+  semanas** (D17, elegida mirando los 47 cortes: 1,3626 contra 1,5210 y 2,4384, `tablas/05`; a menos de 1 EE de la media constante,
+  `tablas/08`); nivel reciente de (0) N ∈ {28, 56, 91} por familia (D18); XGBoost del paso A `max_depth=3`, `n_estimators=300`,
+  `learning_rate=0.05` (D19); elección del conjunto por familia con a < b < c (D20); binomial negativa **NB2** con α por máxima
+  verosimilitud (D27) y plan B con α por momentos en el mismo corte (D28).
+- **N5:** se borró `exp_dias`; se limpió la viñeta residual de `src/variables.py`.
+- **N6:** `modelo_L1` usa `var.nivel_municipio`. `modelo_media_constante` **no se tocó**: calcula la media global de la ventana, no un
+  nivel por municipio. El factor de calendario sigue en el notebook (deuda aceptada hasta la fase 5).
+- Referencia cruzada del resumen (§0 regla 4 → §5); redacción de la carga del test en `src/datos.py`, notebook y resumen; comentario de
+  `pytest.ini`; la celda de imports filtra el `DeprecationWarning` de `pd.Timedelta` (el notebook ya no arrastra ~1.100 líneas de
+  avisos con rutas locales).
+
+**Verificación.** `pytest`: 15 pasados, 0 saltados. `jupyter nbconvert --execute --inplace`: 0 errores, 0 salidas `stderr`. Los 14
+artefactos de `experiments/modelos_candidatos/` quedan **idénticos** al índice (`git hash-object --path`): ninguna cifra cambió.
+
+**Sigue pendiente de esta fase:** el plan B de D28 y NB2 son reglas, no código; se implementan en la fase 2.
+
+### Entregable 3, fases 0 y 1: ronda 2 de R1 y su fix (2026-10-19, sesión de Claude)
+
+**Resultado de la ronda 2** (`documentacion/reviews/E3_fase_0-1_r2.md`, revisor Claude Opus 5.5 según D25, sobre `e484dcb`):
+**APROBADA CON OBSERVACIONES**. Los 14 criterios bloqueantes cumplen, incluido F1-B2 (sección 1 idéntica a la de `74eafbd`; adenda de
+`cf76a36` anterior al fix). Falló solo N2 (el prompt de R1 en el registro seguía como `PENDIENTE`). Las 8 observaciones de la ronda 1
+quedan corregidas o aceptadas como deuda (mensaje «E3» y factor de calendario, ambas ya declaradas arriba). Sigue abierto el riesgo R4
+(la L0 de 8 semanas supera a la media constante por 0,0341, menos de 1 EE de 0,0447: no presentarlo como mejora).
+
+**Fix de la ronda 2** (solo documentación; ni código ni artefactos):
+- **Prompts de las reviews:** el `PENDIENTE` de la entrada de R1 ronda 1 se reemplazó por el prompt textual, tomado de las transcripciones
+  locales de Claude Code; se agregaron las entradas de R1 ronda 2 y de esta sesión; en la entrada del fix anterior, «ver en la sesión»
+  pasó a los hashes `cf76a36` y `e484dcb` y a la salida de `git ls-remote`. **Queda cerrado el pendiente del prompt de R1**.
+- **D29 — criterio de convergencia de NB2** (ítem 6 de la adenda del notebook, espejo en el resumen §1.1 y §8; agregado antes de
+  ejecutar candidatos y marcado como tal): ajuste con `method="newton"` y `maxiter=100`; un corte es **no convergido** si
+  `mle_retvals["converged"]` es `False`, si se emite `ConvergenceWarning` o si α no es finito o no es positivo; entonces plan B (D28).
+  Responde al riesgo R7 de la ronda 2. La sección 1 y los ítems 1 a 5 no se tocaron.
+- **D30 — validación del equipo.** Lucas revisó los veredictos de las dos rondas de R1 y confirmó el 19/10 las decisiones **D17, D18, D23,
+  D26 a D30**, con apoyo de Claude en el chat del Project. Queda asentado aparte de las reviews (R8: fix y reviews son de modelos
+  distintos, pero de la misma familia). Es una declaración del equipo; no hay otro artefacto que la respalde.
+
+**Verificación.** `pytest`: 15 pasados, 0 saltados. `git diff --stat experiments/`: vacío. El notebook no se reejecutó (solo cambió una
+celda de texto).
+
+**Sigue pendiente de esta fase:** NB2, su plan B y el criterio de convergencia de D29 son reglas, no código; se implementan en la
+fase 2 (con la bandera de convergencia por corte en la salida). Siguen abiertos R1 (commitear las reglas antes del código), R2, R3, R5
+y R6 de la ronda 1.
 
 ## 4. Pendiente (próximos pasos)
 
