@@ -109,6 +109,15 @@ ya vistos** (§3b) y **antes de ejecutar el paso B**. **Valen también para el p
 | D37 | **Simplicidad entre combinaciones de XGBoost** | Entre empatadas, más simple = menor `max_depth` y, a igual profundidad, menor `n_estimators`. `learning_rate` no cuenta como complejidad: si solo difieren en él, decide el paso 4 |
 | D38 | **Paso 4: lexicográfico con tolerancia de 1 EE** | Pasan las empatadas cuya desvianza del peor municipio queda a menos de 1 EE de la mejor en ese criterio (el EE es el del peor municipio de esa mejor configuración, sobre los 47 cortes, como en `tablas/12`); entre ellas gana la de menor desvío entre cortes; si empatan, la de menor \|total pred./obs. − 1\| |
 
+**Precisiones del paso C, fijadas el 19/10/2026 con los resultados de los pasos A y B ya vistos** (D39 y D40). Espejo de la celda del
+mismo nombre del notebook, debajo de las precisiones del paso B; no modifica nada anterior. Se fijaron **después de ver los pasos A y B**
+(§3b y §3c) y **antes de ejecutar el paso C**.
+
+| N.º | Precisión | Detalle |
+| --- | --- | --- |
+| D39 | **XGBoost que pasa al paso C** | Se mantiene la elegida por la regla en el paso B (`max_depth=2`, `n_estimators=100`, `learning_rate=0.1`), **aunque su desvianza media sea peor que la de L1** (1,2375 contra 1,2319, `tablas/18`). La mejor combinación de la grilla en desvianza (`max_depth=4`, `n_estimators=300`, `learning_rate=0.05`, 1,2197) se reporta como referencia y **no se ejecuta en el paso C** |
+| D40 | **La ventana no cuenta como complejidad** | En el paso 3 solo se ordena por familia (GLM antes que XGBoost); entre ventanas de la misma familia que sigan empatadas decide el paso 4 (D38) |
+
 **Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
 que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
 mismos 47 cortes con los que se compararán los candidatos, la ventaja de L0 de 8 semanas sobre la de 4 es optimista en
