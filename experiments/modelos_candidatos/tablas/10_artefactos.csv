@@ -2,6 +2,8 @@ artefacto
 figuras/fig1_referencias_por_corte.png
 figuras/fig2_referencias_por_municipio.png
 figuras/fig3_total_semanal_referencias.png
+figuras/fig4_paso_a_desvianza.png
+registro_experimentos.csv
 tablas/00_entorno.csv
 tablas/01_verificacion_integridad.csv
 tablas/02_particiones.csv
@@ -12,3 +14,10 @@ tablas/06_referencias_por_municipio.csv
 tablas/07_referencias_por_corte.csv
 tablas/08_referencias_error_estandar_y_estabilidad.csv
 tablas/09_predicciones_referencias.csv
+tablas/11_paso_a_globales.csv
+tablas/12_paso_a_por_municipio.csv
+tablas/13_paso_a_por_corte.csv
+tablas/14_paso_a_eleccion.csv
+tablas/15_paso_a_dispersion_pearson.csv
+tablas/16_paso_a_ajustes_por_corte.csv
+tablas/17_paso_a_predicciones.csv

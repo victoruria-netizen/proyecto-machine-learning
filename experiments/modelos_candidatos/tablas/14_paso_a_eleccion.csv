@@ -1,0 +1,25 @@
+familia,paso,configuracion,desvianza,error_estandar,resultado
+GLM Poisson,N de (0) por desvianza media,GLM Poisson (0) N=28,1.275983,0.038852,
+GLM Poisson,N de (0) por desvianza media,GLM Poisson (0) N=56,1.276862,0.038822,
+GLM Poisson,N de (0) por desvianza media,GLM Poisson (0) N=91,1.275652,0.038932,elegido
+GLM Poisson,N de (c) por desvianza media,GLM Poisson (c) N=28,1.214976,0.036343,elegido
+GLM Poisson,N de (c) por desvianza media,GLM Poisson (c) N=56,1.216672,0.036302,
+GLM Poisson,N de (c) por desvianza media,GLM Poisson (c) N=91,1.216758,0.036397,
+GLM Poisson,"(a), (b), (c): a menos de 1 EE del mejor",GLM Poisson (a),1.230204,0.035934,empatado (≤ 1.2513)
+GLM Poisson,"(a), (b), (c): a menos de 1 EE del mejor",GLM Poisson (b),1.220735,0.036162,empatado (≤ 1.2513)
+GLM Poisson,"(a), (b), (c): a menos de 1 EE del mejor",GLM Poisson (c) N=28,1.214976,0.036343,mejor; empatado (≤ 1.2513)
+GLM Poisson,el más simple entre los empatados (a < b < c),GLM Poisson (a),1.230204,0.035934,"elegido entre (a), (b), (c)"
+GLM Poisson,¿(0) reemplaza? desv(elegido) − desv(0) > EE(0),GLM Poisson (0) N=91,1.275652,0.038932,-0.0454 ≤ 0.0389: no reemplaza
+GLM Poisson,conjunto elegido para la familia,GLM Poisson (a),1.230204,0.035934,ELEGIDO
+XGBoost,N de (0) por desvianza media,XGBoost (0) N=28,1.286448,0.039482,elegido
+XGBoost,N de (0) por desvianza media,XGBoost (0) N=56,1.28664,0.041196,
+XGBoost,N de (0) por desvianza media,XGBoost (0) N=91,1.290019,0.040202,
+XGBoost,N de (c) por desvianza media,XGBoost (c) N=28,1.22189,0.037042,elegido
+XGBoost,N de (c) por desvianza media,XGBoost (c) N=56,1.222424,0.038221,
+XGBoost,N de (c) por desvianza media,XGBoost (c) N=91,1.224331,0.037346,
+XGBoost,"(a), (b), (c): a menos de 1 EE del mejor",XGBoost (a),1.221665,0.036117,empatado (≤ 1.2562)
+XGBoost,"(a), (b), (c): a menos de 1 EE del mejor",XGBoost (b),1.219965,0.036206,mejor; empatado (≤ 1.2562)
+XGBoost,"(a), (b), (c): a menos de 1 EE del mejor",XGBoost (c) N=28,1.22189,0.037042,empatado (≤ 1.2562)
+XGBoost,el más simple entre los empatados (a < b < c),XGBoost (a),1.221665,0.036117,"elegido entre (a), (b), (c)"
+XGBoost,¿(0) reemplaza? desv(elegido) − desv(0) > EE(0),XGBoost (0) N=28,1.286448,0.039482,-0.0648 ≤ 0.0395: no reemplaza
+XGBoost,conjunto elegido para la familia,XGBoost (a),1.221665,0.036117,ELEGIDO

@@ -3362,3 +3362,172 @@ la sesión, fuera del repo) de los prompts del registro contra las transcripcion
 por `id` entre `74eafbd`, `e484dcb` y `HEAD`; `python -m pytest -rA -q` → `15 passed`; `git ls-remote origin e3/fase-0-1-protocolo`
 → `ce6a18ae3a435fcda2cbc2844d22967c57f6d1da`, igual a `HEAD`, así que el commit del fix de la ronda 2 está en el remoto. Sin commit ni
 push. **Archivos afectados:** `documentacion/reviews/E3_fase_0-1_r3.md` (nuevo), `documentacion/registro_uso_IA.md` (esta entrada).
+
+---
+
+## Sesión 2026-10-19 (E3, fase 2: experimentación, paso A) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** fase 2 del Entregable 3 en la rama `e3/fase-2-experimentacion`. Precisiones previas a los candidatos (D31 a D34 e
+ítem 5) y paso A (conjuntos de variables con GLM Poisson y XGBoost, ventana expansiva) en `notebooks/modelos_candidatos.ipynb`.
+La entrada cubre hasta la parada del paso A; los pasos B y C se registran en entradas posteriores.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase 2, en la rama e3/fase-2-experimentacion.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en <rama>. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en <rama> solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fase 2: experimentación. Todo en notebooks/modelos_candidatos.ipynb, a continuación de la
+> sección 6.
+>
+> ## Antes de empezar
+>
+> - Leé la "Adenda a la sección 1" del notebook (ítems 1 a 6; decisiones D17 a D20 y D27 a
+>   D29). Sus precisiones son reglas fijadas: no se modifican ni la sección 1 ni la adenda.
+>   Si algo no está cubierto, preguntá.
+> - Todo comando de Python, pytest y nbconvert se corre con el .venv activado en el mismo
+>   comando (por ejemplo `.venv\Scripts\Activate.ps1; jupyter nbconvert ...`). Sin activarlo,
+>   el kernel usa el Python 3.13.9 del sistema. Verificá en la sección 0 que dice 3.13.2.
+>
+> ## Reglas de los pasos A, B y C
+>
+> - Municipio y calendario como variables indicadoras, con la misma matriz para GLM y
+>   XGBoost. El término propio de A es la interacción A × calendario.
+> - GLM Poisson con statsmodels (enlace log).
+> - Binomial negativa según los ítems 5 y 6 de la adenda: NB2 con α por máxima verosimilitud
+>   (statsmodels.discrete NegativeBinomial, loglike_method="nb2", method="newton",
+>   maxiter=100). No convergido = mle_retvals["converged"] False, ConvergenceWarning o α no
+>   finito o no positivo; en ese corte se aplica el plan B (GLM NB con α por momentos en el
+>   mismo corte) y se reporta.
+> - Cada configuración evaluada agrega una fila a
+>   experiments/modelos_candidatos/registro_experimentos.csv: modelo, conjunto, N,
+>   hiperparámetros, ventana, desvianza, error estándar, MAE, RMSE, total pred./obs., días
+>   con predicción 0, peor municipio, cortes con plan B y fecha/hora. Incluye los resultados
+>   negativos.
+> - Guardá las predicciones por corte, día y municipio de cada configuración.
+> - En cada tabla de comparación, marcá qué configuraciones quedan a menos de 1 error
+>   estándar de la mejor.
+> - Si un modelo no converge o da advertencias, no lo silencies: reportalo.
+>
+> ## Paso A — Conjuntos de variables (ventana expansiva)
+>
+> - GLM Poisson y XGBoost (configuración del ítem 3 de la adenda) con los conjuntos (0), (a),
+>   (b) y (c). N ∈ {28, 56, 91} en (0) y en (c), elegido por desvianza media en validación,
+>   por separado en cada familia.
+> - Tablas globales y por municipio, con comparación contra L1 y L0 de 8 semanas.
+> - Aplicá la regla del ítem 4 de la adenda y decí qué conjunto queda elegido para cada
+>   familia.
+> - Reportá la dispersión de Pearson del GLM Poisson con el conjunto elegido.
+> - Lectura separando evidencia de inferencia. En particular: ¿(c) corrige la subestimación
+>   de L1 (total pred./obs. 0,93)? ¿El término de A aporta en el panel como en el
+>   diagnóstico?
+>
+> DETENETE.
+>
+> ## Paso B — Hiperparámetros y binomial negativa (ventana expansiva)
+>
+> - XGBoost: las 12 combinaciones de la grilla sobre el conjunto elegido para XGBoost.
+> - Binomial negativa NB2 sobre el conjunto elegido para el GLM. Reportá α por corte (al
+>   menos su rango), cuántos cortes usaron el plan B y comparala con el GLM Poisson en
+>   desvianza.
+> - Elegí la mejor configuración de cada familia con la regla de selección. La familia GLM
+>   incluye Poisson y binomial negativa; la familia XGBoost, las 12 combinaciones.
+>
+> DETENETE.
+>
+> ## Paso C — Ventanas
+>
+> - Para la mejor configuración de cada familia: ventana expansiva y deslizante de 364, 546 y
+>   728 días.
+> - Aplicá la regla de selección completa sobre todas las configuraciones del paso C:
+>   desvianza, empate por 1 error estándar, simplicidad, estabilidad y calibración.
+> - Mostrame el resultado de cada paso de la regla y la configuración que quedaría elegida.
+>   No escribas todavía la configuración final: eso es la fase 3.
+>
+> DETENETE. En cada parada actualizá el resumen, HANDOFF y el registro de IA.
+
+**Respuesta (extracto relevante):** antes de escribir código, la IA verificó la rama, el `.venv` (Python 3.13.2) y `pytest`
+(15 pasados), y planteó cuatro decisiones que ni el prompt ni la adenda cubrían, cada una con una opción recomendada: (1) forma
+del nivel reciente y de los rezagos en el GLM con enlace log; (2) parametrización de las indicadoras, que no cambia el GLM pero sí
+XGBoost; (3) qué error estándar usar en «(0) solo reemplaza si mejora por más de 1 EE»; (4) si el registro se reescribe o se
+acumula, dado que el notebook se reejecuta entero en cada paso. El equipo eligió las cuatro recomendadas: log(nivel) y rezagos
+crudos; 8 municipios sin constante; el EE de (0); reescribir en cada corrida.
+
+**Uso y verificación:** las cuatro respuestas pasaron a ser D31 a D34 (prompt 2). Ninguna decisión se tomó sin consulta.
+**Archivos afectados:** ninguno en este intercambio.
+
+### Prompt 2
+> Antes de ejecutar el paso A:
+> 1. Agregá debajo de la adenda un bloque "Precisiones de la fase 2, fijadas el 19/10/2026 antes
+>    de ejecutar candidatos", sin tocar la sección 1 ni la adenda:
+>    - Matriz de indicadoras (D31): 8 municipios sin constante; calendario con 7 columnas,
+>      lunes como referencia; término de A con 7 columnas a_x_*, sin a_x_lunes.
+>    - Error estándar del ítem 4 (D32): el de (0). (0) reemplaza al elegido solo si
+>      desv(elegido) − desv(0) > EE(0).
+>    - Registro de experimentos (D33): se reescribe en cada ejecución, con commit en cada parada.
+>    - Forma de las variables (D34): log(nivel_reciente_N) y rezagos 7/14/21/28 como conteos
+>      crudos, en (0) y en (c). Verificá que ningún nivel reciente valga 0 en desarrollo; si
+>      alguno vale 0, detenete.
+> 2. Espejo en el resumen §1.1.
+> 3. DETENETE y mostrame el diff. Con mi confirmación, hacé el commit "Precisiones de la fase 2
+>    previas a los candidatos (D31-D34)" y recién ahí ejecutá el paso A.
+> 4. Además del commit al cierre, hacé un commit en cada parada (después de A, de B y de C)
+>    cuando yo lo confirme.
+
+**Respuesta (extracto relevante):** celda markdown nueva en la posición 5 del notebook, debajo de la adenda, con los cuatro ítems,
+y su espejo en una tabla del resumen §1.1. Comprobación de ceros sobre el panel leído con `cargar_panel_desarrollo()`: la media
+móvil por municipio de 28, 56 y 91 días nunca vale 0 (mínimos 1,0; 1,2321 y 1,3846), así que no hubo que detenerse. La IA se
+detuvo y mostró el diff.
+
+**Uso y verificación:** utilizado tal cual. `nbformat.validate` OK; el diff solo agrega líneas (la sección 1 y la adenda no
+cambian). La comprobación de ceros no es un resultado del proyecto: el notebook la repite en cada corte (sección 7).
+**Archivos afectados:** `notebooks/modelos_candidatos.ipynb` (celda nueva), `documentacion/resumen_modelos_candidatos.md`.
+
+### Prompt 3
+> Antes del commit, agregá al bloque un ítem 5: "Parámetros de XGBoost fuera de D19: valores por
+> defecto de xgboost 3.4.1 (tree_method="hist", subsample=1, colsample_bytree=1,
+> min_child_weight=1, reg_lambda=1), más random_state=SEMILLA y n_jobs=1 para que los resultados
+> sean deterministas." Mismo agregado en el resumen §1.1. Después hacé el commit con los dos
+> archivos y seguí con el paso A como propusiste (secciones 7, 8 y 9; "Estado y artefactos" al
+> final). Detenete al terminar el paso A.
+
+**Respuesta (extracto relevante):** antes de escribir el ítem 5, la IA comprobó sobre datos sintéticos que esos son los valores por
+defecto efectivos de xgboost 3.4.1 con `count:poisson`, leyendo la configuración del booster con `save_config`. Agregó el ítem 5 y
+creó el commit `2936c72`. Después escribió la sección 7 del notebook. El código construye la matriz de D31/D34 a partir de
+`var.matriz_entrenamiento` y `var.variables_horizonte`, sin variables nuevas. Ajusta el GLM Poisson con `sm.GLM(..., family=Poisson())`
+y XGBoost con `XGBRegressor(**XGB_FIJOS, **XGB_PASO_A)`. Registra los avisos y la convergencia de cada ajuste por corte, sin
+silenciarlos. Escribe el registro de D33, las tablas 11 a 17 y la figura 4, y aplica la regla del ítem 4 con D32. Resultado:
+**conjunto (a) en las dos familias** (GLM 1,2302; XGBoost 1,2217), porque (a), (b) y (c) quedan a menos de 1 EE del mejor y la
+regla elige el más simple. Ninguna configuración de (a), (b) o (c) se distingue de L1 (1,2319) por 1 EE. La dispersión de Pearson
+del GLM (a) va de 1,1035 a 1,1171. Lecturas: (c) corrige solo en parte la subestimación (0,9341 → 0,9523); el término de A mejora A
+en 4,34 % en el GLM, como en el diagnóstico. «Estado y artefactos» pasó a ser la sección 10.
+
+**Uso y verificación:** utilizado, con una corrección. La primera ejecución con `nbconvert` falló en la figura 4 (`ValueError` de
+matplotlib: `ecolor` no acepta una serie de colores); se cambió solo el dibujo de la figura y se reejecutó. Verificación: segunda
+ejecución con 0 errores y 0 salidas `stderr`; las tablas 11 a 16 de las dos ejecuciones son idénticas con `cmp` y el registro es
+idéntico salvo `fecha_hora` (determinismo); las tablas 00 a 09 y las figuras 1 a 3 de la fase 1 no cambiaron (`git status`); 752
+ajustes sin avisos y 376 GLM convergidos (`tablas/16`); 1.200.192 valores de nivel reciente comprobados > 0. Las cifras de la lectura
+se contrastaron contra `tablas/11`, `12`, `13`, `14` y `15`. La celda de lectura 7.1 (texto) se agregó después de la ejecución, sin
+reejecutar. `pytest`: 15 pasados, 0 saltados, al cierre de la parada. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`,
+`experiments/modelos_candidatos/` (tablas 10 a 17, figura 4, `registro_experimentos.csv`), `documentacion/resumen_modelos_candidatos.md`,
+`HANDOFF.md`, `documentacion/registro_uso_IA.md`.

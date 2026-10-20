@@ -1,20 +1,23 @@
-# Resumen de modelos candidatos — protocolo en el panel y referencias (Etapa 1 del Entregable 3)
+# Resumen de modelos candidatos — protocolo, referencias y experimentación (Entregable 3)
 
 **Notebook:** [`notebooks/modelos_candidatos.ipynb`](../notebooks/modelos_candidatos.ipynb)
-**Artefactos:** `experiments/modelos_candidatos/` (11 tablas CSV en `tablas/` y 3 figuras PNG en `figuras/`)
+**Artefactos:** `experiments/modelos_candidatos/` (18 tablas CSV en `tablas/`, 4 figuras PNG en `figuras/` y
+`registro_experimentos.csv`)
 **Código que usa:** `src/variables.py`, `src/datos.py`; pruebas en `tests/test_variables.py`
 **Fecha de ejecución:** 2026-10-14; **reejecutado el 2026-10-19** tras la review R1 (`jupyter nbconvert --execute --inplace` en el
 `.venv`; 0 errores; entorno en `tablas/00_entorno.csv`). Las 11 tablas y 3 figuras quedaron **idénticas** a las del 2026-10-14
-(ninguna cifra cambió; ver §8)
+(ninguna cifra cambió; ver §8). **Fase 2, paso A: ejecutado el 2026-10-19** (mismo comando, 0 errores, 0 salidas `stderr`); las
+tablas 00 a 09 y las figuras 1 a 3 no cambiaron, solo `10_artefactos.csv` (índice). Dos ejecuciones dieron tablas 11 a 16 idénticas
+(el registro, idéntico salvo `fecha_hora`)
 **Alcance:** los **ocho municipios** de Montevideo, **sólo el bloque de desarrollo (2021-07-01 → 2025-02-05,
 1.316 días)**; 987 días de entrenamiento inicial y 329 de validación en 47 cortes de 7 días.
 
-> ### ⚠️ Estado: este documento cubre sólo protocolo y referencias
+> ### ⚠️ Estado: protocolo, referencias y paso A (fase 2) ejecutados; pasos B y C pendientes
 >
-> **Los modelos candidatos (GLM Poisson, GLM binomial negativa, XGBoost) y las etapas A, B y C de la
-> experimentación NO se ejecutaron.** Todo lo que dependa de ellos está marcado
-> `<!-- PENDIENTE -->`. Nada de este documento permite afirmar qué modelo se elegirá ni cuánto mejora sobre la
-> línea base.
+> **Ejecutado:** protocolo y referencias (§1 a §3) y el **paso A** de la experimentación (§3b): conjuntos de variables con GLM
+> Poisson y XGBoost en ventana expansiva. **No ejecutado:** el paso B (grilla de XGBoost y binomial negativa NB2) y el paso C
+> (ventanas). Lo que depende de ellos está marcado `<!-- PENDIENTE -->`. **No hay modelo final**: el paso A elige un conjunto de
+> variables por familia, no una solución. Nada de este documento permite afirmar qué modelo se elegirá.
 >
 > **El test no se lee.** El bloque final (2025-02-06 → 2025-12-31) no se carga en ningún código de este
 > notebook: `src.datos.cargar_panel_desarrollo()` recorta cada tramo del CSV a `fecha <= 2025-02-05` antes de
@@ -249,10 +252,123 @@ semanal observado contra tres referencias.
 
 ---
 
-## 4. Qué NO se hizo en esta etapa
+## 3b. Fase 2, paso A: conjuntos de variables (ventana expansiva) — sección 7 del notebook
 
-- **PENDIENTE:** GLM Poisson, GLM binomial negativa y XGBoost; conjuntos (0), (a), (b), (c); etapas A, B y C; dispersión de
-  Pearson y α; selección del modelo final; comparación de ventanas (364, 546, 728 días contra la expansiva).
+### 3b.1 Qué se hizo y por qué
+
+| Elemento | Decisión | Origen |
+| --- | --- | --- |
+| Familias | GLM Poisson (`statsmodels` GLM, enlace log, IRLS por defecto) y XGBoost (`count:poisson`, `max_depth=3`, `n_estimators=300`, `learning_rate=0.05`; resto por defecto de 3.4.1, `random_state=SEMILLA`, `n_jobs=1`) | Sección 1; adenda ítem 3 (D19); precisiones de la fase 2, ítem 5 |
+| Conjuntos | (0) municipio + log(nivel reciente) + rezagos 7/14/21/28; (a) municipio + calendario; (b) (a) + término de A; (c) (b) + log(nivel reciente) | Sección 1; D34 |
+| Matriz | 8 indicadoras de municipio sin constante; calendario 7 columnas (lunes de referencia); término de A 7 columnas (sin `a_x_lunes`); la misma para las dos familias | D31 |
+| N del nivel reciente | {28, 56, 91} en (0) y (c), por desvianza media, por familia | Adenda ítem 2 (D18) |
+| Variables | Sólo `src/variables.py`: `matriz_entrenamiento` (origen simulado; mismas filas para todos los conjuntos) y `variables_horizonte` | Etapa 1 |
+| Elección del conjunto | Entre (a), (b), (c): 1 EE del mejor y simplicidad a < b < c; (0) reemplaza sólo si desv(elegido) − desv(0) > EE(0) | Adenda ítem 4 (D20); D32 |
+| Registro | Una fila por configuración en `registro_experimentos.csv`, reescrito en cada ejecución | D33 |
+
+16 configuraciones (2 familias × [3 de (0) + (a) + (b) + 3 de (c)]) × 47 cortes = 752 ajustes. Filas de entrenamiento por corte:
+de 7.168 (896 días, primer corte) a 9.744 (1.218 días, último) (`tablas/16`). La verificación de D34 comprobó 1.200.192 valores de
+nivel reciente, todos > 0 (salida de la sección 7).
+
+### 3b.2 Resultados globales — `tablas/11_paso_a_globales.csv`, `figuras/fig4_paso_a_desvianza.png`
+
+Ordenados por desvianza. «≤ 1 EE» = a menos de 1 error estándar de la mejor de la tabla (GLM (c) N=28: 1,2150 + 0,0363 = 1,2513).
+
+| Configuración | Desvianza | EE | MAE | RMSE | Total pred./obs. | Peor mun. | Dif. vs L1 | Cortes que gana a L1 | ≤ 1 EE |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GLM Poisson (c) N=28 | 1,2150 | 0,0363 | 1,3981 | 1,7826 | 0,9523 | E (1,4121) | −0,0169 | 38 | sí |
+| GLM Poisson (c) N=56 | 1,2167 | 0,0363 | 1,3992 | 1,7840 | 0,9479 | E (1,4018) | −0,0152 | 37 | sí |
+| GLM Poisson (c) N=91 | 1,2168 | 0,0364 | 1,3996 | 1,7841 | 0,9480 | E (1,4011) | −0,0151 | 35 | sí |
+| XGBoost (b) | 1,2200 | 0,0362 | 1,3997 | 1,7888 | 0,9338 | E (1,3997) | −0,0119 | 32 | sí |
+| GLM Poisson (b) | 1,2207 | 0,0362 | 1,3990 | 1,7876 | 0,9341 | E (1,3995) | −0,0111 | 35 | sí |
+| **XGBoost (a)** — elegido | 1,2217 | 0,0361 | 1,3999 | 1,7900 | 0,9338 | E (1,4004) | −0,0102 | 31 | sí |
+| XGBoost (c) N=28 | 1,2219 | 0,0370 | 1,4051 | 1,7894 | 0,9586 | E (1,4454) | −0,0100 | 29 | sí |
+| XGBoost (c) N=56 | 1,2224 | 0,0382 | 1,4082 | 1,7893 | 0,9667 | E (1,4165) | −0,0095 | 29 | sí |
+| XGBoost (c) N=91 | 1,2243 | 0,0373 | 1,4074 | 1,7919 | 0,9730 | E (1,4219) | −0,0075 | 27 | sí |
+| **GLM Poisson (a)** — elegido | 1,2302 | 0,0359 | 1,4013 | 1,7951 | 0,9341 | E (1,4019) | −0,0017 | 36 | sí |
+| *L1 (referencia)* | 1,2319 | 0,0358 | 1,4006 | 1,7960 | 0,9305 | E (1,4026) | 0 | — | **sí** |
+| GLM Poisson (0) N=91 | 1,2757 | 0,0389 | 1,4264 | 1,8300 | 0,9529 | E (1,4803) | +0,0438 | 15 | no |
+| GLM Poisson (0) N=28 | 1,2760 | 0,0389 | 1,4266 | 1,8303 | 0,9524 | E (1,4855) | +0,0441 | 15 | no |
+| GLM Poisson (0) N=56 | 1,2769 | 0,0388 | 1,4255 | 1,8309 | 0,9485 | E (1,4814) | +0,0450 | 14 | no |
+| XGBoost (0) N=28 | 1,2864 | 0,0395 | 1,4389 | 1,8396 | 0,9590 | C (1,5063) | +0,0546 | 14 | no |
+| XGBoost (0) N=56 | 1,2866 | 0,0412 | 1,4392 | 1,8396 | 0,9675 | C (1,5311) | +0,0548 | 13 | no |
+| XGBoost (0) N=91 | 1,2900 | 0,0402 | 1,4467 | 1,8445 | 0,9775 | C (1,5380) | +0,0581 | 14 | no |
+| *L0 de 8 semanas (referencia)* | 1,3626 | 0,0414 | 1,4957 | 1,8958 | 1,0067 | E (1,6267) | +0,1308 | 9 | no |
+
+Ninguna configuración produjo predicciones iguales a 0. Ningún ajuste emitió avisos; los 376 ajustes del GLM convergieron, con 5
+iteraciones de IRLS cada uno (`tablas/16`; `registro_experimentos.csv`: `cortes_no_convergidos` 0 y `cortes_con_avisos` 0 en las 16 filas).
+
+### 3b.3 Aplicación de la regla del ítem 4 — `tablas/14_paso_a_eleccion.csv`
+
+| Paso | GLM Poisson | XGBoost |
+| --- | --- | --- |
+| N de (0) por desvianza media | **N=91** (1,2757; N=28 1,2760; N=56 1,2769) | **N=28** (1,2864; N=56 1,2866; N=91 1,2900) |
+| N de (c) por desvianza media | **N=28** (1,2150; N=56 1,2167; N=91 1,2168) | **N=28** (1,2219; N=56 1,2224; N=91 1,2243) |
+| Mejor entre (a), (b), (c) y umbral | (c) N=28, 1,2150 + 0,0363 = **1,2513** | (b), 1,2200 + 0,0362 = **1,2562** |
+| Empatados (≤ umbral) | (a) 1,2302, (b) 1,2207, (c) 1,2150 | (a) 1,2217, (b) 1,2200, (c) 1,2219 |
+| El más simple de los empatados | **(a)** | **(a)** |
+| ¿(0) reemplaza? desv(a) − desv(0) > EE(0) | −0,0454 ≤ 0,0389: **no** | −0,0648 ≤ 0,0395: **no** |
+| **Conjunto elegido** | **(a)** | **(a)** |
+
+### 3b.4 Por municipio — `tablas/12_paso_a_por_municipio.csv`
+
+Desvianza (el EE por municipio se calcula sobre los 47 cortes de 7 filas; `*` = a menos de 1 EE del mejor del municipio):
+
+| Configuración | A | B | C | CH | D | E | F | G |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GLM Poisson (a) | 1,2950* | 1,0879* | 1,3549* | 1,3344* | 1,1010* | 1,4019* | 1,0820* | 1,1844* |
+| GLM Poisson (b) | 1,2388* | 1,0836* | 1,3484* | 1,3307* | 1,0991* | 1,3995* | 1,0818* | 1,1840* |
+| GLM Poisson (c) N=28 | 1,2165* | 1,0870* | 1,3363* | 1,3277* | 1,0958* | 1,4121* | 1,0647* | 1,1796* |
+| XGBoost (a) | 1,2511* | 1,0826* | 1,3449* | 1,3410* | 1,1068* | 1,4004* | 1,0658* | 1,1806* |
+| XGBoost (b) | 1,2478* | 1,0833* | 1,3459* | 1,3408* | 1,1044* | 1,3997* | 1,0594* | 1,1785* |
+| XGBoost (c) N=28 | 1,2285* | 1,0903* | 1,3573* | 1,3318* | 1,1021* | 1,4454* | 1,0511* | 1,1685* |
+| L1 | 1,3017 | 1,0862* | 1,3530* | 1,3350* | 1,1036* | 1,4026* | 1,0856* | 1,1874* |
+| L0 de 8 semanas | 1,3434 | 1,2221 | 1,5142 | 1,5155 | 1,1995 | 1,6267 | 1,2070 | 1,2727* |
+
+(Las 18 filas, con MAE, EE y total pred./obs., en `tablas/12`.) Total predicho / observado de GLM (c) N=28: A 0,9001, B 1,0058,
+C 0,9378, CH 1,0117, D 0,9685, E 0,9483, F 0,9160, G 0,9529; de L1: A 0,8641, F 0,8862 (§3.3).
+
+### 3b.5 Dispersión de Pearson del GLM Poisson con el conjunto elegido — `tablas/15_paso_a_dispersion_pearson.csv`
+
+χ² de Pearson / gl residuales del GLM Poisson (a), en el entrenamiento de cada uno de los 47 cortes: **mínimo 1,1035, mediana 1,1109,
+máximo 1,1171** (primer corte 1,1100; último 1,1124).
+
+### 3b.6 Lectura (espejo de la celda 7.1 del notebook)
+
+**Evidencia.**
+- En las dos familias, (a), (b) y (c) quedan a menos de 1 EE del mejor de los tres, y la regla elige **(a)** por simplicidad. (0) es
+  peor que (a) en las dos familias y no reemplaza.
+- **Por el criterio de 1 EE, ninguna configuración de (a), (b) o (c) se distingue de L1**: L1 queda dentro del umbral de la mejor
+  configuración. GLM (a) queda a −0,0017 de L1 (*inferencia:* con nivel por municipio × calendario común, es la misma estructura
+  que L1 ajustada por máxima verosimilitud); la mejor, GLM (c) N=28, a −0,0169, y le
+  gana en 38 de 47 cortes.
+- La elección de N cambia la desvianza a lo sumo en 0,0036, muy por debajo de 1 EE.
+
+**¿(c) corrige la subestimación de L1 (0,9305)?** *Evidencia:* en parte. El total predicho / observado pasa de 0,9341 en GLM (a) a
+0,9523 en GLM (c) N=28, y de 0,9338 en XGBoost (a) a entre 0,9586 y 0,9730 en XGBoost (c). Ninguna llega a 1. A sigue siendo el
+municipio más subestimado (0,9001 en GLM (c) N=28, contra 0,8641 en L1). En desvianza, GLM (c) N=28 mejora a GLM (a) en 0,0152 y le gana
+en 38 de 47 cortes, pero queda dentro de 1 EE; en XGBoost, (c) N=28 no mejora a (a) (+0,0002; gana en 26 de 47, conteo sobre `tablas/13`).
+*Inferencia:* el nivel reciente absorbe parte de la tendencia, no toda; qué explica el resto no se investigó.
+
+**¿El término de A aporta en el panel como en el diagnóstico?** *Evidencia:* en el GLM, sí en A y casi nada en el global. La desvianza
+de A baja de 1,2950 con (a) a 1,2388 con (b), un **−4,34 %**. En el diagnóstico, el calendario propio mejoraba a A en 4,06 % y 4,24 %
+(`resumen_diagnostico_municipios.md` §7.3). Son protocolos distintos, así que se compara la dirección y el orden de magnitud, no la
+cifra. Globalmente, (b) mejora a (a) en 0,0095 (EE 0,0362) y le gana en 33 de 47 cortes. En XGBoost el término casi no cambia: A pasa de
+1,2511 a 1,2478 y el global, de 1,2217 a 1,2200. *Inferencia:* XGBoost (a) ya modela A mejor que GLM (a) (1,2511 contra 1,2950), lo que
+sugiere que los árboles encuentran la interacción municipio × calendario sin el término explícito.
+
+**Inferencia general.** Con este protocolo y esta regla, ninguno de los bloques que motivó el diagnóstico (término de A, nivel reciente)
+supera el umbral de 1 EE. El EE se calcula entre cortes y recoge las semanas difíciles que afectan a todos los modelos por igual; las
+comparaciones corte a corte (38 de 47, 33 de 47) muestran diferencias más consistentes de lo que el umbral deja ver. La regla está fijada
+y se aplicó como está.
+
+---
+
+## 4. Qué NO se hizo todavía
+
+- ~~Paso A~~ — **hecho** (§3b).
+- **PENDIENTE:** paso B (grilla de XGBoost sobre (a); binomial negativa NB2 sobre (a), con α por corte y plan B) y paso C (ventanas
+  expansiva y deslizantes de 364, 546 y 728 días para la mejor configuración de cada familia); selección del modelo final (fase 3).
 - **PENDIENTE:** evaluación en el test (una sola vez, con la solución ya fijada).
 - La ventana deslizante está **implementada y comprobada estructuralmente** (364 días exactos en cada corte; `tablas/03`), pero
   **ninguna referencia se evaluó con ella**.
@@ -270,12 +386,22 @@ semanal observado contra tres referencias.
 - **L1 subestima el volumen (0,9305)** por la tendencia creciente; no es un defecto del código sino de un nivel histórico fijo.
 - **Mismas limitaciones de datos** que `resumen_diagnostico_municipios.md` §9: subregistro, sin exposición, causas no
   investigadas.
+- **Paso A: el umbral de 1 EE es amplio frente a las diferencias entre conjuntos.** Los EE rondan 0,036 y las diferencias entre
+  (a), (b) y (c), 0,002 a 0,015; con esta regla los conjuntos anidados no se distinguen entre sí ni de L1. Es una propiedad de la
+  regla fijada (EE entre cortes, no pareado), no un hallazgo sobre los datos.
+- **Paso A: la elección de N, del conjunto y de la L0 usan los mismos 47 cortes** (sesgo declarado en §1.1).
 
 **Frases que NO deben aparecer en el informe**
 
 | Frase | Por qué los datos no la sostienen |
 | --- | --- |
-| «El modelo final mejora a la línea base en X %» | No hay modelo final: los candidatos no se ejecutaron |
+| «El modelo final mejora a la línea base en X %» | No hay modelo final: el paso A elige un conjunto por familia; faltan los pasos B y C y la fase 3 |
+| «Los candidatos mejoran a L1» / «GLM (c) supera a L1» | Por el criterio de 1 EE, ninguna configuración de (a), (b) o (c) se distingue de L1 (`tablas/11`). Lo que sí puede decirse: GLM (c) N=28 tiene menor desvianza media (1,2150 contra 1,2319) y le gana en 38 de 47 cortes |
+| «El nivel reciente corrige la subestimación» | La corrige en parte: el total pred./obs. pasa de 0,9341 (GLM (a)) a 0,9523 (GLM (c) N=28); ninguna configuración llega a 1 y A queda en 0,9001 |
+| «El término de A no aporta» | En el GLM mejora la desvianza de A en 4,34 % (1,2950 → 1,2388); lo que no supera es el umbral de 1 EE en el global |
+| «Se eligió (a) porque es el mejor» | Se eligió por **simplicidad** entre empatados a menos de 1 EE; en desvianza media, (a) es el peor de los tres en el GLM y el segundo en XGBoost |
+| «Los rezagos semanales aportan» | El conjunto (0) (rezagos + nivel reciente, sin calendario) es peor que L1 en las dos familias (+0,0438 a +0,0581) |
+| «El GLM Poisson está sobredispersado de forma importante» | La dispersión de Pearson del GLM (a) va de 1,1035 a 1,1171 (`tablas/15`): sobredispersión moderada |
 | «La línea base es L0 de 4 semanas» (con estas cifras) | Con 2.632 predicciones, L0 de 4 semanas (1,5210) queda por detrás de la media constante (1,3967); la L0 que pasa a la comparación es la de 8 semanas (adenda del 19/10/2026) |
 | «La L0 de 8 semanas se fijó antes de ver los resultados» | Se eligió mirando los 47 cortes de validación (`tablas/05`), después de fijar la lista; la adenda lo declara. «Es mejor que la media constante» tampoco: la diferencia (0,0341) es menor que 1 error estándar (0,0447, `tablas/08`) |
 | «L1 es el mejor modelo del proyecto» | Es la mejor **referencia**; no compitió con ningún candidato |
@@ -303,13 +429,22 @@ semanal observado contra tres referencias.
 | Predicciones por corte, día y municipio (13.160 filas = 5 × 2.632) | `tablas/09_predicciones_referencias.csv` |
 | Total semanal observado y predicho | `figuras/fig3_total_semanal_referencias.png` |
 | Listado | `tablas/10_artefactos.csv` |
+| Paso A: métricas globales, EE, comparación con L1 y L0 de 8 semanas, marca de 1 EE | `tablas/11_paso_a_globales.csv`; `figuras/fig4_paso_a_desvianza.png` |
+| Paso A: por municipio, con EE y marca de 1 EE por municipio | `tablas/12_paso_a_por_municipio.csv` |
+| Paso A: métricas por corte (conteos de cortes ganados) | `tablas/13_paso_a_por_corte.csv` |
+| Paso A: elección de N y del conjunto por familia, paso por paso | `tablas/14_paso_a_eleccion.csv` |
+| Paso A: dispersión de Pearson del GLM Poisson (a) | `tablas/15_paso_a_dispersion_pearson.csv` |
+| Paso A: convergencia, avisos, filas de entrenamiento y dispersión por ajuste (752) | `tablas/16_paso_a_ajustes_por_corte.csv` |
+| Paso A: predicciones por corte, día y municipio (42.112 filas = 16 × 2.632) | `tablas/17_paso_a_predicciones.csv` |
+| Una fila por configuración evaluada (fase 2) | `registro_experimentos.csv` |
 
 ---
 
 ## 7. Qué queda pendiente
 
-1. **Candidatos** (etapa siguiente): conjuntos (0), (a), (b), (c) con GLM Poisson y XGBoost por defecto; grilla de XGBoost y
-   binomial negativa; ventanas para los dos mejores. Sobre el motor y las referencias de este notebook, sin tocarlos.
+1. **Candidatos.** ~~Paso A~~ — **hecho** el 19/10/2026 (§3b): conjunto elegido **(a)** en las dos familias. **Pendiente:** paso B
+   (las 12 combinaciones de la grilla de XGBoost sobre (a); NB2 sobre (a), con α por corte, plan B y comparación con el GLM Poisson) y
+   paso C (ventanas para la mejor configuración de cada familia). Sobre el motor y las referencias de este notebook, sin tocarlos.
 2. ~~Decidir qué L0 se lleva a la comparación final~~ — **cerrado** el 19/10/2026: 8 semanas (adenda de §1.1, precisión 1).
 3. ~~Precisar cómo entra el nivel reciente en el conjunto (0)~~ — **cerrado** el 19/10/2026: N ∈ {28, 56, 91} por familia
    (adenda de §1.1, precisión 2).
@@ -351,3 +486,14 @@ bloqueante N2) motivó este cambio, que es **solo de documentación**:
 - **Antes de fijar el criterio** se comprobó, con datos sintéticos generados en memoria (no el panel) y statsmodels 0.14.6, que
   `NegativeBinomial(..., loglike_method="nb2").fit(method="newton", maxiter=100)` es una llamada válida, que el resultado trae
   `mle_retvals["converged"]` y que `params` termina en el parámetro `alpha`. Esa comprobación no es un resultado del proyecto y no se cita como tal.
+
+### Fase 2, paso A (19/10/2026)
+
+- **Antes de ejecutar** se fijaron las precisiones D31 a D34 y el ítem 5 (§1.1), en el commit `2936c72`, separado del código del paso A.
+- **Notebook:** sección 7 nueva (paso A), a continuación de la sección 6. «Estado y artefactos» pasó de sección 7 a **sección 10**
+  (las 8 y 9 quedan para los pasos B y C), con el texto actualizado; su celda de índice ahora lista también `registro_experimentos.csv`.
+  Al encabezado se le agregó un párrafo sobre la fase 2. Las secciones 0 a 6, la sección 1, la adenda y las precisiones no cambiaron.
+- **Primera ejecución fallida** por un error de la figura 4 (`ecolor` no acepta una serie de colores); se corrigió el código de la
+  figura (sin tocar el cálculo) y se reejecutó. Las tablas 11 a 16 de las dos ejecuciones son idénticas byte a byte, y el registro
+  también lo es salvo `fecha_hora`: el paso A es determinista.
+- **La celda de lectura 7.1** (texto) se agregó después de la ejecución, sin reejecutar: no cambia ninguna salida.
