@@ -1,0 +1,12 @@
+modelo,familia,ventana,mae,rmse,total_pred_obs,total_pred_obs_municipio_A,dias_prediccion_cero,n,desvianza,error_estandar,n_cortes,desvio_entre_cortes,peor_municipio,desvianza_peor_municipio,diferencia_vs_L1,diferencia_vs_L0_8sem,cortes_que_gana_a_L1,a_menos_de_1_ee_del_mejor_de_la_tabla,a_menos_de_1_ee_del_mejor_de_su_familia
+"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,expansiva,1.398936,1.787833,0.933869,0.867877,0,2632,1.219692,0.035806,47,0.245471,MUNICIPIO E,1.400186,-0.012187,-0.142952,31,True,True
+GLM Poisson (a) [deslizante 364 d],GLM Poisson,deslizante 364 d,1.406706,1.788155,0.971655,0.932967,0,2632,1.220513,0.036394,47,0.249505,MUNICIPIO E,1.406793,-0.011366,-0.142131,32,True,True
+GLM Poisson (a) [deslizante 546 d],GLM Poisson,deslizante 546 d,1.405638,1.79088,0.958814,0.9151,0,2632,1.224203,0.036117,47,0.247608,MUNICIPIO E,1.408621,-0.007676,-0.138441,31,True,True
+GLM Poisson (a) [deslizante 728 d],GLM Poisson,deslizante 728 d,1.402911,1.792194,0.949478,0.893923,0,2632,1.226293,0.036,47,0.246801,MUNICIPIO E,1.404249,-0.005586,-0.136351,34,True,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,deslizante 364 d,1.417788,1.796052,0.971183,0.902974,0,2632,1.228034,0.037669,47,0.258248,MUNICIPIO E,1.402901,-0.003845,-0.13461,26,True,True
+GLM Poisson (a) [expansiva],GLM Poisson,expansiva,1.40131,1.7951,0.934095,0.869534,0,2632,1.230204,0.035934,47,0.246353,MUNICIPIO E,1.401944,-0.001676,-0.13244,36,True,True
+L1 (nivel x calendario de 8 niveles),referencia,expansiva,1.400586,1.796007,0.93049,0.864103,0,2632,1.231879,0.035821,47,0.245574,MUNICIPIO E,1.402559,0.0,-0.130765,0,True,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,deslizante 728 d,1.414137,1.800011,0.948949,0.864674,0,2632,1.231978,0.037656,47,0.258158,MUNICIPIO C,1.403718,9.8e-05,-0.130666,26,True,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,deslizante 546 d,1.418019,1.799854,0.958238,0.885537,0,2632,1.232158,0.0378,47,0.259146,MUNICIPIO E,1.404443,0.000279,-0.130486,25,True,True
+XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,expansiva,1.412891,1.804496,0.933553,0.837756,0,2632,1.237514,0.037533,47,0.257313,MUNICIPIO E,1.402404,0.005634,-0.12513,20,True,True
+L0 (8 semanas),referencia,no aplica (rezagos),1.495678,1.895783,1.006698,0.991924,0,2632,1.362644,0.041407,47,0.283869,MUNICIPIO E,1.626708,0.130765,0.0,9,False,False

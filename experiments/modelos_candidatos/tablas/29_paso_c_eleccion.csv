@@ -1,0 +1,26 @@
+seleccion,paso,configuracion,desvianza,error_estandar,peor_municipio,desvianza_peor_municipio,desvio_entre_cortes,total_pred_obs,total_pred_obs_municipio_A,resultado
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,GLM Poisson (a) [deslizante 364 d],1.220513,0.036394,MUNICIPIO E,1.406793,0.249505,0.971655,0.932967,mejor; empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,GLM Poisson (a) [deslizante 546 d],1.224203,0.036117,MUNICIPIO E,1.408621,0.247608,0.958814,0.9151,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,GLM Poisson (a) [deslizante 728 d],1.226293,0.036,MUNICIPIO E,1.404249,0.246801,0.949478,0.893923,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],1.228034,0.037669,MUNICIPIO E,1.402901,0.258248,0.971183,0.902974,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,GLM Poisson (a) [expansiva],1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,0.869534,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],1.231978,0.037656,MUNICIPIO C,1.403718,0.258158,0.948949,0.864674,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],1.232158,0.0378,MUNICIPIO E,1.404443,0.259146,0.958238,0.885537,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],1.237514,0.037533,MUNICIPIO E,1.402404,0.257313,0.933553,0.837756,empatada (≤ 1.2569)
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),GLM Poisson (a) [expansiva],1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,0.869534,más simple
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),GLM Poisson (a) [deslizante 364 d],1.220513,0.036394,MUNICIPIO E,1.406793,0.249505,0.971655,0.932967,más simple
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),GLM Poisson (a) [deslizante 546 d],1.224203,0.036117,MUNICIPIO E,1.408621,0.247608,0.958814,0.9151,más simple
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),GLM Poisson (a) [deslizante 728 d],1.226293,0.036,MUNICIPIO E,1.404249,0.246801,0.949478,0.893923,más simple
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),XGBoost (a) d=2 n=100 lr=0.1 [expansiva],1.237514,0.037533,MUNICIPIO E,1.402404,0.257313,0.933553,0.837756,más compleja
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],1.228034,0.037669,MUNICIPIO E,1.402901,0.258248,0.971183,0.902974,más compleja
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],1.232158,0.0378,MUNICIPIO E,1.404443,0.259146,0.958238,0.885537,más compleja
+"paso C, 8 configuraciones",3. simplicidad (D40: GLM antes que XGBoost; la ventana no cuenta),XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],1.231978,0.037656,MUNICIPIO C,1.403718,0.258158,0.948949,0.864674,más compleja
+"paso C, 8 configuraciones","4a. peor municipio, tolerancia de 1 EE (D38)",GLM Poisson (a) [expansiva],1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,0.869534,mejor; pasa (≤ 1.4939)
+"paso C, 8 configuraciones","4a. peor municipio, tolerancia de 1 EE (D38)",GLM Poisson (a) [deslizante 364 d],1.220513,0.036394,MUNICIPIO E,1.406793,0.249505,0.971655,0.932967,pasa (≤ 1.4939)
+"paso C, 8 configuraciones","4a. peor municipio, tolerancia de 1 EE (D38)",GLM Poisson (a) [deslizante 546 d],1.224203,0.036117,MUNICIPIO E,1.408621,0.247608,0.958814,0.9151,pasa (≤ 1.4939)
+"paso C, 8 configuraciones","4a. peor municipio, tolerancia de 1 EE (D38)",GLM Poisson (a) [deslizante 728 d],1.226293,0.036,MUNICIPIO E,1.404249,0.246801,0.949478,0.893923,pasa (≤ 1.4939)
+"paso C, 8 configuraciones",4b. menor desvío entre cortes (D38),GLM Poisson (a) [expansiva],1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,0.869534,menor
+"paso C, 8 configuraciones",4b. menor desvío entre cortes (D38),GLM Poisson (a) [deslizante 364 d],1.220513,0.036394,MUNICIPIO E,1.406793,0.249505,0.971655,0.932967,mayor
+"paso C, 8 configuraciones",4b. menor desvío entre cortes (D38),GLM Poisson (a) [deslizante 546 d],1.224203,0.036117,MUNICIPIO E,1.408621,0.247608,0.958814,0.9151,mayor
+"paso C, 8 configuraciones",4b. menor desvío entre cortes (D38),GLM Poisson (a) [deslizante 728 d],1.226293,0.036,MUNICIPIO E,1.404249,0.246801,0.949478,0.893923,mayor
+"paso C, 8 configuraciones",configuración elegida,GLM Poisson (a) [expansiva],1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,0.869534,ELEGIDA

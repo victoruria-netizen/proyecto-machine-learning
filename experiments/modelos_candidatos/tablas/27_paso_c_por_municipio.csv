@@ -1,0 +1,89 @@
+zona_id,modelo,familia,desvianza,error_estandar,mae,total_pred_obs,dias_prediccion_cero,a_menos_de_1_ee_del_mejor_del_municipio
+MUNICIPIO A,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.226112,0.08086,1.555706,0.902974,0,True
+MUNICIPIO A,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.236046,0.078688,1.554093,0.867877,0,True
+MUNICIPIO A,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.243702,0.082548,1.559748,0.885537,0,True
+MUNICIPIO A,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.258637,0.084139,1.571181,0.932967,0,True
+MUNICIPIO A,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.263519,0.081771,1.559133,0.864674,0,True
+MUNICIPIO A,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.26393,0.084281,1.56621,0.9151,0,True
+MUNICIPIO A,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.279547,0.084382,1.5667,0.893923,0,True
+MUNICIPIO A,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.289395,0.082094,1.569468,0.837756,0,True
+MUNICIPIO A,GLM Poisson (a) [expansiva],GLM Poisson,1.295027,0.083545,1.565796,0.869534,0,True
+MUNICIPIO A,L1 (nivel x calendario de 8 niveles),referencia,1.301672,0.083916,1.566082,0.864103,0,True
+MUNICIPIO A,L0 (8 semanas),referencia,1.343419,0.090983,1.635638,0.991924,0,False
+MUNICIPIO B,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.079901,0.075061,1.445619,0.998888,0,True
+MUNICIPIO B,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.084205,0.076928,1.458295,1.022173,0,True
+MUNICIPIO B,L1 (nivel x calendario de 8 niveles),referencia,1.086204,0.07541,1.447,0.996095,0,True
+MUNICIPIO B,GLM Poisson (a) [expansiva],GLM Poisson,1.08794,0.075721,1.451778,1.001751,0,True
+MUNICIPIO B,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.089182,0.076602,1.459907,1.018062,0,True
+MUNICIPIO B,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.09197,0.076925,1.463516,1.019071,0,True
+MUNICIPIO B,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.100556,0.077703,1.451726,0.977052,0,True
+MUNICIPIO B,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.100709,0.077719,1.446614,0.968218,0,True
+MUNICIPIO B,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.103564,0.077281,1.438892,0.951963,0,True
+MUNICIPIO B,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.107535,0.077895,1.45083,0.970667,0,True
+MUNICIPIO B,L0 (8 semanas),referencia,1.222123,0.097315,1.539514,1.025805,0,False
+MUNICIPIO C,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.340523,0.111997,1.609937,0.910327,0,True
+MUNICIPIO C,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.350789,0.109427,1.62684,0.937489,0,True
+MUNICIPIO C,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.351855,0.109585,1.629314,0.926548,0,True
+MUNICIPIO C,L1 (nivel x calendario de 8 niveles),referencia,1.353035,0.112717,1.627056,0.913315,0,True
+MUNICIPIO C,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.354612,0.112885,1.627502,0.91985,0,True
+MUNICIPIO C,GLM Poisson (a) [expansiva],GLM Poisson,1.354939,0.112807,1.628365,0.913757,0,True
+MUNICIPIO C,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.391079,0.113963,1.665228,0.89706,0,True
+MUNICIPIO C,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.397009,0.114918,1.67139,0.885216,0,True
+MUNICIPIO C,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.40236,0.118359,1.666685,0.87197,0,True
+MUNICIPIO C,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.403718,0.118735,1.670392,0.877376,0,True
+MUNICIPIO C,L0 (8 semanas),referencia,1.514177,0.121274,1.797492,1.007697,0,False
+MUNICIPIO CH,GLM Poisson (a) [expansiva],GLM Poisson,1.334421,0.098303,1.204887,1.00494,0,True
+MUNICIPIO CH,L1 (nivel x calendario de 8 niveles),referencia,1.335046,0.098153,1.205097,1.004795,0,True
+MUNICIPIO CH,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.336294,0.097486,1.206201,1.001166,0,True
+MUNICIPIO CH,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.33841,0.098728,1.203701,0.998725,0,True
+MUNICIPIO CH,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.340596,0.098625,1.214092,1.021846,0,True
+MUNICIPIO CH,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.341635,0.095891,1.21415,1.0104,0,True
+MUNICIPIO CH,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.355271,0.099708,1.243274,1.072696,0,True
+MUNICIPIO CH,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.361032,0.099767,1.240156,1.0654,0,True
+MUNICIPIO CH,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.364131,0.09905,1.242548,1.066349,0,True
+MUNICIPIO CH,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.369866,0.099462,1.247391,1.084716,0,True
+MUNICIPIO CH,L0 (8 semanas),referencia,1.51555,0.101477,1.324468,1.032875,0,False
+MUNICIPIO D,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.099377,0.083851,1.431931,0.980427,0,True
+MUNICIPIO D,GLM Poisson (a) [expansiva],GLM Poisson,1.100966,0.083072,1.426706,0.958933,0,True
+MUNICIPIO D,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.101948,0.084343,1.440909,0.985355,0,True
+MUNICIPIO D,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.102801,0.082786,1.432919,0.954516,0,True
+MUNICIPIO D,L1 (nivel x calendario de 8 niveles),referencia,1.103566,0.083112,1.426768,0.955681,0,True
+MUNICIPIO D,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.104206,0.08458,1.438963,0.983546,0,True
+MUNICIPIO D,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.121571,0.084679,1.43678,0.933203,0,True
+MUNICIPIO D,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.122975,0.085117,1.44229,0.937338,0,True
+MUNICIPIO D,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.123937,0.085663,1.445525,0.94043,0,True
+MUNICIPIO D,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.133181,0.085138,1.432704,0.912101,0,True
+MUNICIPIO D,L0 (8 semanas),referencia,1.199469,0.099007,1.470745,0.991775,0,False
+MUNICIPIO E,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.397224,0.091873,1.352495,0.981337,0,True
+MUNICIPIO E,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.400186,0.090517,1.340363,0.93863,0,True
+MUNICIPIO E,GLM Poisson (a) [expansiva],GLM Poisson,1.401944,0.091946,1.335607,0.9328,0,True
+MUNICIPIO E,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.402404,0.091041,1.356412,0.994324,0,True
+MUNICIPIO E,L1 (nivel x calendario de 8 niveles),referencia,1.402559,0.092012,1.334919,0.927928,0,True
+MUNICIPIO E,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.402901,0.092186,1.360493,1.00232,0,True
+MUNICIPIO E,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.404249,0.092816,1.333016,0.919783,0,True
+MUNICIPIO E,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.404443,0.09192,1.355625,0.979508,0,True
+MUNICIPIO E,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.406793,0.093122,1.341037,0.944052,0,True
+MUNICIPIO E,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.408621,0.093079,1.334223,0.920093,0,True
+MUNICIPIO E,L0 (8 semanas),referencia,1.626708,0.103682,1.446049,1.00336,0,False
+MUNICIPIO F,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.04194,0.081871,1.359426,1.008128,0,True
+MUNICIPIO F,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.043477,0.082055,1.353785,0.97392,0,True
+MUNICIPIO F,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.046899,0.081226,1.349596,0.940401,0,True
+MUNICIPIO F,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.047239,0.082857,1.361422,0.993581,0,True
+MUNICIPIO F,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.054131,0.085458,1.347313,0.961134,0,True
+MUNICIPIO F,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.061435,0.085579,1.351125,0.944495,0,True
+MUNICIPIO F,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.067984,0.085925,1.350293,0.924293,0,True
+MUNICIPIO F,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.069742,0.081197,1.354504,0.890873,0,True
+MUNICIPIO F,GLM Poisson (a) [expansiva],GLM Poisson,1.081985,0.085535,1.354504,0.889663,0,True
+MUNICIPIO F,L1 (nivel x calendario de 8 niveles),referencia,1.085556,0.085822,1.355595,0.886213,0,True
+MUNICIPIO F,L0 (8 semanas),referencia,1.207034,0.08971,1.450608,0.987824,0,False
+MUNICIPIO G,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 728 d],XGBoost,1.164572,0.112586,1.253742,1.01564,0,True
+MUNICIPIO G,GLM Poisson (a) [deslizante 364 d],GLM Poisson,1.167005,0.10857,1.253979,0.989418,0,True
+MUNICIPIO G,XGBoost (a) d=2 n=100 lr=0.1 [expansiva],XGBoost,1.167034,0.112095,1.246099,0.986273,0,True
+MUNICIPIO G,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],XGBoost,1.167881,0.113345,1.256813,1.046932,0,True
+MUNICIPIO G,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 546 d],XGBoost,1.170232,0.11296,1.260299,1.032022,0,True
+MUNICIPIO G,GLM Poisson (a) [deslizante 546 d],GLM Poisson,1.175316,0.108799,1.255548,0.974121,0,True
+MUNICIPIO G,GLM Poisson (a) [deslizante 728 d],GLM Poisson,1.176983,0.108698,1.25024,0.956535,0,True
+MUNICIPIO G,GLM Poisson (a) [expansiva],GLM Poisson,1.184409,0.107856,1.24284,0.927672,0,True
+MUNICIPIO G,"XGBoost (a) d=4 n=300 lr=0.05 [expansiva] (referencia, D39)",referencia,1.186703,0.110453,1.239902,0.931507,0,True
+MUNICIPIO G,L1 (nivel x calendario de 8 niveles),referencia,1.187398,0.107536,1.242171,0.922112,0,True
+MUNICIPIO G,L0 (8 semanas),referencia,1.272672,0.115134,1.300912,1.025288,0,True

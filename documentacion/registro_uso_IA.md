@@ -3609,3 +3609,54 @@ notebook verifica que la combinación del paso A reproduce sus predicciones. Las
 `19`, `21`, `22` y `23`. La celda de lectura 8.1 se agregó después de ejecutar, sin reejecutar. `pytest`: 15 pasados, 0 saltados.
 **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/` (tablas 10 y 18 a 25, figura 5,
 `registro_experimentos.csv`), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-19 (E3, fase 2: experimentación, paso C) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** continuación de la sesión de los pasos A y B, en la misma rama (`e3/fase-2-experimentacion`): commit de la parada B,
+precisiones D39 y D40 y paso C (ventanas) en `notebooks/modelos_candidatos.ipynb`.
+
+### Prompt 1
+> Confirmo el commit de la parada B con el mensaje propuesto. Antes del paso C:
+> 1. Agregá debajo de las precisiones del paso B un bloque "Precisiones del paso C, fijadas el
+>    19/10/2026 con los resultados de los pasos A y B ya vistos":
+>    - D39: se mantiene la XGBoost elegida por la regla (d=2, n=100, lr=0,1), aunque su desvianza
+>      media sea peor que la de L1. La mejor de la grilla (d=4, n=300, lr=0,05) se reporta como
+>      referencia y no se ejecuta en el paso C.
+>    - D40: la ventana no cuenta como complejidad. En el paso 3 solo se ordena por familia (GLM
+>      antes que XGBoost); entre ventanas de la misma familia que sigan empatadas decide el paso 4
+>      (D38).
+> 2. Espejo en el resumen §1.1.
+> 3. DETENETE y mostrame el diff. Con mi confirmación, commit "Precisiones del paso C (D39-D40)"
+>    y recién ahí ejecutá el paso C.
+
+**Respuesta (extracto relevante):** commit de la parada B (`80bedb7`). Celda markdown nueva debajo de las precisiones del paso B y tabla
+espejo en el resumen §1.1; la fila de D39 lleva las cifras que la respaldan (1,2375 contra 1,2319 de L1; 1,2197 la mejor de la grilla,
+`tablas/18`). La IA se detuvo, mostró el diff y describió cómo implementaría el paso C sin decisiones nuevas.
+
+**Uso y verificación:** utilizado tal cual. `nbformat.validate` OK; el diff solo agrega líneas. **Archivos afectados:**
+`notebooks/modelos_candidatos.ipynb`, `documentacion/resumen_modelos_candidatos.md`.
+
+### Prompt 2
+> Confirmo el commit "Precisiones del paso C (D39-D40)". En la tabla del paso C agregá, para cada
+> configuración, el total pred./obs. global y el del municipio A (solo informativo, no entra en la
+> regla). Detenete al terminar el paso C.
+
+**Respuesta (extracto relevante):** commit `2cd97dc`. Sección 9 del notebook: 8 configuraciones (GLM Poisson (a) y XGBoost (a) d=2 n=100
+lr=0,1, cada una con ventana expansiva y deslizante de 364, 546 y 728 días). Las referencias (L1, L0 de 8 semanas y la mejor de la
+grilla, del paso B) quedan fuera de la regla, igual que las columnas informativas de total pred./obs. global y de A. La regla completa se
+aplica con `aplicar_regla`, D38 y D40. Resultado: las 8 configuraciones empatan a menos de 1 EE (umbral 1,2569); D40 deja las 4 del GLM;
+las 4 pasan la tolerancia del peor municipio (umbral 1,4939); el desvío entre cortes elige la expansiva (0,246353 contra 0,246801). Quedaría
+elegida **GLM Poisson (a), ventana expansiva**, sin escribirla como configuración final. Lectura: las ventanas deslizantes mejoran la
+desvianza media y la calibración (GLM 364 d: 1,2205 y 0,9717, contra 1,2302 y 0,9341), y la elección de la expansiva es en la práctica un
+empate resuelto por un margen despreciable.
+
+**Uso y verificación:** utilizado. `nbconvert --execute` terminó con 0 errores y 0 `stderr`. Las tablas de los pasos A y B no cambiaron
+(`git status`), y sus 29 filas del registro son idénticas salvo `fecha_hora` (comparación con pandas contra una copia previa). Los `assert`
+del notebook verifican que las dos expansivas reproducen exactamente las predicciones de los pasos A y B y que cada ajuste deslizante usó
+exactamente N días. 376 ajustes sin avisos y 188 GLM convergidos (`tablas/30`). Las cifras de la lectura se contrastaron contra
+`tablas/26` a `29`; los valores sin redondear del desvío entre cortes, contra `tablas/26`. La celda de lectura 9.1 se agregó después de
+ejecutar, sin reejecutar. `pytest`: 15 pasados, 0 saltados. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`,
+`experiments/modelos_candidatos/` (tablas 10 y 26 a 31, figura 6, `registro_experimentos.csv`),
+`documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.

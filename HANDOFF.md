@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-19 (fase 2 del E3, paso B)_
+_Última actualización: 2026-10-19 (fase 2 del E3, paso C)_
 
 ---
 
@@ -1871,7 +1871,26 @@ registro (29 filas). Ejecutado con `nbconvert`: 0 errores y 0 `stderr`; las tabl
 media que L1 y reparte el nivel por municipio de forma menos pareja (total pred./obs. de 0,8378 a 1,0727). Es consecuencia del umbral
 de 1 EE amplio sumado a D37.
 
-**Próximo:** paso C (ventanas expansiva y deslizantes de 364, 546 y 728 días para GLM Poisson (a) y XGBoost (a) d=2 n=100 lr=0,1).
+### Entregable 3, fase 2: paso C (2026-10-19, sesión de Claude)
+
+**Precisiones previas** (commit `2cd97dc`, fijadas con los pasos A y B vistos): **D39** se mantiene la XGBoost elegida por la regla
+(d=2, n=100, lr=0,1) aunque sea peor que L1; la mejor de la grilla (d=4, n=300, lr=0,05) es solo referencia y no se ejecuta en C.
+**D40** la ventana no cuenta como complejidad; el paso 3 solo ordena por familia.
+
+**Paso C** (sección 9): GLM Poisson (a) y XGBoost (a) d=2 n=100 lr=0,1, cada uno con ventana expansiva y deslizante de 364, 546 y 728
+días. Resultados en `tablas/26` a `31`, `fig6` y el registro (37 filas). Ejecutado con `nbconvert`: 0 errores y 0 `stderr`; las tablas
+de A y B no cambiaron.
+- **Las 8 configuraciones empatan a menos de 1 EE** (la mejor es GLM 364 d con 1,2205; umbral 1,2569). D40 deja las 4 del GLM y todas
+  pasan la tolerancia del peor municipio. **El desvío entre cortes elige la expansiva** por 0,00045 (0,246353 contra 0,246801).
+- **Quedaría elegida: GLM Poisson (a), ventana expansiva** (1,2302). **No se escribió como configuración final** (fase 3).
+- **Las ventanas deslizantes mejoran la desvianza media y la calibración** en las dos familias. GLM 364 d: 1,2205 y total pred./obs.
+  0,9717 (en A, 0,9330), contra 1,2302 y 0,9341 (A 0,8695) de la expansiva; le gana en 30 de 47 cortes.
+
+**Para la fase 3 (decisión del equipo, no se cambió nada):** la regla elige la expansiva por un margen de estabilidad despreciable,
+aunque la deslizante de 364 d es mejor en desvianza media y corrige la subestimación que viene de L1. También queda abierta la XGBoost de
+D39.
+
+**Próximo:** fase 3 (fijar la configuración final). Commit de la parada C pendiente de confirmación.
 
 ## 4. Pendiente (próximos pasos)
 
