@@ -3737,3 +3737,71 @@ control, GLM (c) N=28 364 d, que cambia entre 11,41 y 44,86: la prueba detecta f
 `tablas/31` (diferencia 0 al redondear a 6 decimales). `git status` sin cambios después de correr el script. Commit hecho en
 `e3/fase-3-seleccion`, sin push. **Archivos afectados:** `documentacion/resumen_modelos_candidatos.md` (§3e.4), `HANDOFF.md`,
 `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-19/20 (E3, fase 3: pasos 3b y 3c) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** continuación de la sesión del paso 3a, en la misma rama (`e3/fase-3-seleccion`), sobre
+`notebooks/modelos_candidatos.ipynb`.
+
+### Prompt 1
+> dale, segui con 3b y 3c
+
+(Los pasos 3b y 3c son los del prompt de la fase registrado en la entrada anterior: coeficientes con IC95, importancia por permutación por
+grupos, dependencia parcial del contraste; errores por municipio, tipo de día y 5 peores semanas, calibración y residuos, intervalos NB2,
+análisis pareado D35 y exclusión de un municipio por vez; actualizar la lista de frases que no deben aparecer.)
+
+**Respuesta (extracto relevante):** antes de escribir código, la IA preguntó tres puntos que el prompt no fijaba: cómo combinar «nivel de su
+propia historia» con «efecto fijo reemplazado por el promedio», de dónde sale la μ del intervalo NB2 y cómo expresar las indicadoras de
+municipio sin constante. El equipo eligió: β̄ × reescalado por el nivel propio; μ de la solución con α de NB2; tasa de un lunes más la razón
+respecto de A.
+
+### Prompt 2
+> Las tres respuestas son decisiones del plan (D43 robustez, D44 intervalos, D45 coeficientes).
+> Declaralas en el resumen §3e como elecciones de análisis tomadas antes de calcular 3b y 3c,
+> aclarando que no afectan la selección. En los intervalos (D44), además de la cobertura con μ de
+> la solución y α de NB2, reportá la de intervalos Poisson, como pide el prompt.
+
+**Respuesta (extracto relevante):** se agregó la celda «Precisiones de la fase 3» (D43 a D45) debajo de D42 y su espejo en el resumen
+§3e.5. La §3e.4 (verificación de fuga) no se renumeró, porque la entrada anterior del registro la cita. Secciones 11 y 12 nuevas.
+Reajustes por corte con el mismo camino del motor, verificados contra las predicciones del paso C. Permutación de las columnas del grupo
+entre las 56 filas del horizonte, con 5 repeticiones y `default_rng(SEMILLA)`. Dependencia parcial fijando el nivel del grupo. Cuantiles
+NB2 y Poisson con la cobertura esperada por el propio modelo, como comparación justa por la discreción. Tendencia de los residuos por MCO
+con EE HAC. Pareado con el EE de la diferencia. Exclusión de un municipio según D43. NB2 (a) 364 d se evaluó con el motor y se agregó al
+registro (paso «3c»). Lecturas 11.1 y 12.1, y en el resumen §3f, §3g, frases nuevas, índice y pendientes.
+
+**Uso y verificación:** utilizado. `nbconvert --execute` en el `.venv`: una ejecución, 0 errores, 0 `stderr`. Las tablas 00 a 32 y las
+figuras 1 a 6 no cambiaron (`git status`). Las 37 filas previas del registro son idénticas salvo `fecha_hora` (pandas contra `HEAD`). Los
+`assert` del notebook verifican que los 47 modelos reajustados de la solución y del contraste reproducen las predicciones del paso C
+(diferencia 0), que el nivel propio de D43 coincide con `var.nivel_municipio` y que NB2 usó 364 días. 376 ajustes de exclusión
+convergidos y sin avisos; NB2 364 d, 47 cortes convergidos y ningún plan B. Las cifras de las lecturas y del resumen se contrastaron contra
+`tablas/33` a `48`. La IA corrigió cinco afirmaciones de su propio borrador que no coincidían con las tablas: «cuatro de las cinco»
+semanas (eran las cinco), «7 de 10 deciles» (eran 8), E sí mejora la calibración, los municipios donde la solución es peor que la
+sensibilidad son CH, D y E (no C), y el rango «de 3,48» era «de 3,47». `nbformat.validate` OK. `pytest`: 15 pasados. **Archivos
+afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/` (tablas 10 y 33 a 48, figuras 7 a 11,
+`registro_experimentos.csv`, `solucion_seleccionada.json`), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`.
+
+### Prompt 3
+> 1. La fila 38 (NB2, 364 días) queda en el registro.
+> 2. solucion_seleccionada.json no puede cambiar después de 1560a5b (F3-B2). Restauralo con
+>    `git checkout 1560a5b -- experiments/modelos_candidatos/solucion_seleccionada.json` y
+>    cambiá la sección 10: si el JSON ya existe, no lo reescribe; verifica con assert que sus
+>    campos de configuración coinciden con lo calculado y lo deja intacto.
+> 3. El IC95 de NB2 en los coeficientes queda.
+> 4. Corregí el eje de la figura 11 (que ninguna barra quede cortada) y las marcas de la figura 7.
+> Reejecutá una vez con nbconvert y verificá: 0 errores; tablas 00 a 48 sin cambios en las cifras;
+> solucion_seleccionada.json sin cambios respecto de 1560a5b (git diff vacío). Después hacé el
+> commit "Fase 3, pasos 3b y 3c: explicabilidad, errores, intervalos y robustez (D43-D45)" sin push.
+
+**Respuesta (extracto relevante):** JSON restaurado con el comando indicado. Sección 10: si el archivo existe, recalcula el diccionario y
+hace `assert` de que coinciden todos los campos salvo `commit_del_repositorio` y `arbol_de_trabajo_con_cambios_sin_commitear` (son de
+procedencia: reflejan la ejecución que lo escribió). Si no existe, lo escribe. Figura 7: marcas fijas en decimales con coma, sin marcas
+menores. Figura 11: un eje por nivel, con el límite inferior calculado del mínimo de la cobertura empírica, la esperada y el nominal, menos 0,02.
+
+**Uso y verificación:** utilizado. Reejecución única con `nbconvert` en el `.venv`: 0 errores, 0 `stderr`. Las 49 tablas (00 a 48) son
+idénticas byte a byte a una copia tomada antes de reejecutar (`cmp`). `git diff 1560a5b` de `solucion_seleccionada.json`: vacío. La celda
+de la sección 10 imprimió «verificado, sin reescribir». Las figuras 7 y 11 se revisaron visualmente. `pytest`: 15 pasados. Con la
+confirmación del equipo («si termina y los resultados salen bien, hace el commit»), commit en `e3/fase-3-seleccion`, sin push. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/`
+(figuras 7 y 11), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.

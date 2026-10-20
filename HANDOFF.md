@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-19 (fase 3 del E3, paso 3a)_
+_Última actualización: 2026-10-20 (fase 3 del E3, pasos 3b y 3c)_
 
 ---
 
@@ -1913,6 +1913,30 @@ que la prueba detecta fugas. Detalle en el resumen §3e.4.
 
 **Próximo:** commit de la parada 3a; después, pasos 3b (explicabilidad) y 3c (errores, intervalos,
 robustez), con datos de validación. El test sigue sin leerse.
+
+### Entregable 3, fase 3: pasos 3b y 3c, explicabilidad, errores, intervalos y robustez (2026-10-19/20, sesión de Claude)
+
+**Commit de 3a:** `1560a5b`. **Elecciones de análisis previas** (celda «Precisiones de la fase 3» debajo de D42; no afectan la selección):
+**D43** exclusión de un municipio con β̄ de los otros 7 × su nivel propio reescalado; **D44** intervalos con μ de la solución y α de NB2
+(a) 364 d, más intervalos Poisson; **D45** coeficientes como tasa de un lunes, razón respecto de A y razón respecto del lunes.
+
+**Secciones 11 (3b) y 12 (3c)** de `modelos_candidatos.ipynb`, todo con validación (`tablas/33` a `48`, `fig7` a `fig11`):
+- **Coeficientes** (últimos 364 días): sábado ×0,85, domingo ×0,70, feriado ×0,65 respecto del lunes; de martes a viernes el IC95 incluye
+  1. Municipios respecto de A: CH ×0,61, E ×0,69, G ×0,73, F ×0,87, C ×1,12; B y D ≈ A.
+- **Permutación:** el municipio pesa más que el calendario (solución +0,2270 contra +0,1277; contraste +0,1717 contra +0,0955).
+- **Errores:** las 5 semanas peores de la solución (cortes 43, 47, 5, 20, 22) están entre las 7 peores de L1. No se atribuyen causas.
+- **Deriva:** pendiente del residuo compatible con 0; observado / predicho 1,0513 en la primera mitad y 1,0087 en la segunda.
+- **Intervalos:** NB2 cubre 0,8883 (80 %) y 0,9787 (95 %); Poisson 0,8712 y 0,9734. α de NB2 364 d de 0,0200 a 0,0433, sin plan B.
+- **Pareado (D35, posterior):** solución − L1 −0,0114 (EE 0,0054; 32 de 47 cortes). No es una prueba de significación y no cambia nada.
+- **Exclusión de un municipio:** +0,42 % global; A +2,0 %.
+- `nbconvert`: una ejecución, 0 errores, 0 `stderr`; tablas 00 a 32 sin cambios; el registro suma la fila de NB2 364 d (paso «3c»).
+  `pytest`: 15 pasados.
+- **F3-B2:** `solucion_seleccionada.json` no cambia después de `1560a5b`. Se restauró desde ese commit (la primera ejecución lo había
+  reescrito, solo con el commit), y la sección 10 ahora lo verifica con `assert` sin reescribirlo. Se corrigieron las marcas de la figura 7
+  y el eje de la 11. Reejecución final: 0 errores, tablas 00 a 48 idénticas y JSON idéntico a `1560a5b`.
+
+**Próximo:** la fase 4 (`notebooks/evaluacion_final.ipynb`, el único que lee el
+bloque final): solución, sensibilidad, contraste y referencias, una sola vez.
 
 ## 4. Pendiente (próximos pasos)
 

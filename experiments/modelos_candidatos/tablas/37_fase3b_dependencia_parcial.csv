@@ -1,0 +1,33 @@
+configuracion,grupo,nivel,prediccion_media,desvio_entre_cortes,minimo_corte,maximo_corte
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO A,3.016318,0.13325,2.583598,3.224742
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO B,3.136069,0.07702,2.861587,3.251626
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO C,3.321031,0.13305,2.890258,3.539925
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO CH,2.156243,0.078913,1.776097,2.224012
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO D,3.084269,0.089838,2.707498,3.210793
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO E,2.266645,0.119111,1.91269,2.4164
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO F,2.956972,0.104763,2.540493,3.056651
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,MUNICIPIO G,2.485271,0.080588,2.129562,2.567934
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,lunes,2.957689,0.058949,2.848694,3.061923
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,martes,2.962026,0.057117,2.852567,3.061923
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,miércoles,2.982666,0.044318,2.890035,3.061923
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,jueves,2.962356,0.066386,2.845522,3.089706
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,viernes,3.052152,0.020569,3.011283,3.091713
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,sábado,2.796287,0.028359,2.71932,2.840148
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,domingo,2.157176,0.094711,1.996387,2.302689
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,feriado,2.160788,0.050328,2.06201,2.252692
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO A,3.116506,0.169069,2.481211,3.357303
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO B,3.280895,0.103011,2.828022,3.402494
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO C,3.470703,0.162664,2.85828,3.728785
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO CH,2.031267,0.07099,1.699141,2.090519
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO D,3.231604,0.130333,2.681383,3.387275
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO E,2.134876,0.124539,1.694485,2.281019
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO F,2.819132,0.127847,2.271728,2.938217
+GLM Poisson (a) [deslizante 364 d],municipio,MUNICIPIO G,2.348741,0.096244,1.913279,2.432705
+GLM Poisson (a) [deslizante 364 d],calendario,lunes,3.042075,0.044919,2.932065,3.116848
+GLM Poisson (a) [deslizante 364 d],calendario,martes,3.009474,0.050474,2.936224,3.1125
+GLM Poisson (a) [deslizante 364 d],calendario,miércoles,3.051365,0.071084,2.906863,3.162234
+GLM Poisson (a) [deslizante 364 d],calendario,jueves,2.966043,0.118985,2.7625,3.18
+GLM Poisson (a) [deslizante 364 d],calendario,viernes,3.193444,0.022421,3.15,3.242647
+GLM Poisson (a) [deslizante 364 d],calendario,sábado,2.659735,0.031033,2.57398,2.7025
+GLM Poisson (a) [deslizante 364 d],calendario,domingo,2.036717,0.090762,1.879808,2.17402
+GLM Poisson (a) [deslizante 364 d],calendario,feriado,1.947414,0.045996,1.854167,2.034722

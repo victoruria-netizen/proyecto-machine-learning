@@ -1,0 +1,2 @@
+desde,hasta,dias,filas,glm_convergio,glm_iteraciones,dispersion_pearson,nb2_convergio,nb2_iteraciones,alpha_nb2,avisos
+2024-02-08,2025-02-05,364,2912,True,5,1.10057,True,5,0.029745,0

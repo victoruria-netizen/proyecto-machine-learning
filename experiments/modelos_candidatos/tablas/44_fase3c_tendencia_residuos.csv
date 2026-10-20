@@ -1,0 +1,4 @@
+modelo,pendiente_por_corte,ee_hac,ic95_inferior,ic95_superior,residuo_medio_cortes_1_a_23,residuo_medio_cortes_24_a_47,obs_sobre_pred_cortes_1_a_23,obs_sobre_pred_cortes_24_a_47
+GLM Poisson (a) [deslizante 364 d],-0.00721,0.006275,-0.019509,0.005089,0.141193,0.024887,1.051312,1.008718
+GLM Poisson (a) [expansiva],-0.005696,0.006338,-0.018118,0.006726,0.233031,0.149162,1.087611,1.054632
+L1 (nivel x calendario de 8 niveles),-0.005684,0.006328,-0.018087,0.00672,0.243218,0.15977,1.091793,1.058746
