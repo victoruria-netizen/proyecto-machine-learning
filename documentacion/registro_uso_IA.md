@@ -3805,3 +3805,140 @@ idénticas byte a byte a una copia tomada antes de reejecutar (`cmp`). `git diff
 de la sección 10 imprimió «verificado, sin reescribir». Las figuras 7 y 11 se revisaron visualmente. `pytest`: 15 pasados. Con la
 confirmación del equipo («si termina y los resultados salen bien, hace el commit»), commit en `e3/fase-3-seleccion`, sin push. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/`
 (figuras 7 y 11), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-20 (review R2, E3 fases 2 y 3) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** review de verificación (no de corrección) de las fases 2 y 3 del Entregable 3, en la rama `e3/fase-3-seleccion`
+(base `b59794c`, HEAD `508c46e`). El revisor no participó en esas fases. Solo crea `documentacion/reviews/E3_fase_2-3.md` y esta entrada.
+
+### Prompt 1
+> Sos el revisor del bloque R2 del Entregable 3: fases 2 (experimentación) y 3 (selección y
+> análisis). No trabajaste en estas fases. Tu tarea es verificar, no corregir. Solo podés crear el
+> informe de review y agregar la entrada de esta sesión al registro de IA (D30). Modelo: opus
+> (D25); anotalo en el informe.
+>
+> ## Paso 0 — Rama y prerrequisitos (detenete si algo no cumple)
+>
+> 1. `git switch e3/fase-3-seleccion`. Verificá que `git merge-base main HEAD` es b59794c y
+>    mostrá `git log --oneline main..HEAD`: tienen que aparecer, en este orden, 2936c72, dec597d,
+>    624b7e3, 80bedb7, 2cd97dc, 5f207e2 (fase 2), 1560a5b y 508c46e (fase 3).
+> 2. Activá el .venv en el mismo comando que corre Python, pytest o nbconvert, y verificá que la
+>    sección 0 del notebook dice Python 3.13.2.
+> 3. El sha256 de data/processed/panel_diario_montevideo.csv tiene que ser
+>    82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06. Calculá solo el hash.
+>
+> ## Paso 1 — Lectura
+>
+> Leé CLAUDE.md, HANDOFF.md, documentacion/resumen_modelos_candidatos.md y, en el notebook, la
+> sección 1, la adenda y todos los bloques fechados que siguen (precisiones de la fase 2, del paso
+> B, del paso C, decisión D42 y elecciones D43 a D45). Diffs: `git diff main...HEAD --stat`, y por
+> fase `git diff b59794c 5f207e2` (fase 2) y `git diff 5f207e2 HEAD` (fase 3).
+>
+> Contexto que tenés que conocer:
+> - D42: la configuración final (GLM Poisson (a), ventana deslizante de 364 días) NO es la que
+>   eligió la regla (GLM Poisson (a), expansiva). Es una decisión del equipo, declarada. No
+>   evalúes si es correcta: evaluá que esté declarada como pide F3-B1 y que no se presente en
+>   ningún lado como elección de la regla. Si ves riesgos, van en riesgos fuera de criterios.
+> - El paso 3.0 de la fase 3 se agregó al plan después de enviar el prompt y se ejecutó por un
+>   mensaje aparte, antes de 1560a5b. No es una omisión.
+> - D35: el análisis pareado es posterior a ver los resultados y no puede usarse para seleccionar.
+>
+> ## Paso 2 — Ejecución
+>
+> 1. `pytest`: 15 pasados, 0 saltados.
+> 2. `jupyter nbconvert --to notebook --execute --inplace notebooks/modelos_candidatos.ipynb`:
+>    0 errores, 0 salidas stderr.
+> 3. `git status` y `git diff --stat`: ningún CSV de tablas/ ni solucion_seleccionada.json puede
+>    cambiar; en registro_experimentos.csv solo puede cambiar fecha_hora. Reportá cualquier
+>    cifra que cambie. Después `git restore notebooks/ experiments/` y confirmá con `git status`.
+> 4. Recalculá la regla de selección vos mismo, con código propio en una carpeta FUERA del repo,
+>    a partir de las predicciones guardadas (no de las tablas de resultados), para los pasos A, B
+>    y C, aplicando la regla de la sección 1 con D32 y D36 a D40. Tiene que elegir lo mismo que
+>    tablas/14, la tabla de elección del paso B y tablas/29.
+> 5. Verificación de fuga independiente: para la solución y el contraste, en 2 cortes (el
+>    primero y el último), reemplazá en memoria n_siniestros de las fechas >= origen por 10^6,
+>    reentrená y predecí: la diferencia máxima tiene que ser 0.
+> 6. Cronología: con `git log` y `git show --stat`, verificá que cada bloque de precisiones está
+>    en un commit anterior al paso que gobierna (2936c72 antes de dec597d, 624b7e3 antes de
+>    80bedb7, 2cd97dc antes de 5f207e2) y que solucion_seleccionada.json no cambió después de
+>    1560a5b (`git log --oneline -- experiments/modelos_candidatos/solucion_seleccionada.json`).
+>
+> ## Paso 3 — Criterios
+>
+> Evaluá cada uno: CUMPLE o NO CUMPLE, con evidencia concreta (comando y salida, archivo y línea,
+> cifra contra el CSV). Sin evidencia, el criterio es NO CUMPLE.
+>
+> Comunes:
+> - B1 Fuera de evaluacion_final.ipynb, ningún código lee filas posteriores a 2025-02-05.
+> - B2 El notebook ejecuta de punta a punta sin errores (nbconvert en el .venv).
+> - B3 pytest pasa entero (15 pasados, 0 saltados).
+> - B4 Toda cifra nueva del resumen y del HANDOFF coincide con un artefacto.
+> - B5 La sección 1 y la adenda son idénticas a las de b59794c; solo hay bloques fechados
+>   agregados debajo.
+> - B6 Entorno coherente: verificación de entorno del notebook en verde; pip check limpio;
+>   requirements.txt y el lock coinciden.
+> - N1 El resumen sigue la estructura de CLAUDE.md, incluida la lista de frases que no deben
+>   aparecer en el informe.
+> - N2 HANDOFF y registro de IA actualizados con cada sesión, con prompts textuales.
+> - N3 Las lecturas separan evidencia de inferencia.
+> - N4 Los resultados negativos quedan registrados (incluida la XGBoost peor que L1, D39).
+> - N5 Código legible: sin código muerto, nombres consistentes.
+> - N6 El alcance coincide con los prompts de las fases 2 y 3 y con D31 a D45.
+>
+> Fase 2:
+> - F2-B1 Cada bloque de precisiones está en un commit anterior a los resultados que gobierna.
+> - F2-B2 La regla recalculada por vos (Paso 2.4) elige las mismas configuraciones en A, B y C.
+> - F2-B3 El registro de experimentos tiene todas las combinaciones pedidas, incluidas las que
+>   perdieron (16 del paso A, 13 del B, 8 del C, más la fila de NB2 con 364 días del 3c).
+> - F2-B4 Ningún modelo usa variables fuera de su conjunto; GLM y XGBoost usan la misma matriz
+>   (D31) y la forma de D34.
+> - F2-N1 Las advertencias de convergencia están reportadas, no silenciadas.
+> - F2-N2 Están reportados el α de NB2 por corte y la dispersión de Pearson del GLM Poisson.
+> - F2-N3 Cada tabla de comparación muestra el error estándar y marca los empates.
+>
+> Fase 3:
+> - F3-B1 El JSON coincide con D42 (GLM Poisson (a), deslizante de 364 días), registra que la
+>   regla eligió la expansiva y que el equipo se apartó, e incluye la expansiva como sensibilidad
+>   y la XGBoost de 364 días como contraste.
+> - F3-B2 El JSON está commiteado antes del análisis (1560a5b) y no cambió después; la rama no
+>   contiene evaluacion_final.ipynb.
+> - F3-B3 La importancia por permutación y la exclusión de municipios se reproducen exactas al
+>   reejecutar (Paso 2.3).
+> - F3-N1 El análisis de errores cubre municipio, tipo de día, peores semanas y calibración.
+> - F3-N2 La exclusión de municipios está declarada como descriptiva.
+> - F3-N3 La cobertura de los intervalos está reportada, global y por municipio, para NB2 (D44) y
+>   para Poisson.
+> - F3-N4 La lista de frases que no deben aparecer está actualizada con lo nuevo de la fase.
+>
+> ## Paso 4 — Veredicto e informe
+>
+> Regla: DESAPROBADA si falla al menos un criterio bloqueante (B); APROBADA CON OBSERVACIONES si
+> fallan solo no bloqueantes (N); APROBADA si cumplen todos.
+>
+> Escribí documentacion/reviews/E3_fase_2-3.md con: fecha, modelo, commits revisados (hash
+> completo), base (b59794c), sha256 del panel, tabla de criterios (ID, criterio, resultado,
+> evidencia), resultado de la reejecución, recálculo de la regla, verificación de fuga,
+> cronología, veredicto, observaciones numeradas con lo que habría que hacer para corregir cada
+> una, y riesgos fuera de criterios. Agregá al final de documentacion/registro_uso_IA.md la
+> entrada de esta sesión con este prompt textual y el veredicto. Mostrame el veredicto y las
+> observaciones. No hagas commit ni push.
+
+**Respuesta (extracto relevante):** veredicto **APROBADA CON OBSERVACIONES**. Los 14 criterios bloqueantes cumplen; falla el no
+bloqueante **N2**: el prompt de la fase 3 está abreviado con «[...]» en la entrada del paso 3a y el texto de los pasos 3b/3c no quedó
+registrado. Resultados: pytest 15 pasados; nbconvert exit 0, 0 errores, 0 `stderr`; ninguna tabla, figura ni el JSON cambiaron, y en el
+registro solo cambió `fecha_hora`; el recálculo independiente de la regla, hecho desde las predicciones, elige GLM Poisson (a) y XGBoost
+(a) en A, GLM Poisson (a) y XGBoost (a) d=2 n=100 lr=0.1 en B, y GLM Poisson (a) expansiva en C, igual que `tablas/14`, `23` y `29`; la
+verificación de fuga (solución y contraste, cortes 1 y 47, 10⁶ en fechas ≥ origen, con y sin la máscara del motor) da diferencia máxima 0
+y el control positivo la detecta. Observaciones: (1) N2; (2) partes del resumen desactualizadas (PENDIENTE en §1.1, §1.3, §4, §7.4, §5 sin
+limitaciones de la fase 3, frase de §8 sobre la sección 10); (3) D35 y D41 sin definición en el repo; (4) 0,0076 respaldado solo por una
+salida impresa; (5) menores de redacción y código. Riesgos: D42 posterior a ver resultados; D43 a D45 en el mismo commit que sus resultados;
+`commit_del_repositorio` del JSON = `5f207e2`; el pareado se presta a citarse como significación; coberturas sin incertidumbre; la
+sección 10 cambió después de `1560a5b`.
+
+**Uso y verificación:** informe escrito por el revisor. Las cifras del informe salen de comandos ejecutados en la sesión (git, pytest,
+nbconvert, pip check) y de cuatro scripts propios en el scratchpad, fuera del repo: recálculo de la regla, verificación de fuga,
+reproducción de la matriz D31/D34 y búsqueda de las cifras del resumen y del HANDOFF en las tablas. `git restore notebooks/ experiments/`
+después de la reejecución; `git status` final: solo el informe nuevo y esta entrada. Sin commit ni push, como pide el prompt. El veredicto
+lo valida el equipo (D30). **Archivos afectados:** `documentacion/reviews/E3_fase_2-3.md`, `documentacion/registro_uso_IA.md`.
