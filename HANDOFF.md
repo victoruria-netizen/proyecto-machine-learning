@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-20 (fase 3 del E3, pasos 3b y 3c)_
+_Última actualización: 2026-10-20 (fix de la review R2, fases 2 y 3 del E3)_
 
 ---
 
@@ -1890,7 +1890,7 @@ de A y B no cambiaron.
 aunque la deslizante de 364 d es mejor en desvianza media y corrige la subestimación que viene de L1. También queda abierta la XGBoost de
 D39.
 
-**Próximo:** fase 3 (fijar la configuración final). Commit de la parada C pendiente de confirmación.
+**Próximo:** fase 3 (fijar la configuración final). Commit de la parada C: `5f207e2`.
 
 ### Entregable 3, fase 3: paso 3a, configuración de la solución (2026-10-19, sesión de Claude)
 
@@ -1935,8 +1935,65 @@ robustez), con datos de validación. El test sigue sin leerse.
   reescrito, solo con el commit), y la sección 10 ahora lo verifica con `assert` sin reescribirlo. Se corrigieron las marcas de la figura 7
   y el eje de la 11. Reejecución final: 0 errores, tablas 00 a 48 idénticas y JSON idéntico a `1560a5b`.
 
-**Próximo:** la fase 4 (`notebooks/evaluacion_final.ipynb`, el único que lee el
-bloque final): solución, sensibilidad, contraste y referencias, una sola vez.
+**Próximo (cuando se escribió esta entrada):** la review R2, hecha el 20/10 (ver la entrada siguiente). Ahora: la review corta y el
+merge. La fase 4 (`notebooks/evaluacion_final.ipynb`, el único que lee el bloque final: solución, sensibilidad, contraste y
+referencias, una sola vez) sigue pendiente.
+
+### Entregable 3, fases 2 y 3: review R2 y su fix (2026-10-20, sesión de Claude)
+
+**Resultado de R2** (`documentacion/reviews/E3_fase_2-3.md`, revisor Claude Opus 5.5 según D25, sobre `508c46e`): **APROBADA CON
+OBSERVACIONES**. Los 14 criterios bloqueantes cumplen; falló solo N2 (el prompt de la fase 3 no estaba transcrito textualmente en el
+registro de IA). El recálculo independiente de la regla elige lo mismo que el notebook en A, B y C; la verificación de fuga independiente
+da diferencia exactamente 0; la reejecución no cambia ninguna cifra. D42 está declarada como decisión del equipo y no se presenta como
+elección de la regla.
+
+**Decisiones asentadas en esta sesión** (la review R2, observación 3, pidió dejarlas escritas):
+- **D35 — análisis pareado.** Decisión del plan del equipo del 19/10/2026, posterior al paso A de la fase 2. Análisis **posterior a ver
+  los resultados** y **sin efecto sobre la selección**: para la solución, la sensibilidad y el contraste, la diferencia de desvianza
+  contra L1 corte a corte (media, error estándar de la diferencia y cortes ganados), y lo mismo entre la solución y la sensibilidad.
+  Sin umbral previo; los cortes vecinos no son independientes. Se ejecutó en el paso 3c (`tablas/47`). Espejo en el resumen §3e.5.
+- **D41 — recomendación de seguir la regla.** Antes de la fase 3 se recomendó seguir la regla de selección: la expansiva como
+  configuración final y la deslizante de 364 días como sensibilidad. **Fue reemplazada por D42** (el equipo se apartó de la regla,
+  con la deslizante de 364 días como final y la expansiva como sensibilidad) antes de ejecutar la fase 3. Antes de esta entrada no
+  estaba escrita en ningún archivo del repositorio.
+- **D47 — criterio del registro de IA (20/10).** El registro de IA guarda solo el prompt que abre la sesión y los mensajes con
+  decisiones o instrucciones; no se transcriben las confirmaciones del tipo «dale, seguí». Rige desde esta sesión.
+- **D46 — fix de R2 (20/10).** Se corrige solo lo que el equipo listó (observaciones 1 a 5 de R2 y los riesgos declarados en el
+  resumen). No se modifican `solucion_seleccionada.json`, la sección 1, la adenda, los bloques fechados ni ninguna tabla o figura
+  existente. Cualquier otro cambio se consulta. Modelo del fix: Sonnet (D25).
+
+**Observaciones corregidas**
+- **Obs. 1 (N2):** entrada nueva al final de `registro_uso_IA.md` con el prompt de la fase 3 completo (reglas de la sesión y pasos 3a,
+  3b y 3c), el mensaje del paso 3.0, que fue también el que autorizó `1560a5b`, el pedido de 3b y 3c y el mensaje que autorizó
+  `508c46e`. Se tomaron de la transcripción local de la sesión de la fase 3 y se compararon por programa (igualdad exacta de cadena,
+  cuatro textos). No se editó ninguna entrada anterior.
+- **Obs. 2:** `resumen_modelos_candidatos.md`: se quitaron las marcas `PENDIENTE` de §1.1 y §4, se corrigieron §1.3, §7 (ítem 4) y
+  §8 («ninguna celda anterior cambió»: en `508c46e` cambió la sección 10) y se agregó la subsección «Fix de R2» a §8.
+- **Obs. 3:** D35 y D41 quedan definidas (arriba; D35 también en el resumen §3e.5).
+- **Obs. 4:** el 0,0076 (en rigor 0,00762, en el corte 44, 2025-01-09, MUNICIPIO A) ahora sale de `tablas/49_fase3c_dif_mu_nb2_vs_solucion.csv`,
+  escrita por la celda de intervalos de la sección 12 sin cambiar ningún cálculo. Se corrigió la cita en la lectura 12.1 del notebook
+  (solo markdown) y en el resumen §3g.6.
+- **Obs. 5 (parte):** el encabezado del notebook perdió la numeración vieja de la fase 2 («Estado y artefactos» pasó a ser la sección
+  10), y la frase «las secciones 11 y 12 quedan para…» pasó a decir que contienen la explicabilidad (3b) y el análisis de errores (3c).
+- **Riesgos declarados** como limitaciones (resumen §5, fase 3 (a) a (e)) y tres frases nuevas que no deben aparecer en el informe:
+  la diferencia pareada como prueba de significación, «la configuración final siguió la regla» en cualquier variante y las coberturas
+  como exactas.
+
+**Deuda aceptada (obs. 5 de R2):** explicaciones bajo «Evidencia» en las lecturas, lambdas asignadas a nombres y nombres globales
+reutilizados entre secciones del notebook. Motivo: no afectan resultados, y cambiar código obligaría a revalidar antes de la fase 4.
+
+**Verificación.** `nbconvert --execute` en el `.venv`, una vez: exit 0 (15,9 min), 0 salidas de error y 0 de `stderr`; `pytest`: 15
+pasados, 0 saltados. Contra `508c46e`: tablas 00 a 48 idénticas, salvo `10_artefactos.csv` (índice, una línea más); las 11 figuras y
+`solucion_seleccionada.json` idénticos; `registro_experimentos.csv` idéntico salvo `fecha_hora`; la única tabla nueva es la 49 y su
+valor (0,00762) coincide con el 0,0076 del resumen. Las dos ediciones posteriores del notebook (cita en 12.1 y frase del encabezado)
+son solo markdown y no se reejecutó. La causa del bloqueo de `fig6` en la fase 3 fue, según Lucas, tener la figura abierta en el
+visor de fotos.
+
+**Validación del equipo (D30).** Lucas revisó el veredicto de R2 el 20/10, con apoyo de Claude en el chat del Project, y decidió
+D46. Es una declaración del equipo; no hay otro artefacto que la respalde.
+
+**Estado:** los cambios de esta sesión quedaron commiteados en `e3/fase-3-seleccion` (mensaje «Fix de la review R2 (D46, D47)…»; el hash
+está en `git log`), sin push y nunca en `main`. **Próximo:** la review corta y el merge; después, la fase 4.
 
 ## 4. Pendiente (próximos pasos)
 

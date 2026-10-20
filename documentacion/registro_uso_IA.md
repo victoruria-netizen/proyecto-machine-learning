@@ -3942,3 +3942,298 @@ nbconvert, pip check) y de cuatro scripts propios en el scratchpad, fuera del re
 reproducción de la matriz D31/D34 y búsqueda de las cifras del resumen y del HANDOFF en las tablas. `git restore notebooks/ experiments/`
 después de la reejecución; `git status` final: solo el informe nuevo y esta entrada. Sin commit ni push, como pide el prompt. El veredicto
 lo valida el equipo (D30). **Archivos afectados:** `documentacion/reviews/E3_fase_2-3.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-20 (fix de R2, paso F1: transcripción textual de la fase 3) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** rama `e3/fase-3-seleccion`. Corrección de la observación 1 de R2 (criterio N2, `documentacion/reviews/E3_fase_2-3.md`). Esta entrada **completa** las dos entradas de la fase 3 que quedaron abreviadas, sin modificarlas: «Sesión 2026-10-19 (E3, fase 3: selección, paso 3a)», cuyo Prompt 1 abrevia las reglas de la sesión con «[...]» y corta los pasos 3b y 3c, y «Sesión 2026-10-19/20 (E3, fase 3: pasos 3b y 3c)», cuyo Prompt 1 remite al prompt de la fase «registrado en la entrada anterior», que no lo contenía. Los cuatro mensajes siguientes se enviaron en la sesión de la fase 3 (Claude Code, Opus 5.5) y se transcriben **tal cual**, en orden y con su fecha, desde la transcripción local de esa sesión (`%USERPROFILE%\.claude\projects\C--Proyectos-proyecto-machine-learning\3da4460b-7a42-4a3c-98f7-75d047b7ec94.jsonl`). Las horas son locales (UTC-3, como las de `git log`); la transcripción las guarda en UTC. Se omiten solo las marcas con que Claude Code envuelve el texto pegado; el contenido que sigue es idéntico al de la transcripción.
+
+Los mensajes del paso 3.0 y de la autorización del commit `1560a5b` son **uno solo** (el Mensaje 2): en la transcripción no hay un mensaje aparte para cada cosa. Entre el Mensaje 2 y el Mensaje 3 no hubo otro mensaje del equipo.
+
+### Mensaje 1 — prompt de la fase 3 completo (bloque de la sesión y prompt de la fase)
+*19/10/2026 22:42 (UTC-3); en la transcripción, `2026-10-20T01:42:58.848Z`.*
+
+> Sesión de trabajo del Entregable 3, fase 3, en la rama e3/fase-3-seleccion.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/fase-3-seleccion. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/fase-3-seleccion solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+>
+> Fase 3: selección y análisis en desarrollo. Continúa notebooks/modelos_candidatos.ipynb
+> después del paso C. El test sigue sin leerse. Todo comando de Python, pytest y nbconvert va
+> con el .venv activado en el mismo comando.
+>
+> ## Paso 3a — Configuración de la solución (D42)
+>
+> - Agregá debajo de las precisiones del paso C un bloque "Decisión del equipo sobre la
+>   configuración final, 19/10/2026 (D42)": la regla eligió GLM Poisson (a) con ventana
+>   expansiva por una diferencia de 0,00045 en el desvío entre cortes; el equipo se aparta de
+>   la regla y elige GLM Poisson (a) con ventana deslizante de 364 días, por desvianza media
+>   (1,2205 contra 1,2302), cortes ganados (30 de 47) y calibración (0,9717 contra 0,9341; en
+>   A, 0,9330 contra 0,8695). Citá la tabla de cada cifra. La expansiva queda como
+>   configuración de sensibilidad: se evalúa en la fase 4 y no puede reemplazar a la final.
+> - Escribí experiments/modelos_candidatos/solucion_seleccionada.json con: modelo, familia,
+>   conjunto de variables, hiperparámetros, ventana (deslizante, 364 días), reentrenamiento
+>   cada 7 días, horizonte de 7 días, EPS de la desvianza, semilla, versiones de las
+>   bibliotecas y commit del repositorio. Agregá los campos "configuracion_de_la_regla" (la
+>   expansiva), "origen_de_la_eleccion": "decisión del equipo D42, apartándose de la regla",
+>   "sensibilidad" (la expansiva) y "contraste" (la mejor XGBoost del paso C: deslizante de
+>   364 días, d=2, n=100, lr=0,1). Sensibilidad y contraste se evalúan en la fase 4 junto con
+>   las referencias, pero no compiten.
+> - Agregá una tabla que muestre la regla paso por paso (desvianza, empates, simplicidad,
+>   estabilidad, calibración), la configuración que eligió y, en una fila aparte, la decisión
+>   D42 con su motivo, lista para citar en el informe.
+>
+> DETENETE. El equipo commitea el bloque y el JSON antes de seguir.
+>
+> ## Paso 3b — Explicabilidad (con datos de validación)
+>
+> - Coeficientes del GLM ajustado con los últimos 364 días del desarrollo, expresados como
+>   razones de tasas con IC95 ("los viernes, ×1,X respecto del lunes"). Tabla y figura.
+> - Importancia por permutación por grupos de variables (municipio, calendario, según el
+>   conjunto). Se calcula sobre las predicciones de validación: en cada corte se permutan las
+>   columnas del grupo entre las filas del horizonte y se recalcula la desvianza. 5
+>   repeticiones, semilla fija. Reportar el aumento medio de la desvianza y su dispersión,
+>   para la solución y para el contraste.
+> - Para el contraste (XGBoost): dependencia parcial de los dos grupos más importantes.
+>
+> ## Paso 3c — Errores, intervalos y robustez (con datos de validación)
+>
+> - Errores por municipio, por tipo de día (8 niveles) y en las 5 semanas de mayor desvianza.
+>   Para esas semanas, listá qué días tuvieron (feriados, fechas) sin atribuir causas que
+>   los datos no muestran.
+> - Calibración: media predicha contra media observada por deciles de la predicción, y
+>   residuos en el tiempo (¿queda deriva sin corregir con la ventana de 364 días?).
+> - Intervalos de predicción del 80 % y del 95 % con la binomial negativa NB2, porque empató
+>   con Poisson en el paso B (D5, D36): α estimado en cada corte con la misma ventana de 364
+>   días, con el criterio de convergencia y el plan B de la adenda. Reportá la cobertura
+>   empírica en validación, global y por municipio, y compárala con la de intervalos Poisson.
+> - Análisis pareado (D35), declarado como posterior a ver los resultados y sin efecto sobre
+>   la selección: para la solución, la sensibilidad y el contraste, diferencia de desvianza
+>   contra L1 corte a corte (media, error estándar de la diferencia y cortes ganados), y lo
+>   mismo entre la solución y la sensibilidad.
+> - Robustez, exclusión de un municipio por vez: el municipio excluido no aporta filas de
+>   entrenamiento; su nivel se toma de su propia historia observada antes del origen y su
+>   efecto fijo se reemplaza por el promedio. Reportá cuánto empeora la desvianza en cada
+>   municipio contra el modelo que sí lo vio. Es descriptivo y no cambia la selección:
+>   declaralo así.
+>
+> Actualizá el resumen, incluida la lista de frases que no deben aparecer en el informe: por
+> ejemplo, "la configuración final la eligió la regla de selección", "el modelo supera a L1"
+> sin la aclaración del análisis pareado, o atribuir causas a la importancia de una variable.
+>
+> DETENETE.
+
+**Respuesta:** ver el extracto en la entrada del paso 3a (Prompt 1), que cubre solo el paso 3a, hasta la primera parada.
+
+**Uso y verificación:** transcripción completa; reemplaza al Prompt 1 abreviado de la entrada del paso 3a. Los pasos 3b y 3c, que esa entrada omitía, están acá. Verificación en el cierre de esta entrada.
+
+### Mensaje 2 — paso 3.0 (verificación de fuga) y autorización del commit `1560a5b`
+*19/10/2026 23:40 (UTC-3); en la transcripción, `2026-10-20T02:40:46.492Z`.*
+
+> Los tres puntos están bien: el margen de 0,00045 descrito contra la de 728 días, el commit
+> 5f207e2 con la marca de cambios sin commitear, y la numeración.
+>
+> Antes del commit falta el paso 3.0, que no aparece en tu reporte: verificación de fuga sin
+> escribir en el repo, para la solución (GLM Poisson (a), 364 días), la sensibilidad (expansiva),
+> NB2 con 364 días y el contraste (XGBoost, 364 días). En 5 cortes (el primero, el último y tres
+> intermedios), alterá en memoria n_siniestros de las fechas >= origen, reentrená y predecí: la
+> diferencia máxima tiene que ser 0. Repetí el control positivo abriendo la compuerta
+> var.observado. Anotalo en el resumen y en el HANDOFF, mostrame el resultado y, si da 0, hacé el
+> commit "Fase 3, paso 3a: configuración de la solución (D42)" sin push.
+
+**Respuesta:** ver el extracto en la entrada del paso 3a (Prompt 2). El commit `1560a5b` se hizo a las 23:44, después de este mensaje.
+
+**Uso y verificación:** el texto ya figuraba como Prompt 2 de la entrada del paso 3a; se repite acá para que la secuencia de la fase 3 quede completa en un solo lugar. Verificación en el cierre de esta entrada.
+
+### Mensaje 3 — pedido de los pasos 3b y 3c
+*19/10/2026 23:46 (UTC-3); en la transcripción, `2026-10-20T02:46:54.311Z`.*
+
+> dale, segui con 3b y 3c
+
+**Respuesta:** ver el extracto en la entrada de los pasos 3b y 3c (Prompt 1): la IA preguntó tres puntos antes de escribir código. El texto de los pasos 3b y 3c que este mensaje pone en marcha es el del Mensaje 1.
+
+**Uso y verificación:** transcripción completa. Verificación en el cierre de esta entrada.
+
+### Mensaje 4 — autorización del commit `508c46e`
+*20/10/2026 00:25 (UTC-3); en la transcripción, `2026-10-20T03:25:32.669Z`.*
+
+> Ok, si termina y los resultados salen bien, hace el commit.
+
+**Respuesta:** ver el extracto en la entrada de los pasos 3b y 3c (Prompt 3). El commit `508c46e` se hizo a las 00:32, después de este mensaje.
+
+**Uso y verificación:** responde a la respuesta de la IA sobre cuánto demoraría la reejecución con `nbconvert`, que el equipo había preguntado antes («Cuanto demora la re ejecucion aproximadamente?», 20/10/2026 00:24). Ese intercambio no tuvo otro efecto y no se registra más allá de esta mención. El mensaje con las instrucciones que precedieron al commit (la fila 38 del registro, la restauración del JSON, el IC95 de NB2 y las figuras 7 y 11) ya figuraba como Prompt 3 de la entrada de los pasos 3b y 3c, igual que las respuestas del equipo sobre D43 a D45 (Prompt 2). Verificación en el cierre de esta entrada.
+
+**Verificación de la entrada:** cada uno de los cuatro textos se comparó por programa contra el mensaje del `.jsonl` de la sesión de la fase 3 (texto del archivo del registro, sin el prefijo de cita, contra el contenido del mensaje sin las marcas de pegado), con igualdad exacta de cadena. El resultado se informó al equipo en la sesión de esta corrección. No se editó ninguna entrada anterior. **Archivos afectados:** `documentacion/registro_uso_IA.md`.
+
+
+---
+
+## Sesión 2026-10-20 (fix de R2, E3 fases 2 y 3) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** rama `e3/fase-3-seleccion`. Corrección de las observaciones de la review R2 (`documentacion/reviews/E3_fase_2-3.md`, APROBADA CON OBSERVACIONES), decisión D46 del equipo. Pasos F1 (registro de IA), F2 (tabla 49 y encabezado del notebook), F3 (resumen) y F4 (HANDOFF y registro), con una parada del equipo después de cada uno. La entrada inmediatamente anterior («paso F1: transcripción textual de la fase 3») pertenece a esta misma sesión. Los mensajes «Dale, segui con F2» y «Dale, segui» (continuar con F3) solo confirmaron avanzar y no se transcriben (criterio D47 del equipo, 20/10: el registro guarda solo el prompt que abre la sesión y los mensajes con decisiones o instrucciones). Horas locales (UTC-3). Se omiten solo las marcas con que Claude Code envuelve el texto pegado.
+
+### Prompt 1 (prompt de la sesión, con el bloque de la sesión incluido)
+*20/10/2026 11:26.*
+
+> Sesión de trabajo del Entregable 3, fix de fase 2 y 3 tras review, en la rama e3/fase-3-seleccion.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/fase-3-seleccion. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/fase-3-seleccion solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fix de la review R2 (fases 2 y 3). Modelo: sonnet (D25). La review está en
+> documentacion/reviews/E3_fase_2-3.md: leela entera antes de empezar. Corregís solo lo que se lista
+> acá (decisión D46 del equipo, 20/10). Cualquier otro cambio, consultame antes. No se modifican
+> solucion_seleccionada.json, la sección 1, la adenda, los bloques fechados ni ninguna tabla o figura
+> existente.
+>
+> ## Paso F1 — Registro de IA (observación 1, criterio N2)
+>
+> - Ubicá las transcripciones locales de Claude Code de las sesiones de la fase 3 (archivos .jsonl del
+>   proyecto, en la carpeta de proyectos de Claude Code del usuario, C--Proyectos-proyecto-machine-learning).
+>   Identificá: el prompt de la fase 3 completo (bloque S y prompt de la fase), el mensaje aparte del
+>   paso 3.0, el mensaje que autorizó el commit 1560a5b, el que pidió los pasos 3b y 3c y el que autorizó
+>   508c46e.
+> - Agregá una entrada NUEVA al final de documentacion/registro_uso_IA.md con esos mensajes textuales,
+>   completos, en orden y con su fecha. No edites las entradas anteriores: la nueva aclara que completa
+>   las del paso 3a y de 3b/3c, que abreviaban o remitían.
+> - Compará por programa cada texto transcripto contra el .jsonl (igualdad exacta) y mostrame el resultado.
+> - Si no encontrás alguna transcripción, detenete y consultame. No reconstruyas texto de memoria.
+>
+> DETENETE.
+>
+> ## Paso F2 — Tabla nueva para el 0,0076 (observación 4) y encabezado del notebook
+>
+> - Ubicá en la sección 12 el print que produce el 0,0076 citado en el resumen §3g.6. Sin cambiar ningún
+>   cálculo, agregá la escritura de ese valor (con su definición y las cifras de las que sale) en una tabla
+>   nueva, experiments/modelos_candidatos/tablas/49_<nombre>.csv. No modifiques tablas/45 ni ninguna otra.
+> - Corregí la numeración vieja de secciones en la celda markdown de encabezado del notebook.
+> - Antes de ejecutar, pedime que cierre cualquier visor o sincronizador que tenga abiertas figuras de
+>   experiments/ (en la fase 3 una corrida falló por un bloqueo de fig6).
+> - Reejecutá con nbconvert (0 errores, 0 stderr) y pytest (15 pasados, 0 saltados).
+> - Verificá con git: tablas 00 a 48, figuras y solucion_seleccionada.json idénticos a 508c46e; en
+>   registro_experimentos.csv solo cambia fecha_hora; la única tabla nueva es la 49, y su valor coincide
+>   con el 0,0076 del resumen.
+>
+> DETENETE.
+>
+> ## Paso F3 — Resumen (observación 2 y riesgos declarados)
+>
+> En documentacion/resumen_modelos_candidatos.md:
+> - §1.1: quitá «PENDIENTE: no ejecutados» y reflejá el estado real. Registrá D35 donde corresponda:
+>   análisis pareado posterior a ver resultados, sin efecto en la selección.
+> - §1.3: corregí «sólo se usa la expansiva». En el paso C se evaluaron las deslizantes, y la
+>   configuración final es la deslizante de 364 días por D42.
+> - §4: eliminá las dos líneas PENDIENTE repetidas.
+> - §7 ítem 4: sacá de pendientes lo que ya está hecho.
+> - §8: corregí «ninguna celda anterior cambió». En 508c46e cambió la sección 10 (ahora verifica el JSON
+>   con assert en vez de reescribirlo), y en este fix cambian la sección 12 (tabla 49) y el encabezado.
+> - §3g.6: citá tablas/49 como fuente del 0,0076.
+> - §5, limitaciones nuevas de la fase 3:
+>   (a) D42 se tomó después de ver los resultados del paso C, con los mismos 47 cortes. En la práctica
+>       antepone la calibración a la estabilidad del paso 4 de la regla. La cifra que se informa como
+>       resultado es la del bloque final, que sigue sin abrirse.
+>   (b) D43 a D45 están en el mismo commit que sus resultados: git no prueba que se fijaran antes de
+>       calcular.
+>   (c) El campo commit_del_repositorio de solucion_seleccionada.json dice 5f207e2, pero el JSON se generó
+>       con cambios sin commitear sobre ese commit; el commit que lo contiene es 1560a5b. El JSON no se
+>       corrige porque no puede cambiar después de 1560a5b (F3-B2, F4-B1).
+>   (d) Las coberturas de los intervalos se reportan como proporciones, sin incertidumbre. Las
+>       observaciones de un mismo corte y municipio no son independientes, así que un intervalo binomial
+>       simple la subestimaría.
+>   (e) Deuda aceptada (observación 5 de R2): explicaciones bajo «Evidencia», lambdas con nombre y
+>       globales reutilizados entre secciones. Motivo: no afectan resultados, y cambiar código obligaría a
+>       revalidar antes de la fase 4.
+> - En la lista de frases que no deben aparecer en el informe, agregá: presentar la diferencia pareada
+>   (sensibilidad − L1: −0,0017, EE 0,0005; o solución − L1) como prueba de significación; decir que la
+>   configuración final siguió la regla de selección, en cualquier variante; presentar las coberturas como
+>   exactas.
+> Cada cifra nueva lleva su tabla.
+>
+> ## Paso F4 — HANDOFF y registro
+>
+> - Registrá D35 (con su definición), D41 (recomendación de seguir la regla, con la expansiva como final
+>   y la deslizante de 364 días como sensibilidad; reemplazada por D42 antes de la fase 3) y D46 (esta
+>   acción).
+> - Corregí las líneas viejas: «Commit de la parada C pendiente de confirmación» (el commit es 5f207e2) y
+>   «Próximo: la fase 4» en la entrada de 3b y 3c (lo próximo era R2; ahora, la review corta y el merge).
+> - Agregá la entrada de esta sesión: resultado de R2, observaciones corregidas, deuda aceptada,
+>   verificación y validación del equipo (D30): Lucas revisó el veredicto de R2 el 20/10, con apoyo de
+>   Claude en el chat del Project, y decidió D46.
+> - La entrada de esta sesión en el registro de IA lleva este prompt textual, con el bloque S incluido.
+>
+> DETENETE. Mostrame git status, git diff --stat contra 508c46e y el resumen de archivos tocados.
+
+**Respuesta (extracto relevante):** se verificó la rama y se leyeron CLAUDE.md, HANDOFF.md, el resumen y la review R2. **F1:** las transcripciones estaban en la carpeta de proyectos de Claude Code; el mensaje del paso 3.0 y el que autorizó `1560a5b` resultaron ser uno solo, así que la entrada nueva transcribe cuatro mensajes, no cinco; comparación por programa, igualdad exacta. **F2:** la celda de intervalos de la sección 12 guarda en `tablas/49_fase3c_dif_mu_nb2_vs_solucion.csv` el máximo de |μ NB2 − μ solución| (0,00762: corte 44, 2025-01-09, MUNICIPIO A, 2.632 filas) sin cambiar el cálculo, y el encabezado pierde la numeración vieja de la fase 2. **F3:** `resumen_modelos_candidatos.md` (marcas `PENDIENTE` de §1.1 y §4, §1.3, §7, §8, D35 en §3e.5, fuente del 0,0076 en §3g.6, limitaciones (a) a (e) y tres frases nuevas en §5, índice §6). **F4:** `HANDOFF.md` con D35, D41, D46, las dos líneas viejas corregidas y la entrada de la sesión; esta entrada.
+
+**Uso y verificación:** utilizado, con tres desviaciones declaradas: (1) el mensaje del paso 3.0 y el de la autorización de `1560a5b` son el mismo; (2) en §4 del resumen la IA dejó **una** línea en lugar de eliminar las dos repetidas, porque la evaluación en el test sigue pendiente; el equipo lo confirmó (Prompt 3); (3) la tabla `tablas/10_artefactos.csv` cambió una línea (índice de artefactos que lista la 49), algo que el prompt no preveía. Verificación: `nbconvert --execute` en el `.venv` una vez, exit 0, 0 errores y 0 `stderr`; `pytest` 15 pasados, 0 saltados; contra `508c46e` las tablas 00 a 48 son idénticas (salvo el índice `10`), las figuras y `solucion_seleccionada.json` también, el registro de experimentos solo cambia `fecha_hora`, y la tabla 49 coincide con el 0,0076 del resumen. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/` (tabla 49, índice 10 y `registro_experimentos.csv`, solo `fecha_hora`), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 2
+*20/10/2026 11:43.*
+
+> dale ya cerre todo ejecuta. Antes ese habia sido el problema si, tenia la fig 6 abierta en fotos
+
+**Respuesta (extracto relevante):** se ejecutó `nbconvert` (15,9 min), `pytest` y las comprobaciones con git descritas en el Prompt 1.
+
+**Uso y verificación:** el equipo confirmó la causa del bloqueo de `fig6` que había fallado una ejecución de la fase 3: tener la figura abierta en el visor de fotos. Es una declaración del equipo; la IA no la comprobó. Quedó asentada en el HANDOFF. La ejecución de esta sesión no tuvo bloqueos.
+
+### Prompt 3
+*20/10/2026 12:07.*
+
+> OK §4, queda como está. Antes de F4:
+> 1. En la lectura 12.1 del notebook y en su espejo §3g.9 del resumen, la fuente del 0,0076 pasa a ser
+>    tablas/49. Corregí la cita a «45, 46» donde se refiera a esa cifra. Es solo markdown: no reejecutes.
+> 2. Frase «quedan para» del encabezado: si se refiere a trabajo que ya está hecho (pasos, secciones o
+>    fases anteriores a la 4), actualizala al estado real; si se refiere a la fase 4, dejala como está.
+>    Mostrame el antes y el después.
+> 3. D35: según el plan del equipo, es del 19/10, posterior al paso A de la fase 2. Usá esa fecha en el
+>    HANDOFF y en el resumen §3e.5.
+> 4. Validación del equipo (D30) en F4: Lucas revisó el veredicto de R2 el 20/10 y decidió D46
+>    [si corresponde: «y confirmó D31 a D45»].
+> Después seguí con F4.
+
+**Respuesta (extracto relevante):** (1) La cita del 0,0076 pasó a `tablas/49` en la lectura 12.1 del notebook (solo markdown: el encabezado de la evidencia pasa a «(`45`, `46`, `49`)», la cifra lleva «(`49`)» y la primera línea de la celda cita «`38` a `49`») y en §3g.6 del resumen. **El espejo §3g.9 del resumen no menciona esa cifra, así que no había nada que corregir ahí.** (2) La frase «quedan para» se refería a las secciones 11 y 12, ya hechas (pasos 3b y 3c), así que se actualizó. *Antes:* «las secciones 11 y 12 quedan para la explicabilidad y el análisis de errores». *Después:* «las secciones 11 y 12 contienen la explicabilidad (paso 3b) y el análisis de errores (paso 3c)». (3) D35 pasó a figurar como decisión del plan del equipo del 19/10/2026, posterior al paso A de la fase 2, en el resumen §3e.5 y en el HANDOFF. (4) La validación D30 quedó como «Lucas revisó el veredicto de R2 el 20/10 y decidió D46».
+
+**Uso y verificación:** utilizado. **No** se agregó «y confirmó D31 a D45»: el prompt lo condicionaba a «si corresponde» y ni el prompt ni el repositorio dicen que el equipo las haya confirmado en esta revisión; si fue así, hay que agregarlo. Esa condición queda a cargo del equipo. La IA tampoco comprobó la validación D30, que es una declaración del equipo. El notebook no se reejecutó: los cambios son solo de texto (se verificó que el JSON sigue siendo válido y que, respecto de `508c46e`, solo difiere el texto de las celdas 0 y 62, markdown, y de la 59, la de código ya reejecutada en F2). **Archivos afectados:** `notebooks/modelos_candidatos.ipynb` (markdown), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
