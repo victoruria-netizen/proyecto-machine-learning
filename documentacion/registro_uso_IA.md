@@ -3660,3 +3660,80 @@ exactamente N días. 376 ajustes sin avisos y 188 GLM convergidos (`tablas/30`).
 ejecutar, sin reejecutar. `pytest`: 15 pasados, 0 saltados. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`,
 `experiments/modelos_candidatos/` (tablas 10 y 26 a 31, figura 6, `registro_experimentos.csv`),
 `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-19 (E3, fase 3: selección, paso 3a) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** rama `e3/fase-3-seleccion`. Paso 3a de la fase 3 en `notebooks/modelos_candidatos.ipynb`: bloque de la decisión D42,
+`solucion_seleccionada.json` y tabla de la regla con la decisión.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase 3, en la rama e3/fase-3-seleccion.
+> [...reglas de la sesión: verificar la rama; leer CLAUDE.md, HANDOFF.md y el resumen; no modificar la sección 1; el bloque final
+> solo lo lee notebooks/evaluacion_final.ipynb; variables solo desde src/variables.py; nbconvert con 0 errores y pytest entero;
+> detenerse en cada parada; commit solo con confirmación, nunca en main ni push...]
+>
+> ## Paso 3a — Configuración de la solución (D42)
+>
+> - Agregá debajo de las precisiones del paso C un bloque "Decisión del equipo sobre la
+>   configuración final, 19/10/2026 (D42)": la regla eligió GLM Poisson (a) con ventana
+>   expansiva por una diferencia de 0,00045 en el desvío entre cortes; el equipo se aparta de
+>   la regla y elige GLM Poisson (a) con ventana deslizante de 364 días, por desvianza media
+>   (1,2205 contra 1,2302), cortes ganados (30 de 47) y calibración (0,9717 contra 0,9341; en
+>   A, 0,9330 contra 0,8695). Citá la tabla de cada cifra. La expansiva queda como
+>   configuración de sensibilidad: se evalúa en la fase 4 y no puede reemplazar a la final.
+> - Escribí experiments/modelos_candidatos/solucion_seleccionada.json con: modelo, familia,
+>   conjunto de variables, hiperparámetros, ventana (deslizante, 364 días), reentrenamiento
+>   cada 7 días, horizonte de 7 días, EPS de la desvianza, semilla, versiones de las
+>   bibliotecas y commit del repositorio. Agregá los campos "configuracion_de_la_regla" (la
+>   expansiva), "origen_de_la_eleccion": "decisión del equipo D42, apartándose de la regla",
+>   "sensibilidad" (la expansiva) y "contraste" (la mejor XGBoost del paso C: deslizante de
+>   364 días, d=2, n=100, lr=0,1). Sensibilidad y contraste se evalúan en la fase 4 junto con
+>   las referencias, pero no compiten.
+> - Agregá una tabla que muestre la regla paso por paso (desvianza, empates, simplicidad,
+>   estabilidad, calibración), la configuración que eligió y, en una fila aparte, la decisión
+>   D42 con su motivo, lista para citar en el informe.
+>
+> DETENETE. El equipo commitea el bloque y el JSON antes de seguir.
+>
+> [El prompt seguía con los pasos 3b y 3c, que esperan a la confirmación de esta parada.]
+
+**Respuesta (extracto relevante):** celda markdown D42 debajo de las precisiones del paso C, con cada cifra citada (`tablas/26`, `28`,
+`29`). La IA precisó que el margen de 0,00045 es contra la ventana de 728 d (la segunda); contra la de 364 d es 0,0032 (`tablas/29`).
+Sección 10 nueva, sin ajustes nuevos: arma el JSON desde `META` y `glob_c` (configuración, columnas del conjunto (a), hiperparámetros,
+ventana, reentrenamiento y horizonte, cifras de validación, EPS, semilla, versiones de `tablas/00`, HEAD de git y si el árbol tenía
+cambios) y escribe `tablas/32` con la regla paso por paso y la fila D42. Tiene `assert` para verificar que la regla elige la expansiva, que
+la final es la de 364 d, que el contraste es la mejor XGBoost del paso C y que gana 30 cortes. «Estado y artefactos» pasó a ser la
+sección 13.
+
+**Uso y verificación:** utilizado. `nbconvert --execute` en el `.venv`: la primera ejecución falló al guardar `fig6` (`OSError [Errno
+22]`, bloqueo transitorio del archivo); la segunda terminó con 0 errores y 0 `stderr`. Una tercera corrigió un separador decimal en
+`tablas/32`. Tablas 00 a 31 y figuras sin cambios (`git status`); registro idéntico salvo `fecha_hora` (comparación con pandas contra
+`HEAD`). Las cifras del bloque se contrastaron a mano contra `tablas/26`, `28` (conteo de cortes: 30) y `29`. `pytest`: 15 pasados.
+**Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/solucion_seleccionada.json`,
+`experiments/modelos_candidatos/tablas/10_artefactos.csv` y `32_fase3_configuracion_final.csv`, `registro_experimentos.csv`
+(solo `fecha_hora`), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 2
+> Los tres puntos están bien: el margen de 0,00045 descrito contra la de 728 días, el commit
+> 5f207e2 con la marca de cambios sin commitear, y la numeración.
+>
+> Antes del commit falta el paso 3.0, que no aparece en tu reporte: verificación de fuga sin
+> escribir en el repo, para la solución (GLM Poisson (a), 364 días), la sensibilidad (expansiva),
+> NB2 con 364 días y el contraste (XGBoost, 364 días). En 5 cortes (el primero, el último y tres
+> intermedios), alterá en memoria n_siniestros de las fechas >= origen, reentrená y predecí: la
+> diferencia máxima tiene que ser 0. Repetí el control positivo abriendo la compuerta
+> var.observado. Anotalo en el resumen y en el HANDOFF, mostrame el resultado y, si da 0, hacé el
+> commit "Fase 3, paso 3a: configuración de la solución (D42)" sin push.
+
+**Respuesta (extracto relevante):** script en el scratchpad de la sesión (fuera del repo). Lee el panel con `cargar_panel_desarrollo()`
+y ejecuta tal cual la celda `paso-a-motor`. Para las 4 configuraciones, en los cortes 1, 12, 24, 36 y 47, compara tres versiones de los
+datos: la vista del motor, el panel sin ocultar y el panel con 10⁶ en las fechas ≥ origen. Diferencia máxima: exactamente 0.0 en las 20
+combinaciones. Con la compuerta abierta, las (a) siguen en 0, porque no tienen variables derivadas del objetivo. La IA agregó, solo como
+control, GLM (c) N=28 364 d, que cambia entre 11,41 y 44,86: la prueba detecta fugas.
+
+**Uso y verificación:** utilizado. Máximos impresos con `repr` (0.0 exacto). Las predicciones de la vista del motor coinciden con
+`tablas/31` (diferencia 0 al redondear a 6 decimales). `git status` sin cambios después de correr el script. Commit hecho en
+`e3/fase-3-seleccion`, sin push. **Archivos afectados:** `documentacion/resumen_modelos_candidatos.md` (§3e.4), `HANDOFF.md`,
+`documentacion/registro_uso_IA.md`.

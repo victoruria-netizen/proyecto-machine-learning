@@ -1,0 +1,225 @@
+{
+  "fecha_decision": "2026-10-19",
+  "decision": "D42",
+  "origen_de_la_eleccion": "decisión del equipo D42, apartándose de la regla",
+  "solucion": {
+    "configuracion": "GLM Poisson (a) [deslizante 364 d]",
+    "modelo": "GLM",
+    "familia": "Poisson",
+    "enlace": "log",
+    "implementacion": "statsmodels.api.GLM(y, X, family=sm.families.Poisson()).fit()",
+    "hiperparametros": {
+      "ajuste": "IRLS, valores por defecto de statsmodels",
+      "regularizacion": null,
+      "constante": "no (8 indicadoras de municipio, D31)"
+    },
+    "conjunto_de_variables": {
+      "conjunto": "a",
+      "descripcion": "municipio + calendario de 8 niveles",
+      "columnas": [
+        "mun_A",
+        "mun_B",
+        "mun_C",
+        "mun_CH",
+        "mun_D",
+        "mun_E",
+        "mun_F",
+        "mun_G",
+        "cal_martes",
+        "cal_miércoles",
+        "cal_jueves",
+        "cal_viernes",
+        "cal_sábado",
+        "cal_domingo",
+        "cal_feriado"
+      ],
+      "parametrizacion": "D31: 8 indicadoras de municipio sin constante; calendario con 7 columnas, lunes de referencia",
+      "fuente": "src/variables.py"
+    },
+    "ventana": {
+      "tipo": "deslizante",
+      "dias": 364
+    },
+    "reentrenamiento_cada_dias": 7,
+    "horizonte_dias": 7,
+    "validacion_47_cortes": {
+      "desvianza_media": 1.220513,
+      "error_estandar": 0.036394,
+      "desvio_entre_cortes": 0.249505,
+      "total_pred_obs": 0.971655,
+      "total_pred_obs_municipio_A": 0.932967,
+      "fuente": "tablas/26_paso_c_globales.csv"
+    }
+  },
+  "configuracion_de_la_regla": {
+    "configuracion": "GLM Poisson (a) [expansiva]",
+    "modelo": "GLM",
+    "familia": "Poisson",
+    "enlace": "log",
+    "implementacion": "statsmodels.api.GLM(y, X, family=sm.families.Poisson()).fit()",
+    "hiperparametros": {
+      "ajuste": "IRLS, valores por defecto de statsmodels",
+      "regularizacion": null,
+      "constante": "no (8 indicadoras de municipio, D31)"
+    },
+    "conjunto_de_variables": {
+      "conjunto": "a",
+      "descripcion": "municipio + calendario de 8 niveles",
+      "columnas": [
+        "mun_A",
+        "mun_B",
+        "mun_C",
+        "mun_CH",
+        "mun_D",
+        "mun_E",
+        "mun_F",
+        "mun_G",
+        "cal_martes",
+        "cal_miércoles",
+        "cal_jueves",
+        "cal_viernes",
+        "cal_sábado",
+        "cal_domingo",
+        "cal_feriado"
+      ],
+      "parametrizacion": "D31: 8 indicadoras de municipio sin constante; calendario con 7 columnas, lunes de referencia",
+      "fuente": "src/variables.py"
+    },
+    "ventana": {
+      "tipo": "expansiva",
+      "dias": null
+    },
+    "reentrenamiento_cada_dias": 7,
+    "horizonte_dias": 7,
+    "validacion_47_cortes": {
+      "desvianza_media": 1.230204,
+      "error_estandar": 0.035934,
+      "desvio_entre_cortes": 0.246353,
+      "total_pred_obs": 0.934095,
+      "total_pred_obs_municipio_A": 0.869534,
+      "fuente": "tablas/26_paso_c_globales.csv"
+    }
+  },
+  "sensibilidad": {
+    "configuracion": "GLM Poisson (a) [expansiva]",
+    "modelo": "GLM",
+    "familia": "Poisson",
+    "enlace": "log",
+    "implementacion": "statsmodels.api.GLM(y, X, family=sm.families.Poisson()).fit()",
+    "hiperparametros": {
+      "ajuste": "IRLS, valores por defecto de statsmodels",
+      "regularizacion": null,
+      "constante": "no (8 indicadoras de municipio, D31)"
+    },
+    "conjunto_de_variables": {
+      "conjunto": "a",
+      "descripcion": "municipio + calendario de 8 niveles",
+      "columnas": [
+        "mun_A",
+        "mun_B",
+        "mun_C",
+        "mun_CH",
+        "mun_D",
+        "mun_E",
+        "mun_F",
+        "mun_G",
+        "cal_martes",
+        "cal_miércoles",
+        "cal_jueves",
+        "cal_viernes",
+        "cal_sábado",
+        "cal_domingo",
+        "cal_feriado"
+      ],
+      "parametrizacion": "D31: 8 indicadoras de municipio sin constante; calendario con 7 columnas, lunes de referencia",
+      "fuente": "src/variables.py"
+    },
+    "ventana": {
+      "tipo": "expansiva",
+      "dias": null
+    },
+    "reentrenamiento_cada_dias": 7,
+    "horizonte_dias": 7,
+    "validacion_47_cortes": {
+      "desvianza_media": 1.230204,
+      "error_estandar": 0.035934,
+      "desvio_entre_cortes": 0.246353,
+      "total_pred_obs": 0.934095,
+      "total_pred_obs_municipio_A": 0.869534,
+      "fuente": "tablas/26_paso_c_globales.csv"
+    },
+    "papel": "se evalúa en la fase 4 junto con las referencias; no compite y no puede reemplazar a la configuración final"
+  },
+  "contraste": {
+    "configuracion": "XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d]",
+    "modelo": "XGBoost",
+    "familia": "Poisson (objective='count:poisson')",
+    "implementacion": "xgboost.XGBRegressor(**hiperparametros).fit(X, y)",
+    "hiperparametros": {
+      "objective": "count:poisson",
+      "tree_method": "hist",
+      "subsample": 1,
+      "colsample_bytree": 1,
+      "min_child_weight": 1,
+      "reg_lambda": 1,
+      "random_state": 20260910,
+      "n_jobs": 1,
+      "max_depth": 2,
+      "n_estimators": 100,
+      "learning_rate": 0.1
+    },
+    "conjunto_de_variables": {
+      "conjunto": "a",
+      "descripcion": "municipio + calendario de 8 niveles",
+      "columnas": [
+        "mun_A",
+        "mun_B",
+        "mun_C",
+        "mun_CH",
+        "mun_D",
+        "mun_E",
+        "mun_F",
+        "mun_G",
+        "cal_martes",
+        "cal_miércoles",
+        "cal_jueves",
+        "cal_viernes",
+        "cal_sábado",
+        "cal_domingo",
+        "cal_feriado"
+      ],
+      "parametrizacion": "D31: 8 indicadoras de municipio sin constante; calendario con 7 columnas, lunes de referencia",
+      "fuente": "src/variables.py"
+    },
+    "ventana": {
+      "tipo": "deslizante",
+      "dias": 364
+    },
+    "reentrenamiento_cada_dias": 7,
+    "horizonte_dias": 7,
+    "validacion_47_cortes": {
+      "desvianza_media": 1.228034,
+      "error_estandar": 0.037669,
+      "desvio_entre_cortes": 0.258248,
+      "total_pred_obs": 0.971183,
+      "total_pred_obs_municipio_A": 0.902974,
+      "fuente": "tablas/26_paso_c_globales.csv"
+    },
+    "papel": "se evalúa en la fase 4 junto con las referencias; no compite"
+  },
+  "eps_desvianza": 1e-06,
+  "semilla": 20260910,
+  "versiones": {
+    "python": "3.13.2",
+    "pandas": "2.3.3",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.1",
+    "scikit-learn": "1.9.0",
+    "statsmodels": "0.14.6",
+    "xgboost": "3.4.1"
+  },
+  "commit_del_repositorio": "5f207e241f43c0ad902da5f6e06da353a5ea12bf",
+  "arbol_de_trabajo_con_cambios_sin_commitear": true,
+  "bloque_final_leido": false
+}

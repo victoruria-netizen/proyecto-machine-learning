@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-19 (fase 2 del E3, paso C)_
+_Última actualización: 2026-10-19 (fase 3 del E3, paso 3a)_
 
 ---
 
@@ -1891,6 +1891,28 @@ aunque la deslizante de 364 d es mejor en desvianza media y corrige la subestima
 D39.
 
 **Próximo:** fase 3 (fijar la configuración final). Commit de la parada C pendiente de confirmación.
+
+### Entregable 3, fase 3: paso 3a, configuración de la solución (2026-10-19, sesión de Claude)
+
+**Rama:** `e3/fase-3-seleccion`. **Bloque D42** (celda nueva debajo de las precisiones del paso C; nada anterior cambió): la regla eligió
+GLM Poisson (a) expansiva por 0,00045 de desvío entre cortes (`tablas/29`); **el equipo se aparta de la regla** y fija **GLM Poisson (a)
+con ventana deslizante de 364 días** por desvianza media (1,2205 contra 1,2302), cortes ganados (30 de 47) y calibración (0,9717 contra
+0,9341; en A, 0,9330 contra 0,8695) (`tablas/26`, `28`). **Sensibilidad:** la expansiva (fase 4; no puede reemplazar a la final).
+**Contraste:** XGBoost (a) d=2 n=100 lr=0,1, deslizante 364 d (fase 4; no compite).
+
+**Notebook:** sección 10 nueva (paso 3a), sin ajustes nuevos; escribe `experiments/modelos_candidatos/solucion_seleccionada.json` y
+`tablas/32_fase3_configuracion_final.csv` (la regla paso por paso y la fila D42). «Estado y artefactos» pasó a ser la sección 13 (11 y
+12 para 3b y 3c). `nbconvert`: 0 errores y 0 `stderr` (la primera ejecución falló por un bloqueo transitorio de `fig6`; se reejecutó sin
+cambiar el código). Tablas 00 a 31 y figuras idénticas; registro idéntico salvo `fecha_hora`. `pytest`: 15 pasados.
+
+**Verificación de fuga (paso 3.0, antes del commit; script en el scratchpad, sin artefacto en el repo):** solución, sensibilidad, NB2
+(a) 364 d y contraste, en los cortes 1, 12, 24, 36 y 47, con el objetivo de las fechas ≥ origen alterado a 10⁶ en memoria. **Diferencia
+máxima: exactamente 0** en las 20 combinaciones. Las predicciones coinciden con `tablas/31`. Con la compuerta abierta, las cuatro (a)
+siguen en 0, como se espera (no tienen variables derivadas del objetivo); el control GLM (c) N=28 364 d cambia entre 11,41 y 44,86, así
+que la prueba detecta fugas. Detalle en el resumen §3e.4.
+
+**Próximo:** commit de la parada 3a; después, pasos 3b (explicabilidad) y 3c (errores, intervalos,
+robustez), con datos de validación. El test sigue sin leerse.
 
 ## 4. Pendiente (próximos pasos)
 

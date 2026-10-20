@@ -6,6 +6,7 @@ figuras/fig4_paso_a_desvianza.png
 figuras/fig5_paso_b_desvianza.png
 figuras/fig6_paso_c_ventanas.png
 registro_experimentos.csv
+solucion_seleccionada.json
 tablas/00_entorno.csv
 tablas/01_verificacion_integridad.csv
 tablas/02_particiones.csv
@@ -37,3 +38,4 @@ tablas/28_paso_c_por_corte.csv
 tablas/29_paso_c_eleccion.csv
 tablas/30_paso_c_ajustes_por_corte.csv
 tablas/31_paso_c_predicciones.csv
+tablas/32_fase3_configuracion_final.csv

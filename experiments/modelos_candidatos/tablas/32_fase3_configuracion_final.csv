@@ -1,0 +1,9 @@
+paso,resultado,fuente
+1. desvianza media,"mejor: GLM Poisson (a) [deslizante 364 d] (1,2205; EE 0,0364)","tablas/26, tablas/29"
+2. empate a menos de 1 EE,"8 de 8 empatan (umbral 1,2569)",tablas/29
+3. simplicidad (D40),pasan las 4 ventanas del GLM; XGBoost queda afuera por familia,tablas/29
+4a. estabilidad: peor municipio (D38),"pasan 4 de 4 (≤ 1,4939)","tablas/27, tablas/29"
+4b. estabilidad: desvío entre cortes (D38),"expansiva 0,246353; deslizante 728 d 0,246801; deslizante 546 d 0,247608; deslizante 364 d 0,249505 — diferencia con la segunda 0,00045",tablas/29
+4c. calibración (D38),no se aplicó: 4b dejó una sola,tablas/29
+configuración elegida por la regla,GLM Poisson (a) [expansiva],tablas/29
+"DECISIÓN D42 (del equipo, apartándose de la regla)","GLM Poisson (a) [deslizante 364 d]. Motivo: desvianza media 1,2205 contra 1,2302; gana 30 de 47 cortes; total pred./obs. 0,9717 contra 0,9341 (en A, 0,9330 contra 0,8695). La expansiva queda como sensibilidad; contraste: XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d]","tablas/26, tablas/28"
