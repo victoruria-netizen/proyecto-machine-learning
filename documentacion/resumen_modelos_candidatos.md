@@ -97,6 +97,17 @@ necesita y que ninguna de las dos fijaba; se tomaron con las referencias de la f
 `cargar_panel_desarrollo()`, la media móvil por municipio de 28, 56 y 91 días nunca vale 0 (mínimos 1,0; 1,2321 y 1,3846). El
 notebook repite la verificación en cada corte y se detiene si falla.
 
+**Precisiones del paso B, fijadas el 19/10/2026 antes de ejecutarlo** (D36 a D38). Espejo de la celda del mismo nombre del
+notebook, debajo de las precisiones de la fase 2; no modifica nada anterior. Precisan cómo se aplican los pasos 3 y 4 de la regla de
+selección dentro de una familia con las mismas variables, caso que la sección 1 no resuelve. Se fijaron **con los resultados del paso A
+ya vistos** (§3b) y **antes de ejecutar el paso B**. **Valen también para el paso C.**
+
+| N.º | Precisión | Detalle |
+| --- | --- | --- |
+| D36 | **Simplicidad entre GLM Poisson y NB2** | Con la misma matriz, GLM Poisson es más simple que NB2 (un parámetro menos: NB2 con α → 0 es Poisson). Si empatan a menos de 1 EE, gana Poisson. Cómo se construyen los intervalos de predicción se decide en la fase 3 |
+| D37 | **Simplicidad entre combinaciones de XGBoost** | Entre empatadas, más simple = menor `max_depth` y, a igual profundidad, menor `n_estimators`. `learning_rate` no cuenta como complejidad: si solo difieren en él, decide el paso 4 |
+| D38 | **Paso 4: lexicográfico con tolerancia de 1 EE** | Pasan las empatadas cuya desvianza del peor municipio queda a menos de 1 EE de la mejor en ese criterio (el EE es el del peor municipio de esa mejor configuración, sobre los 47 cortes, como en `tablas/12`); entre ellas gana la de menor desvío entre cortes; si empatan, la de menor \|total pred./obs. − 1\| |
+
 **Evidencia / inferencia.** *Evidencia:* las cifras de la fila 1 salen de `tablas/05` y `tablas/08`. *Inferencia del equipo:*
 que 8 semanas sea la ventana razonable para L0 (promediar más días reduce el ruido de Poisson). Como la elección usó los
 mismos 47 cortes con los que se compararán los candidatos, la ventaja de L0 de 8 semanas sobre la de 4 es optimista en
