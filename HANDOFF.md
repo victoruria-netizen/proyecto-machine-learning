@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-20 (fix de la review R2, fases 2 y 3 del E3)_
+_Última actualización: 2026-10-20 (E3, fase 4: paso 4a y preparación del 4b, antes de ejecutar)_
 
 ---
 
@@ -1994,6 +1994,27 @@ D46. Es una declaración del equipo; no hay otro artefacto que la respalde.
 
 **Estado:** los cambios de esta sesión quedaron commiteados en `e3/fase-3-seleccion` (mensaje «Fix de la review R2 (D46, D47)…»; el hash
 está en `git log`), sin push y nunca en `main`. **Próximo:** la review corta y el merge; después, la fase 4.
+
+### Entregable 3, fase 4: paso 4a y preparación del 4b (2026-10-20, sesión de Claude)
+
+**Rama:** `e3/fase-4-evaluacion-final`. Informe del equipo commiteado aparte (`24b790e`). Entrada en curso: se completa al cerrar la fase 4.
+
+**Decisiones del equipo de esta sesión** (texto completo en la celda de precisiones de `notebooks/evaluacion_final.ipynb` y en
+`resumen_evaluacion_final.md` §1.1):
+- **D48:** modelos de la evaluación final (solución, sensibilidad, contraste y referencias) e intervalos según D44.
+- **D50:** reproducción de la fase 2 con doble control (1e-9 contra el camino de la fase 2 reconstruido en el test; tolerancia de redondeo
+  contra `tablas/31`, `45`, `46`); `entrenar` recibe el panel recortado y `src/modelo.py` no lee archivos; **fallback de NB2: plan B de
+  D28 y Poisson solo si no da α positivo** (reemplaza a D48 en ese punto); `var.tipo_dia` para las fechas fuera del panel.
+- **D51:** intervalos solo para la solución; exportación local dentro del notebook después del registro; `train/train_modelo_final.py` es
+  una excepción declarada a la regla de lectura del bloque final; `historia_reciente.csv` fuera del alcance; tolerancia de los tests 6e-7.
+- **D52:** elecciones de análisis (propuestas por la IA y confirmadas con dos ajustes): el registro de ejecución compara reejecuciones con
+  tolerancia relativa 1e-10; el estado de cada objetivo se fija antes y la tabla lleva los resultados del test como evidencia.
+
+**Hecho.** `src/modelo.py`, `var.tipo_dia` y `tests/test_modelo.py` (`pytest`: 33 pasados). El notebook se escribió y **no se ejecutó**:
+sus secciones 0 a 3, sin el bloque final, se probaron aparte y reproducen las 35 cifras de validación comprobadas.
+`resumen_evaluacion_final.md` es por ahora un esqueleto, con «Diferencias con el informe» (6 puntos, lista abierta).
+
+**Próximo:** commit y push de la rama **antes** de ejecutar; ejecución con `nbconvert` (cerrar antes visores y sincronizadores); paso 4c.
 
 ## 4. Pendiente (próximos pasos)
 
