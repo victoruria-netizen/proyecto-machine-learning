@@ -1,0 +1,2 @@
+glm_poisson,nb2,desvianza_glm_poisson,desvianza_nb2,diferencia_nb2_menos_poisson,error_estandar_glm_poisson,error_estandar_nb2,cortes_que_gana_nb2,max_dif_absoluta_predicciones,max_dif_relativa_predicciones,cortes_plan_b,alpha_mv_minimo,alpha_mv_mediana,alpha_mv_maximo
+GLM Poisson (a),NB2 (a),1.230204,1.230105,-9.8e-05,0.035934,0.035935,27,0.007085,0.00179,0,0.034916,0.037692,0.039959
