@@ -1,0 +1,2 @@
+medida,definicion,valor,n_filas,corte,fecha,municipio,mu_nb2_364,mu_solucion
+diferencia_maxima_mu_nb2_364_vs_solucion,"máximo del valor absoluto de (μ de NB2 (a) 364 d − μ de la solución, GLM Poisson (a) 364 d) sobre las filas (corte, fecha, municipio) de validación; μ en siniestros por día",0.00762,2632,44,2025-01-09,MUNICIPIO A,3.613476,3.605856

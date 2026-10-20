@@ -1,0 +1,33 @@
+modelo,calendario,n,media_observada,media_predicha,residuo_medio,desvianza,mae,total_pred_obs
+GLM Poisson (a) [deslizante 364 d],lunes,352,3.085227,3.041999,0.043228,1.244558,1.50283,0.985989
+GLM Poisson (a) [deslizante 364 d],martes,368,3.108696,3.0104,0.098295,1.327358,1.502241,0.968381
+GLM Poisson (a) [deslizante 364 d],miércoles,336,3.139881,3.052638,0.087243,1.078653,1.380582,0.972215
+GLM Poisson (a) [deslizante 364 d],jueves,360,3.127778,2.970701,0.157077,1.068892,1.392622,0.94978
+GLM Poisson (a) [deslizante 364 d],viernes,368,3.285326,3.193736,0.09159,1.214055,1.524885,0.972121
+GLM Poisson (a) [deslizante 364 d],sábado,352,2.599432,2.658936,-0.059504,1.239001,1.330977,1.022891
+GLM Poisson (a) [deslizante 364 d],domingo,368,2.190217,2.037097,0.153121,1.40061,1.314476,0.930089
+GLM Poisson (a) [deslizante 364 d],feriado,128,1.992188,1.922294,0.069893,1.095972,1.109536,0.964916
+GLM Poisson (a) [expansiva],lunes,352,3.085227,2.937766,0.147462,1.235122,1.487917,0.952204
+GLM Poisson (a) [expansiva],martes,368,3.108696,2.849961,0.258735,1.338908,1.49792,0.916771
+GLM Poisson (a) [expansiva],miércoles,336,3.139881,2.86706,0.272821,1.098184,1.377115,0.913111
+GLM Poisson (a) [expansiva],jueves,360,3.127778,2.841678,0.2861,1.076263,1.381995,0.908529
+GLM Poisson (a) [expansiva],viernes,368,3.285326,3.186401,0.098925,1.215476,1.524668,0.969889
+GLM Poisson (a) [expansiva],sábado,352,2.599432,2.533932,0.0655,1.255221,1.320727,0.974802
+GLM Poisson (a) [expansiva],domingo,368,2.190217,1.962498,0.22772,1.416462,1.316438,0.896029
+GLM Poisson (a) [expansiva],feriado,128,1.992188,1.87053,0.121658,1.121723,1.114188,0.938932
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],lunes,352,3.085227,2.959822,0.125405,1.238499,1.494212,0.959353
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],martes,368,3.108696,2.964302,0.144393,1.334864,1.515433,0.953552
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],miércoles,336,3.139881,2.983018,0.156863,1.108237,1.392787,0.950042
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],jueves,360,3.127778,2.964791,0.162987,1.062528,1.385187,0.94789
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],viernes,368,3.285326,3.052452,0.232874,1.258886,1.563825,0.929117
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],sábado,352,2.599432,2.795571,-0.196139,1.250618,1.358669,1.075455
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],domingo,368,2.190217,2.157743,0.032474,1.377874,1.312045,0.985173
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],feriado,128,1.992188,2.135743,-0.143556,1.090479,1.13095,1.072059
+L1 (nivel x calendario de 8 niveles),lunes,352,3.085227,2.910562,0.174666,1.23669,1.484989,0.943386
+L1 (nivel x calendario de 8 niveles),martes,368,3.108696,2.83856,0.270135,1.34106,1.497384,0.913103
+L1 (nivel x calendario de 8 niveles),miércoles,336,3.139881,2.88139,0.258491,1.095484,1.377102,0.917675
+L1 (nivel x calendario de 8 niveles),jueves,360,3.127778,2.828753,0.299025,1.078499,1.381228,0.904397
+L1 (nivel x calendario de 8 niveles),viernes,368,3.285326,3.191704,0.093623,1.21469,1.524597,0.971503
+L1 (nivel x calendario de 8 niveles),sábado,352,2.599432,2.52572,0.073712,1.256352,1.320271,0.971643
+L1 (nivel x calendario de 8 niveles),domingo,368,2.190217,1.939308,0.250909,1.42289,1.316955,0.885441
+L1 (nivel x calendario de 8 niveles),feriado,128,1.992188,1.836968,0.15522,1.127138,1.111049,0.922086

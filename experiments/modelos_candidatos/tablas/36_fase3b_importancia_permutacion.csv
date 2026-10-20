@@ -1,0 +1,5 @@
+configuracion,grupo,desvianza_base,aumento_medio,aumento_desvio,aumento_minimo,aumento_maximo,repeticiones,aumento_medio_relativo
+GLM Poisson (a) [deslizante 364 d],municipio,1.220513,0.227038,0.014496,0.209451,0.242006,5,0.186018
+GLM Poisson (a) [deslizante 364 d],calendario,1.220513,0.127663,0.00583,0.119687,0.134588,5,0.104598
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,1.228034,0.171651,0.011808,0.155888,0.186575,5,0.139777
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,1.228034,0.09552,0.005198,0.088189,0.102118,5,0.077783

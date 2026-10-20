@@ -1,0 +1,21 @@
+configuracion,grupo,repeticion,desvianza_base,desvianza_permutada,aumento
+GLM Poisson (a) [deslizante 364 d],municipio,1,1.220513,1.436826,0.216313
+GLM Poisson (a) [deslizante 364 d],municipio,2,1.220513,1.429964,0.209451
+GLM Poisson (a) [deslizante 364 d],municipio,3,1.220513,1.462519,0.242006
+GLM Poisson (a) [deslizante 364 d],municipio,4,1.220513,1.447041,0.226528
+GLM Poisson (a) [deslizante 364 d],municipio,5,1.220513,1.461405,0.240892
+GLM Poisson (a) [deslizante 364 d],calendario,1,1.220513,1.34569,0.125177
+GLM Poisson (a) [deslizante 364 d],calendario,2,1.220513,1.3402,0.119687
+GLM Poisson (a) [deslizante 364 d],calendario,3,1.220513,1.352387,0.131874
+GLM Poisson (a) [deslizante 364 d],calendario,4,1.220513,1.347503,0.12699
+GLM Poisson (a) [deslizante 364 d],calendario,5,1.220513,1.355101,0.134588
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,1,1.228034,1.383922,0.155888
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,2,1.228034,1.407251,0.179217
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,3,1.228034,1.414609,0.186575
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,4,1.228034,1.394494,0.16646
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],municipio,5,1.228034,1.398147,0.170113
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,1,1.228034,1.330152,0.102118
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,2,1.228034,1.321516,0.093482
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,3,1.228034,1.316223,0.088189
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,4,1.228034,1.323758,0.095724
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],calendario,5,1.228034,1.32612,0.098086

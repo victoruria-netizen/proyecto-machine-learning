@@ -1,0 +1,23 @@
+tipo,termino,coeficiente,error_estandar,razon,ic95_inferior,ic95_superior,razon_nb2,ic95_inferior_nb2,ic95_superior_nb2
+municipio: siniestros esperados un lunes,MUNICIPIO A,1.254351,0.039605,3.505562,3.243736,3.788521,3.511793,3.237292,3.80957
+municipio: siniestros esperados un lunes,MUNICIPIO B,1.243366,0.039722,3.467266,3.207565,3.747993,3.467112,3.195555,3.761747
+municipio: siniestros esperados un lunes,MUNICIPIO C,1.371573,0.038414,3.941548,3.655685,4.249763,3.939887,3.640464,4.263936
+municipio: siniestros esperados un lunes,MUNICIPIO CH,0.762943,0.045846,2.144579,1.960278,2.346207,2.144538,1.954115,2.353518
+municipio: siniestros esperados un lunes,MUNICIPIO D,1.247605,0.039677,3.481995,3.221477,3.763581,3.48425,3.211688,3.779944
+municipio: siniestros esperados un lunes,MUNICIPIO E,0.884383,0.0441,2.421489,2.22098,2.640099,2.421115,2.213296,2.648449
+municipio: siniestros esperados un lunes,MUNICIPIO F,1.112865,0.041186,3.043063,2.80707,3.298897,3.045822,2.799656,3.313633
+municipio: siniestros esperados un lunes,MUNICIPIO G,0.938834,0.043363,2.556998,2.34866,2.783817,2.557973,2.341552,2.794397
+municipio: razón respecto de A,MUNICIPIO B,-0.010984,0.041109,0.989076,0.91251,1.072066,0.987277,0.907319,1.074281
+municipio: razón respecto de A,MUNICIPIO C,0.117223,0.039846,1.12437,1.039901,1.2157,1.121902,1.033472,1.217898
+municipio: razón respecto de A,MUNICIPIO CH,-0.491408,0.047053,0.611765,0.55787,0.670866,0.610668,0.554972,0.671953
+municipio: razón respecto de A,MUNICIPIO D,-0.006745,0.041065,0.993277,0.916465,1.076528,0.992157,0.911882,1.079499
+municipio: razón respecto de A,MUNICIPIO E,-0.369968,0.045353,0.690756,0.632005,0.754969,0.689424,0.628559,0.756183
+municipio: razón respecto de A,MUNICIPIO F,-0.141486,0.042525,0.868067,0.798649,0.943519,0.867313,0.794963,0.946247
+municipio: razón respecto de A,MUNICIPIO G,-0.315517,0.044636,0.729412,0.66831,0.7961,0.728395,0.664989,0.797848
+calendario: razón respecto del lunes,martes,0.001526,0.040758,1.001527,0.924633,1.084815,1.001748,0.92143,1.089068
+calendario: razón respecto del lunes,miércoles,0.027816,0.041117,1.028206,0.948596,1.114498,1.027658,0.944519,1.118115
+calendario: razón respecto del lunes,jueves,0.008009,0.040693,1.008041,0.930765,1.091732,1.008011,0.927303,1.095744
+calendario: razón respecto del lunes,viernes,0.051583,0.040079,1.052936,0.97339,1.138983,1.051994,0.96891,1.142202
+calendario: razón respecto del lunes,sábado,-0.166464,0.042773,0.846653,0.778569,0.920691,0.846014,0.775215,0.92328
+calendario: razón respecto del lunes,domingo,-0.35654,0.044592,0.700095,0.641505,0.764035,0.699469,0.638783,0.76592
+calendario: razón respecto del lunes,feriado,-0.425166,0.065638,0.653661,0.574753,0.743403,0.653507,0.572142,0.746443
