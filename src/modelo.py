@@ -11,6 +11,10 @@ lo carga (``src.datos.cargar_panel_desarrollo()`` o, sólo en ``notebooks/evalua
 Intervalos de predicción (D44, con el fallback de D50): μ del modelo y α de NB2 (a) ajustada con la misma ventana y las
 mismas filas. Si NB2 no converge según D29, α por momentos (plan B de D28); si tampoco da un α finito y positivo, el
 intervalo es Poisson con la misma μ. Sin α (``ajustar_alpha=False``), también Poisson.
+
+Dependencias (D54): statsmodels y xgboost se importan sólo dentro de ``entrenar``. Cargar el modelo final
+(``cargar_modelo``) y predecir con él usa numpy, pandas, scipy (cuantiles de D44) y ``src.variables`` (calendario, D50),
+así que el prototipo y el servidor pueden predecir sin esas dos bibliotecas.
 """
 
 import json
@@ -19,10 +23,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
-import xgboost
 from scipy import stats
-from statsmodels.discrete.discrete_model import NegativeBinomial
 
 from src import variables as var
 
@@ -85,9 +86,9 @@ def decidir_alpha(alpha_mv: float, convergio: bool, avisos, alpha_momentos=None)
     return None, None
 
 
-def _alpha_nb2(X: pd.DataFrame, y: pd.Series) -> dict:
-    "NB2 (a) con las filas de entrenamiento del modelo (adenda, ítems 5 y 6; D28; D50)."
-    res, avisos = _con_avisos(lambda: NegativeBinomial(y, X, loglike_method="nb2").fit(method="newton", maxiter=100, disp=0))
+def _alpha_nb2(X: pd.DataFrame, y: pd.Series, sm) -> dict:
+    "NB2 (a) con las filas de entrenamiento del modelo (adenda, ítems 5 y 6; D28; D50). ``sm``: statsmodels.api, de ``entrenar``."
+    res, avisos = _con_avisos(lambda: sm.NegativeBinomial(y, X, loglike_method="nb2").fit(method="newton", maxiter=100, disp=0))
     alpha_mv = float(res.params["alpha"])
 
     def momentos():
@@ -113,6 +114,9 @@ def entrenar(config: dict, panel_hasta: pd.DataFrame, ajustar_alpha: bool = True
     Devuelve un diccionario: configuración, origen, ventana, columnas, días y filas de entrenamiento, el modelo ajustado
     (``coeficientes`` del GLM o ``xgb``, el ``XGBRegressor``) y, con ``ajustar_alpha``, el α de los intervalos (D44, D50).
     """
+    import statsmodels.api as sm        # D54: sólo el entrenamiento depende de statsmodels y xgboost
+    import xgboost
+
     if panel_hasta["n_siniestros"].isna().any():
         raise ValueError("panel_hasta tiene objetivos faltantes: debe traer sólo días conocidos")
     if sorted(panel_hasta["zona_id"].unique()) != MUNICIPIOS:
@@ -137,7 +141,35 @@ def entrenar(config: dict, panel_hasta: pd.DataFrame, ajustar_alpha: bool = True
     else:
         raise ValueError(f"modelo no previsto: {config['modelo']}")
 
-    modelo.update(_alpha_nb2(X, y) if ajustar_alpha else {"alpha": None, "origen_alpha": None})
+    modelo.update(_alpha_nb2(X, y, sm) if ajustar_alpha else {"alpha": None, "origen_alpha": None})
+    return modelo
+
+
+# ------------------------------------------------------------------------------- guardar y cargar
+_CAMPOS_FECHA = ("origen", "desde", "hasta")
+
+
+def guardar_modelo(modelo: dict, ruta) -> None:
+    """Escribe el GLM de ``entrenar`` en JSON (coeficientes, α y datos del ajuste), sin pickle.
+
+    Sólo el GLM: μ = exp(X β) con la matriz de D31, así que los coeficientes bastan. Los float de JSON se escriben con
+    su ``repr`` y se leen exactos.
+    """
+    if modelo["modelo"] != "GLM":
+        raise ValueError(f"sólo se guarda el GLM en JSON, no {modelo['modelo']}")
+    out = dict(modelo)
+    for c in _CAMPOS_FECHA:
+        out[c] = pd.Timestamp(out[c]).strftime("%Y-%m-%d")
+    Path(ruta).write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def cargar_modelo(ruta) -> dict:
+    "Lee el JSON de ``guardar_modelo`` y devuelve el diccionario que espera ``predecir_semana`` (sin statsmodels, D54)."
+    modelo = json.loads(Path(ruta).read_text(encoding="utf-8"))
+    if modelo.get("modelo") != "GLM" or sorted(modelo["coeficientes"]) != sorted(modelo["columnas"]):
+        raise ValueError(f"{ruta} no es un GLM guardado con guardar_modelo")
+    for c in _CAMPOS_FECHA:
+        modelo[c] = pd.Timestamp(modelo[c])
     return modelo
 
 

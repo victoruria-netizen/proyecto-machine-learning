@@ -7,8 +7,15 @@ Control de reproducción (D50, doble control):
 2. **6e-7** (redondeo a 6 decimales, 5e-7, con margen de punto flotante; D51) contra los artefactos guardados: ``tablas/31`` (predicciones de la solución, la
    sensibilidad y el contraste), ``tablas/45`` (α de NB2 (a) 364 d) y ``tablas/46`` (cobertura de los intervalos).
 
+Guardar y cargar (D54): ida y vuelta exacta por JSON, y carga y predicción en un proceso aparte con statsmodels y xgboost
+bloqueados en ``sys.modules``.
+
 Los tests con el panel real se saltan si el archivo no está y lo leen sólo por ``cargar_panel_desarrollo``.
 """
+
+import json
+import subprocess
+import sys
 
 import numpy as np
 import pandas as pd
@@ -110,6 +117,63 @@ def test_contraste_xgboost_predice(sintetico):
     m = mod.entrenar(mod.cargar_configuracion("contraste"), p[p["fecha"] < origen], ajustar_alpha=False)
     s = mod.predecir_semana(m, p, origen)
     assert len(s) == 56 and (s["pred"] > 0).all()
+
+
+# ------------------------------------------------------------------------- guardar y cargar (D54)
+def test_guardar_y_cargar_ida_y_vuelta(sintetico, tmp_path):
+    p, origen, m = sintetico
+    ruta = tmp_path / "modelo.json"
+    mod.guardar_modelo(m, ruta)
+    cargado = mod.cargar_modelo(ruta)
+    assert cargado == m
+    pd.testing.assert_frame_equal(mod.predecir_semana(cargado, p, origen), mod.predecir_semana(m, p, origen),
+                                  check_exact=True)
+
+
+def test_guardar_rechaza_xgboost(sintetico, tmp_path):
+    p, origen, _ = sintetico
+    m = mod.entrenar(mod.cargar_configuracion("contraste"), p[p["fecha"] < origen], ajustar_alpha=False)
+    with pytest.raises(ValueError):
+        mod.guardar_modelo(m, tmp_path / "xgb.json")
+
+
+_SIN_STATSMODELS_NI_XGBOOST = """
+import json, sys
+sys.modules["statsmodels"] = None           # import statsmodels(.api) y import xgboost fallan con ImportError
+sys.modules["xgboost"] = None
+import pandas as pd
+from src import modelo as mod
+m = mod.cargar_modelo(sys.argv[1])
+historia = pd.DataFrame({"fecha": pd.Series(dtype="datetime64[ns]"), "zona_id": pd.Series(dtype=str),
+                         "tipo_dia": pd.Series(dtype=str)})
+s = mod.predecir_semana(m, historia, m["origen"])
+try:
+    mod.entrenar(mod.cargar_configuracion("solucion"), pd.DataFrame())
+    entrenar = "sin error"
+except ImportError:
+    entrenar = "ImportError"
+print(json.dumps({"columnas": list(s.columns), "fecha": s["fecha"].dt.strftime("%Y-%m-%d").tolist(),
+                  "zona_id": s["zona_id"].tolist(), "valores": s[["pred", "inf_80", "sup_80", "inf_95", "sup_95"]].to_numpy().tolist(),
+                  "tipo_intervalo": s["tipo_intervalo"].tolist(), "entrenar": entrenar,
+                  "importados": sorted(k for k in sys.modules if k.split(".")[0] in ("statsmodels", "xgboost") and sys.modules[k])}))
+"""
+
+
+def test_cargar_y_predecir_sin_statsmodels_ni_xgboost(sintetico, tmp_path):
+    "D54: el prototipo y el servidor cargan el modelo y predicen con statsmodels y xgboost bloqueados en sys.modules."
+    p, origen, m = sintetico
+    ruta = tmp_path / "modelo.json"
+    mod.guardar_modelo(m, ruta)
+    r = subprocess.run([sys.executable, "-c", _SIN_STATSMODELS_NI_XGBOOST, str(ruta)], cwd=datos.RAIZ,
+                       capture_output=True, text=True, encoding="utf-8")
+    assert r.returncode == 0, r.stderr
+    out = json.loads(r.stdout)
+    assert out["entrenar"] == "ImportError" and out["importados"] == []
+    esperado = mod.predecir_semana(m, p[p["fecha"] < origen], origen)     # sin filas del horizonte: calendario de var.tipo_dia
+    assert out["columnas"] == list(esperado.columns)
+    assert out["fecha"] == esperado["fecha"].dt.strftime("%Y-%m-%d").tolist() and out["zona_id"] == esperado["zona_id"].tolist()
+    assert out["valores"] == esperado[["pred", "inf_80", "sup_80", "inf_95", "sup_95"]].to_numpy().tolist()
+    assert out["tipo_intervalo"] == esperado["tipo_intervalo"].tolist()
 
 
 # ----------------------------------------------------------------------------------- α (D29, D28, D50)
