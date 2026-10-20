@@ -1958,7 +1958,7 @@ elección de la regla.
   estaba escrita en ningún archivo del repositorio.
 - **D47 — criterio del registro de IA (20/10).** El registro de IA guarda solo el prompt que abre la sesión y los mensajes con
   decisiones o instrucciones; no se transcriben las confirmaciones del tipo «dale, seguí». Rige desde esta sesión.
-- **D46 — fix de R2 (20/10).** Se corrige solo lo que el equipo listó (observaciones 1 a 5 de R2 y los riesgos declarados en el
+- **D46 — fix de R2 (20/10).** Se corrige solo lo que el equipo listó (observaciones 1 a 4 y la numeración del encabezado del notebook; el resto de la 5 queda como deuda aceptada y los riesgos declarados en el
   resumen). No se modifican `solucion_seleccionada.json`, la sección 1, la adenda, los bloques fechados ni ninguna tabla o figura
   existente. Cualquier otro cambio se consulta. Modelo del fix: Sonnet (D25).
 
@@ -1982,7 +1982,7 @@ elección de la regla.
 **Deuda aceptada (obs. 5 de R2):** explicaciones bajo «Evidencia» en las lecturas, lambdas asignadas a nombres y nombres globales
 reutilizados entre secciones del notebook. Motivo: no afectan resultados, y cambiar código obligaría a revalidar antes de la fase 4.
 
-**Verificación.** `nbconvert --execute` en el `.venv`, una vez: exit 0 (15,9 min), 0 salidas de error y 0 de `stderr`; `pytest`: 15
+**Verificación.** `nbconvert --execute` en el `.venv`, una vez: exit 0 (unos 16 min, metadata de ejecución del notebook), 0 salidas de error y 0 de `stderr`; `pytest`: 15
 pasados, 0 saltados. Contra `508c46e`: tablas 00 a 48 idénticas, salvo `10_artefactos.csv` (índice, una línea más); las 11 figuras y
 `solucion_seleccionada.json` idénticos; `registro_experimentos.csv` idéntico salvo `fecha_hora`; la única tabla nueva es la 49 y su
 valor (0,00762) coincide con el 0,0076 del resumen. Las dos ediciones posteriores del notebook (cita en 12.1 y frase del encabezado)

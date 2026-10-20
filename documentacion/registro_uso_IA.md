@@ -4237,3 +4237,117 @@ Los mensajes del paso 3.0 y de la autorización del commit `1560a5b` son **uno s
 
 **Uso y verificación:** utilizado. **No** se agregó «y confirmó D31 a D45»: el prompt lo condicionaba a «si corresponde» y ni el prompt ni el repositorio dicen que el equipo las haya confirmado en esta revisión; si fue así, hay que agregarlo. Esa condición queda a cargo del equipo. La IA tampoco comprobó la validación D30, que es una declaración del equipo. El notebook no se reejecutó: los cambios son solo de texto (se verificó que el JSON sigue siendo válido y que, respecto de `508c46e`, solo difiere el texto de las celdas 0 y 62, markdown, y de la 59, la de código ya reejecutada en F2). **Archivos afectados:** `notebooks/modelos_candidatos.ipynb` (markdown), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
 
+
+---
+
+## Sesión 2026-10-20 (review R2, ronda 2: review corta del fix, E3 fases 2 y 3) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** review corta de verificación (no de corrección) del fix de R2, en la rama `e3/fase-3-seleccion` (base `508c46e`, HEAD
+`b0ffd06`). El revisor no participó en el fix. Solo crea `documentacion/reviews/E3_fase_2-3_r2.md` y esta entrada. Una sesión anterior
+de esta misma review se había cortado y el árbol se restauró a mano; esta sesión empezó verificando que no quedara nada de ella.
+
+### Prompt 1
+*20/10/2026 12:37 (UTC-3); en la transcripción, `2026-10-20T15:37:01.548Z`.*
+
+> Antes de empezar: una sesión anterior de esta misma review se cortó a mitad de camino (corría con el
+> modelo equivocado) y el árbol se restauró a mano. Verificá que no haya quedado nada de esa sesión, y si
+> algo no cumple, detenete y avisame sin tocar nada:
+> - `git status` limpio: sin archivos modificados ni sin seguimiento.
+> - `git rev-parse HEAD` es b0ffd062de3edccfbe39be8a5748ebc5ccdf94f1, en la rama e3/fase-3-seleccion, y
+>   `git diff b0ffd06` está vacío.
+> - No existe documentacion/reviews/E3_fase_2-3_r2.md.
+> - La última entrada de documentacion/registro_uso_IA.md es la del fix de R2 (la sesión del commit
+>   b0ffd06), no una entrada de review.
+> Mostrame el resultado de cada comprobación y seguí con el Paso 0.
+>
+> Sos el revisor de la review corta de R2 (fases 2 y 3 del Entregable 3), ronda 2. No trabajaste en el
+> fix. Verificás solo las observaciones de R2 y que el fix no rompió nada. No corregís: solo podés crear el
+> informe de review y agregar la entrada de esta sesión al registro de IA (D30). Modelo: opus (D25);
+> anotalo en el informe.
+>
+> ## Paso 0 — Rama y prerrequisitos (detenete si algo no cumple)
+>
+> 1. `git switch e3/fase-3-seleccion`. 508c46e tiene que ser ancestro de HEAD, y
+>    `git log --oneline 508c46e..HEAD` tiene que mostrar solo los commits del fix.
+> 2. Activá el .venv en el mismo comando que corre Python, pytest o nbconvert. La sección 0 del notebook
+>    tiene que decir Python 3.13.2.
+> 3. El sha256 de data/processed/panel_diario_montevideo.csv tiene que ser
+>    82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06. Calculá solo el hash.
+>
+> ## Paso 1 — Lectura
+>
+> Leé documentacion/reviews/E3_fase_2-3.md (la review R2), `git diff 508c46e..HEAD --stat` y el diff
+> completo. Decisión del equipo sobre las observaciones (D46): se corrigen la 1 a la 4 y la numeración del
+> encabezado del notebook; el resto de la 5 queda como deuda aceptada; los riesgos fuera de criterios se
+> declaran en el resumen. No evalúes si D42 o D46 son correctas.
+>
+> ## Paso 2 — Ejecución
+>
+> 1. `pytest`: 15 pasados, 0 saltados.
+> 2. `jupyter nbconvert --to notebook --execute --inplace notebooks/modelos_candidatos.ipynb`: 0 errores,
+>    0 salidas stderr.
+> 3. `git status` y `git diff --stat`: nada puede cambiar salvo fecha_hora en registro_experimentos.csv.
+>    Reportá cualquier cifra que cambie. Después `git restore notebooks/ experiments/` y confirmá con
+>    `git status`.
+>
+> ## Paso 3 — Criterios
+>
+> Evaluá cada uno: CUMPLE o NO CUMPLE, con evidencia concreta (comando y salida, archivo y línea, cifra
+> contra el CSV). Sin evidencia, NO CUMPLE.
+>
+> Bloqueantes:
+> - V1 El fix solo tocó: el notebook, tablas/49 (nueva), tablas/10 (índice de artefactos: solo la fila de la 49), registro_experimentos.csv, el resumen, HANDOFF.md
+>   y registro_uso_IA.md, además del informe de R2 (documentacion/reviews/E3_fase_2-3.md), que se
+>   commitea antes del fix. En el notebook, el código cambia solo para escribir tablas/49; la sección 1, la
+>   adenda y los bloques fechados no cambian.
+> - V2 Tablas 00 a 48, figuras y solucion_seleccionada.json son idénticos a 508c46e
+>   (`git diff 508c46e -- experiments/` solo muestra tablas/49, la fila que la agrega a tablas/10
+>   y fecha_hora del registro). El JSON sigue con
+>   un único commit, 1560a5b.
+> - V3 pytest y nbconvert como en el Paso 2, y la reejecución reproduce tablas/49 exacta.
+> - B1 La rama no contiene evaluacion_final.ipynb, y ningún código lee filas posteriores a 2025-02-05.
+>
+> No bloqueantes (uno por observación de R2):
+> - O1 El registro de IA tiene una entrada nueva con los mensajes textuales de la fase 3 (prompt completo,
+>   paso 3.0 y autorización de 1560a5b, que son un mismo mensaje; pedido de 3b y 3c; autorización de
+>   508c46e), comparados por programa contra los
+>   .jsonl de Claude Code. Las entradas anteriores no cambiaron: el diff del archivo solo agrega al final.
+> - O2 Resumen: §1.1, §1.3, §4, §7 ítem 4 y §8 corregidos; §5 con las limitaciones (a) a (e); lista de
+>   frases ampliada.
+> - O3 HANDOFF: D35, D41 y D46 registradas; líneas viejas corregidas; validación del equipo asentada (D30).
+> - O4 El 0,0076 está en tablas/49 y §3g.6 la cita.
+> - O5 El encabezado del notebook tiene la numeración actual, y la deuda aceptada está escrita con motivo.
+> - O6 Toda cifra nueva del resumen y del HANDOFF coincide con un artefacto.
+>
+> ## Paso 4 — Veredicto e informe
+>
+> Regla: DESAPROBADA si falla V1, V2, V3 o B1; APROBADA CON OBSERVACIONES si fallan solo criterios O;
+> APROBADA si cumplen todos.
+>
+> Escribí documentacion/reviews/E3_fase_2-3_r2.md con: fecha, modelo, commits revisados (hash completo),
+> base 508c46e, sha256 del panel, tabla de criterios (ID, criterio, resultado, evidencia), resultado de la
+> reejecución, veredicto, observaciones numeradas con lo que habría que hacer para corregir cada una, y
+> riesgos fuera de criterios (sin afectar el veredicto). Agregá al final de documentacion/registro_uso_IA.md
+> la entrada de esta sesión, con este prompt textual y el veredicto. Mostrame el veredicto y las
+> observaciones. No hagas commit ni push.
+
+**Respuesta (extracto relevante):** veredicto **APROBADA**. Cumplen los 4 criterios bloqueantes (V1, V2, V3, B1) y los 6 no bloqueantes (O1 a O6).
+
+- **Comprobaciones previas:** cumplen las cuatro. `git status` está limpio, HEAD es `b0ffd06` en `e3/fase-3-seleccion`, `git diff b0ffd06` está vacío, el informe `_r2` no existía y la última entrada del registro era la del fix.
+- **Paso 0:** cumple. `508c46e` es ancestro de HEAD, y después de él están solo `2742039` (informe R2) y `b0ffd06` (fix). Python 3.13.2. El sha256 del panel coincide.
+- **Reejecución:** pytest, 15 pasados. nbconvert, exit 0 en 16 min 18 s, con 0 errores y 0 `stderr`. Cambian solo `fecha_hora` del registro y las marcas de tiempo del notebook. Las salidas de texto son idénticas a HEAD y `tablas/49` es el mismo blob de git (`2684f912…`). Ninguna cifra cambió. `git restore` deja solo el informe nuevo.
+- **O1:** el revisor comparó por su cuenta, por programa, los cuatro mensajes de la fase 3 contra el `.jsonl` de esa sesión, y dan igualdad exacta. El archivo del registro solo agrega al final en cada commit.
+
+Observaciones menores, sin efecto en el veredicto:
+
+1. La redacción de D46 en el HANDOFF dice «observaciones 1 a 5». La decisión D46 es corregir la 1 a la 4 y la numeración del encabezado.
+2. El «15,9 min» del HANDOFF no tiene artefacto exacto. La metadata del notebook da 15,62 min de celdas.
+3. D41 y la validación D30 se apoyan solo en declaraciones del equipo, y la confirmación de D31 a D45 sigue abierta.
+
+Riesgos fuera de criterios:
+
+- La §4.2 del HANDOFF dice «nada de esto se empezó».
+- Los riesgos R1 a R6 de R2 siguen vigentes para la fase 4, ahora declarados.
+- En el fix hubo ediciones de markdown después de reejecutar.
+
+**Uso y verificación:** el informe lo escribió el revisor. Las cifras salen de comandos ejecutados en la sesión (git, pytest, nbconvert, sha256sum) y de cuatro scripts propios en el scratchpad, fuera del repo: `comparar_nb.py`, `detalle.py`, `comparar_jsonl.py` y `post_reejecucion.py`. El prompt de arriba se comparó por programa contra el `.jsonl` de esta sesión (`e69169fc-6e4a-4e86-bb66-5adc6eefb218.jsonl`, mensaje de las `2026-10-20T15:37:01.548Z`) y da igualdad exacta, 4971 caracteres. Después de la reejecución se corrió `git restore notebooks/ experiments/`, y el `git status` final muestra solo el informe nuevo y esta entrada. No se hizo commit ni push, como pide el prompt. El veredicto lo valida el equipo (D30). **Archivos afectados:** `documentacion/reviews/E3_fase_2-3_r2.md`, `documentacion/registro_uso_IA.md`.
