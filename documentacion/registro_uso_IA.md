@@ -3531,3 +3531,81 @@ se contrastaron contra `tablas/11`, `12`, `13`, `14` y `15`. La celda de lectura
 reejecutar. `pytest`: 15 pasados, 0 saltados, al cierre de la parada. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`,
 `experiments/modelos_candidatos/` (tablas 10 a 17, figura 4, `registro_experimentos.csv`), `documentacion/resumen_modelos_candidatos.md`,
 `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+---
+
+## Sesión 2026-10-19 (E3, fase 2: experimentación, paso B) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** continuación de la sesión del paso A, en la misma rama (`e3/fase-2-experimentacion`): commit de la parada A, precisiones
+D36 a D38, verificación de fuga de los candidatos del paso A y paso B (grilla de XGBoost y NB2) en `notebooks/modelos_candidatos.ipynb`.
+
+### Prompt 1
+> Si, confirmo. Continuamos con el paso B.
+
+**Respuesta (extracto relevante):** commit de la parada A (`dec597d`). Antes de escribir el paso B, la IA planteó tres casos que la
+regla de selección no resuelve dentro de una familia con las mismas variables, cada uno con una opción recomendada: (1) si GLM Poisson
+o NB2 es «más simple»; (2) cómo se aplica la simplicidad entre combinaciones de XGBoost; (3) cómo se aplica el paso 4 (estabilidad y
+calibración), dado que con valores continuos casi nunca hay empate exacto. El equipo eligió: Poisson es más simple; menor `max_depth`
+y luego menor `n_estimators`; paso 4 lexicográfico con tolerancia de 1 EE (no era la opción recomendada por la IA, que era una suma de
+rangos).
+
+**Uso y verificación:** las respuestas pasaron a ser D36 a D38 (prompt 2). **Archivos afectados:** ninguno en este intercambio.
+
+### Prompt 2
+> Antes de ejecutar el paso B:
+> 1. Agregá debajo de las precisiones de la fase 2 un bloque "Precisiones del paso B, fijadas el
+>    19/10/2026 antes de ejecutarlo", sin tocar nada anterior:
+>    - D36: con la misma matriz, GLM Poisson es más simple que NB2; si empatan a menos de 1 EE,
+>      gana Poisson. Cómo se construyen los intervalos se decide en la fase 3.
+>    - D37: entre combinaciones de XGBoost empatadas, más simple = menor max_depth y, a igual
+>      profundidad, menor n_estimators. learning_rate no cuenta; si solo difieren en él, decide
+>      el paso 4.
+>    - D38: paso 4 lexicográfico con tolerancia de 1 EE. Pasan las empatadas cuya desvianza del
+>      peor municipio queda a menos de 1 EE de la mejor en ese criterio (el EE es el del peor
+>      municipio de esa mejor configuración, tablas/12); entre ellas gana la de menor desvío
+>      entre cortes; si empatan, la de menor |total pred./obs. − 1|.
+>    Estas precisiones valen también para el paso C.
+> 2. Espejo en el resumen §1.1.
+> 3. DETENETE y mostrame el diff. Con mi confirmación, commit "Precisiones del paso B
+>    (D36-D38)" y recién ahí ejecutá el paso B.
+
+**Respuesta (extracto relevante):** celda markdown nueva debajo de las precisiones de la fase 2 y una tabla espejo en el resumen §1.1. La
+IA agregó dos frases al texto pedido y las señaló para que el equipo las confirmara: «Se fijó con los resultados del paso A ya vistos» y
+«Entre las empatadas que siguen sin separarse». La segunda deja escrito que el paso 4 solo actúa si el paso 3 deja más de una configuración.
+
+**Uso y verificación:** utilizado; el equipo confirmó las dos frases («Dale, confirmo») y se hizo el commit `624b7e3`. `nbformat.validate`
+OK; el diff solo agrega líneas. **Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `documentacion/resumen_modelos_candidatos.md`.
+
+### Prompt 3
+> Dale, confirmo.
+
+**Respuesta (extracto relevante):** commit `624b7e3`.
+
+**Uso y verificación:** `git log --oneline -1`. **Archivos afectados:** los del prompt 2.
+
+### Prompt 4
+> Antes del paso B, una verificación de fuga sobre los candidatos del paso A, sin escribir en el
+> repo: para GLM (a), GLM (c) N=28, XGBoost (a) y XGBoost (c) N=28, en 5 cortes repartidos (el
+> primero, el último y tres intermedios), alterá en memoria n_siniestros de las fechas >= origen,
+> reentrená y predecí. Reportá la diferencia máxima entre predicciones originales y alteradas;
+> tiene que ser 0. Anotalo en el resumen y en el HANDOFF. Después seguí con el paso B.
+
+**Respuesta (extracto relevante):** la IA escribió un script en el scratchpad de la sesión, fuera del repo. El script lee el panel con
+`cargar_panel_desarrollo()` y ejecuta tal cual la celda `paso-a-motor` del notebook. Usa los cortes 1, 12, 24, 36 y 47 y tres versiones
+de los datos: la vista del motor, el panel con el futuro real sin ocultar y el panel con `n_siniestros` = 10⁶ en toda fecha ≥ origen.
+Resultado: **diferencia máxima 0** en las 20 combinaciones, y las predicciones coinciden con `tablas/17`. Control de mutación: con la
+compuerta `var.observado` abierta en memoria, las configuraciones (c) cambian (88,69 y 1,006 en el corte 12), así que la prueba detecta
+fugas. Las (a) no cambian, porque no tienen variables derivadas del objetivo. Después escribió el paso B: la rama `ajustar_nb2` en la celda
+del motor (NB2 por máxima verosimilitud, criterio D29 y plan B de D28) y la sección 8 con la grilla de XGBoost, la comparación NB2 contra
+Poisson, la regla `aplicar_regla` con D36 a D38, las tablas 18 a 25 y la figura 5. Resultado: GLM Poisson (a) (D36; NB2 1,2301 contra
+1,2302, α de 0,0349 a 0,0400, 0 cortes con plan B) y XGBoost (a) d=2 n=100 lr=0,1 (D37, la más simple de 11 empatadas; 1,2375, por
+encima de L1).
+
+**Uso y verificación:** utilizado. Verificación de fuga: `git status` sin cambios después de correr el script. Paso B: antes de escribir el
+código se comprobó con datos sintéticos que `NegativeBinomial(...).fit(method="newton")` devuelve `mle_retvals["converged"]` y que
+`predict` descarta `alpha`. `nbconvert --execute` terminó con 0 errores y 0 `stderr`. Las tablas 11 a 17 del paso A no cambiaron (`git
+status`) y sus 16 filas del registro son idénticas salvo `fecha_hora` (comparación con pandas contra una copia previa). Un `assert` del
+notebook verifica que la combinación del paso A reproduce sus predicciones. Las cifras de la lectura se contrastaron contra `tablas/18`,
+`19`, `21`, `22` y `23`. La celda de lectura 8.1 se agregó después de ejecutar, sin reejecutar. `pytest`: 15 pasados, 0 saltados.
+**Archivos afectados:** `notebooks/modelos_candidatos.ipynb`, `experiments/modelos_candidatos/` (tablas 10 y 18 a 25, figura 5,
+`registro_experimentos.csv`), `documentacion/resumen_modelos_candidatos.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.

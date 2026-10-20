@@ -1,0 +1,30 @@
+seleccion,paso,configuracion,desvianza,error_estandar,peor_municipio,desvianza_peor_municipio,desvio_entre_cortes,total_pred_obs,resultado
+"paso B, familia GLM",1-2. desvianza; empate a menos de 1 EE del mejor,NB2 (a),1.230105,0.035935,MUNICIPIO E,1.40201,0.246361,0.934085,mejor; empatada (≤ 1.2660)
+"paso B, familia GLM",1-2. desvianza; empate a menos de 1 EE del mejor,GLM Poisson (a),1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,empatada (≤ 1.2660)
+"paso B, familia GLM",3. simplicidad (D36: Poisson antes que NB2),GLM Poisson (a),1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,más simple
+"paso B, familia GLM",3. simplicidad (D36: Poisson antes que NB2),NB2 (a),1.230105,0.035935,MUNICIPIO E,1.40201,0.246361,0.934085,más compleja
+"paso B, familia GLM",configuración elegida,GLM Poisson (a),1.230204,0.035934,MUNICIPIO E,1.401944,0.246353,0.934095,ELEGIDA
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=4 n=300 lr=0.05,1.219692,0.035806,MUNICIPIO E,1.400186,0.245471,0.933869,mejor; empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=300 lr=0.1,1.220179,0.036001,MUNICIPIO E,1.403511,0.246809,0.933861,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=4 n=100 lr=0.1,1.220427,0.036215,MUNICIPIO E,1.397482,0.248276,0.933777,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=3 n=300 lr=0.1,1.221121,0.035786,MUNICIPIO E,1.403635,0.245339,0.933947,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=3 n=300 lr=0.05,1.221665,0.036117,MUNICIPIO E,1.400425,0.247609,0.933778,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=4 n=300 lr=0.1,1.222291,0.035612,MUNICIPIO E,1.403562,0.244142,0.934007,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=3 n=100 lr=0.1,1.22643,0.036615,MUNICIPIO E,1.397508,0.25102,0.933719,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=300 lr=0.05,1.227649,0.03677,MUNICIPIO E,1.401647,0.252083,0.933671,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=4 n=100 lr=0.05,1.228957,0.037363,MUNICIPIO E,1.393451,0.256151,0.933568,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.1,1.237514,0.037533,MUNICIPIO E,1.402404,0.257313,0.933553,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=3 n=100 lr=0.05,1.2443,0.038024,MUNICIPIO C,1.409593,0.260677,0.933495,empatada (≤ 1.2555)
+"paso B, familia XGBoost",1-2. desvianza; empate a menos de 1 EE del mejor,XGBoost (a) d=2 n=100 lr=0.05,1.267145,0.03955,MUNICIPIO C,1.478101,0.271138,0.933206,fuera (> 1.2555)
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=2 n=100 lr=0.1,1.237514,0.037533,MUNICIPIO E,1.402404,0.257313,0.933553,más simple
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=2 n=300 lr=0.05,1.227649,0.03677,MUNICIPIO E,1.401647,0.252083,0.933671,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=2 n=300 lr=0.1,1.220179,0.036001,MUNICIPIO E,1.403511,0.246809,0.933861,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=3 n=100 lr=0.05,1.2443,0.038024,MUNICIPIO C,1.409593,0.260677,0.933495,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=3 n=100 lr=0.1,1.22643,0.036615,MUNICIPIO E,1.397508,0.25102,0.933719,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=3 n=300 lr=0.05,1.221665,0.036117,MUNICIPIO E,1.400425,0.247609,0.933778,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=3 n=300 lr=0.1,1.221121,0.035786,MUNICIPIO E,1.403635,0.245339,0.933947,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=4 n=100 lr=0.05,1.228957,0.037363,MUNICIPIO E,1.393451,0.256151,0.933568,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=4 n=100 lr=0.1,1.220427,0.036215,MUNICIPIO E,1.397482,0.248276,0.933777,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=4 n=300 lr=0.05,1.219692,0.035806,MUNICIPIO E,1.400186,0.245471,0.933869,más compleja
+"paso B, familia XGBoost","3. simplicidad (D37: menor max_depth, luego menor n_estimators)",XGBoost (a) d=4 n=300 lr=0.1,1.222291,0.035612,MUNICIPIO E,1.403562,0.244142,0.934007,más compleja
+"paso B, familia XGBoost",configuración elegida,XGBoost (a) d=2 n=100 lr=0.1,1.237514,0.037533,MUNICIPIO E,1.402404,0.257313,0.933553,ELEGIDA

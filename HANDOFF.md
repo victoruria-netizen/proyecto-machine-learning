@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-19 (fase 2 del E3, paso A)_
+_Última actualización: 2026-10-19 (fase 2 del E3, paso B)_
 
 ---
 
@@ -1846,7 +1846,32 @@ GLM Poisson y XGBoost, ventana expansiva. Resultados (`experiments/modelos_candi
 anidados ni de L1, aunque las comparaciones corte a corte son bastante consistentes (38 y 33 de 47). La regla está fijada y se aplicó
 como está.
 
-**Próximo:** paso B sobre (a) (grilla de XGBoost de 12 combinaciones; NB2 con α por corte y plan B) y paso C (ventanas).
+**Verificación de fuga** (después de la parada A, pedida por el equipo; script en el scratchpad, **sin artefacto en el repo**): para
+GLM (a), GLM (c) N=28, XGBoost (a) y XGBoost (c) N=28, en los cortes 1, 12, 24, 36 y 47, se reentrenó con el objetivo de las fechas ≥
+origen alterado a 10⁶ en memoria. **Diferencia máxima entre predicciones: 0** en las 20 combinaciones, y las predicciones coinciden con
+`tablas/17`. Control: con la compuerta `var.observado` abierta, las dos configuraciones (c) cambian (88,69 y 1,006), así que la prueba
+detecta fugas. Las (a) no cambian, como se espera: no tienen variables derivadas del objetivo. Detalle en el resumen §3b.7.
+
+**Precisiones del paso B** (commit `624b7e3`, antes de ejecutarlo; valen también para C): **D36** con la misma matriz, Poisson es más
+simple que NB2; **D37** entre combinaciones de XGBoost, más simple = menor `max_depth` y luego menor `n_estimators`; **D38** paso 4
+lexicográfico con tolerancia de 1 EE (peor municipio → desvío entre cortes → |total pred./obs. − 1|).
+
+### Entregable 3, fase 2: paso B (2026-10-19, sesión de Claude)
+
+Sección 8 de `modelos_candidatos.ipynb`, sobre el conjunto (a) en ventana expansiva. Resultados en `tablas/18` a `25`, `fig5` y el
+registro (29 filas). Ejecutado con `nbconvert`: 0 errores y 0 `stderr`; las tablas del paso A no cambiaron.
+- **NB2 (a):** desvianza 1,2301 contra 1,2302 del GLM Poisson (a), con predicciones casi idénticas (diferencia máxima 0,0071). α va
+  de 0,0349 a 0,0400 (mediana 0,0377). **Los 47 cortes convergieron; ninguno usó el plan B.** D36 elige **GLM Poisson (a)**.
+- **Grilla de XGBoost:** de 1,2197 (d=4, n=300, lr=0,05) a 1,2671 (d=2, n=100, lr=0,05). 11 de 12 quedan a menos de 1 EE y D37 elige
+  la más simple, **d=2, n=100, lr=0,1**, con 1,2375: **queda por encima de L1 (+0,0056) y le gana en 20 de 47 cortes**. El paso 4
+  (D38) no intervino. La combinación del paso A reprodujo exactamente sus predicciones.
+- La rama NB2 se agregó a la celda del motor de la sección 7; las ramas de GLM y XGBoost no cambiaron.
+
+**Para discutir en el equipo (no se cambió nada):** con la regla fijada, la «mejor de XGBoost» que pasa al paso C tiene más desvianza
+media que L1 y reparte el nivel por municipio de forma menos pareja (total pred./obs. de 0,8378 a 1,0727). Es consecuencia del umbral
+de 1 EE amplio sumado a D37.
+
+**Próximo:** paso C (ventanas expansiva y deslizantes de 364, 546 y 728 días para GLM Poisson (a) y XGBoost (a) d=2 n=100 lr=0,1).
 
 ## 4. Pendiente (próximos pasos)
 
