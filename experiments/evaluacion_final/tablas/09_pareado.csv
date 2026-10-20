@@ -1,0 +1,6 @@
+comparacion,a,b,n_cortes,diferencia_media,ee_de_la_diferencia,media_sobre_ee,cortes_gana_a,empates,cortes_gana_b
+solución − L1,GLM Poisson (a) [deslizante 364 d],L1 (nivel x calendario de 8 niveles),47,-0.029519,0.00714,-4.134289,33,0,14
+sensibilidad − L1,GLM Poisson (a) [expansiva],L1 (nivel x calendario de 8 niveles),47,-0.002978,0.000538,-5.53142,40,0,7
+contraste − L1,XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],L1 (nivel x calendario de 8 niveles),47,-0.016052,0.00839,-1.913265,22,0,25
+solución − sensibilidad,GLM Poisson (a) [deslizante 364 d],GLM Poisson (a) [expansiva],47,-0.026541,0.006736,-3.939917,33,0,14
+solución − media constante,GLM Poisson (a) [deslizante 364 d],Media constante,47,-0.208847,0.019962,-10.462162,46,0,1

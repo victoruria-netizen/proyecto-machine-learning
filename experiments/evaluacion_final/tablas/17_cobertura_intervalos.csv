@@ -1,0 +1,37 @@
+intervalo,nivel_nominal,municipio,n,cobertura_empirica,cobertura_esperada_por_el_modelo,debajo,encima,ancho_medio
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,todos,2632,0.900456,0.887066,0.031535,0.068009,4.465426
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO A,329,0.905775,0.883132,0.027356,0.066869,4.87234
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO B,329,0.881459,0.882781,0.033435,0.085106,4.775076
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO C,329,0.902736,0.869977,0.039514,0.057751,5.045593
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO CH,329,0.896657,0.907152,0.021277,0.082067,3.75076
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO D,329,0.881459,0.881197,0.033435,0.085106,4.851064
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO E,329,0.902736,0.885541,0.039514,0.057751,3.87538
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO F,329,0.914894,0.897085,0.030395,0.054711,4.589666
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",80,MUNICIPIO G,329,0.917933,0.889659,0.027356,0.054711,3.963526
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,todos,2632,0.979103,0.980963,0.0019,0.018997,6.713146
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO A,329,0.990881,0.980693,0.00304,0.006079,7.446809
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO B,329,0.984802,0.982679,0.00304,0.012158,7.443769
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO C,329,0.981763,0.971081,0.006079,0.012158,7.589666
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO CH,329,0.972644,0.986226,0.0,0.027356,5.510638
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO D,329,0.969605,0.979564,0.00304,0.027356,7.407295
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO E,329,0.981763,0.98261,0.0,0.018237,5.732523
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO F,329,0.978723,0.982311,0.0,0.021277,6.720365
+"NB2 (μ de la solución, α de NB2; Poisson si no hay α, D50)",95,MUNICIPIO G,329,0.972644,0.98254,0.0,0.027356,5.854103
+Poisson (μ de la solución),80,todos,2632,0.891337,0.887291,0.033435,0.075228,4.300912
+Poisson (μ de la solución),80,MUNICIPIO A,329,0.884498,0.880992,0.033435,0.082067,4.632219
+Poisson (μ de la solución),80,MUNICIPIO B,329,0.87538,0.880343,0.033435,0.091185,4.559271
+Poisson (μ de la solución),80,MUNICIPIO C,329,0.899696,0.867912,0.042553,0.057751,4.799392
+Poisson (μ de la solución),80,MUNICIPIO CH,329,0.890578,0.899864,0.021277,0.088146,3.580547
+Poisson (μ de la solución),80,MUNICIPIO D,329,0.866261,0.881086,0.039514,0.094225,4.638298
+Poisson (μ de la solución),80,MUNICIPIO E,329,0.896657,0.891443,0.039514,0.06383,3.820669
+Poisson (μ de la solución),80,MUNICIPIO F,329,0.905775,0.900288,0.030395,0.06383,4.455927
+Poisson (μ de la solución),80,MUNICIPIO G,329,0.911854,0.896401,0.027356,0.06079,3.920973
+Poisson (μ de la solución),95,todos,2632,0.974544,0.97987,0.003799,0.021657,6.443389
+Poisson (μ de la solución),95,MUNICIPIO A,329,0.984802,0.976397,0.009119,0.006079,7.054711
+Poisson (μ de la solución),95,MUNICIPIO B,329,0.972644,0.9796,0.012158,0.015198,7.112462
+Poisson (μ de la solución),95,MUNICIPIO C,329,0.978723,0.970625,0.006079,0.015198,7.109422
+Poisson (μ de la solución),95,MUNICIPIO CH,329,0.972644,0.985715,0.0,0.027356,5.343465
+Poisson (μ de la solución),95,MUNICIPIO D,329,0.966565,0.976197,0.00304,0.030395,7.051672
+Poisson (μ de la solución),95,MUNICIPIO E,329,0.978723,0.984859,0.0,0.021277,5.68693
+Poisson (μ de la solución),95,MUNICIPIO F,329,0.969605,0.982694,0.0,0.030395,6.507599
+Poisson (μ de la solución),95,MUNICIPIO G,329,0.972644,0.982873,0.0,0.027356,5.680851

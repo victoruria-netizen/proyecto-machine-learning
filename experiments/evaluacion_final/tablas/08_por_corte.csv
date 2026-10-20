@@ -1,0 +1,283 @@
+modelo,papel,corte,desvianza_poisson,mae,rmse,razon_total,dias_prediccion_cero,n,origen
+GLM Poisson (a) [deslizante 364 d],solución,1,1.033287,1.247784,1.545057,1.140088,0,56,2025-02-06
+GLM Poisson (a) [deslizante 364 d],solución,2,1.177798,1.46195,1.783071,1.063852,0,56,2025-02-13
+GLM Poisson (a) [deslizante 364 d],solución,3,1.254377,1.374021,1.642797,1.050856,0,56,2025-02-20
+GLM Poisson (a) [deslizante 364 d],solución,4,1.283036,1.397326,1.763513,0.931914,0,56,2025-02-27
+GLM Poisson (a) [deslizante 364 d],solución,5,1.49787,1.724257,2.141628,0.874128,0,56,2025-03-06
+GLM Poisson (a) [deslizante 364 d],solución,6,0.769404,1.163197,1.386216,1.064153,0,56,2025-03-13
+GLM Poisson (a) [deslizante 364 d],solución,7,1.300423,1.4606,1.923296,0.915815,0,56,2025-03-20
+GLM Poisson (a) [deslizante 364 d],solución,8,1.39918,1.550148,2.132971,0.977342,0,56,2025-03-27
+GLM Poisson (a) [deslizante 364 d],solución,9,0.737502,1.162871,1.434035,0.968519,0,56,2025-04-03
+GLM Poisson (a) [deslizante 364 d],solución,10,1.257271,1.373906,1.922169,0.81823,0,56,2025-04-10
+GLM Poisson (a) [deslizante 364 d],solución,11,1.020168,1.168352,1.408913,1.030753,0,56,2025-04-17
+GLM Poisson (a) [deslizante 364 d],solución,12,1.096715,1.495198,1.942587,0.791082,0,56,2025-04-24
+GLM Poisson (a) [deslizante 364 d],solución,13,1.099287,1.403624,1.763385,0.949783,0,56,2025-05-01
+GLM Poisson (a) [deslizante 364 d],solución,14,1.16354,1.585677,1.921093,0.794486,0,56,2025-05-08
+GLM Poisson (a) [deslizante 364 d],solución,15,1.332142,1.540688,1.984604,0.907217,0,56,2025-05-15
+GLM Poisson (a) [deslizante 364 d],solución,16,1.222193,1.611608,1.869798,0.93574,0,56,2025-05-22
+GLM Poisson (a) [deslizante 364 d],solución,17,1.400464,1.487638,1.905025,1.005862,0,56,2025-05-29
+GLM Poisson (a) [deslizante 364 d],solución,18,1.549833,1.830085,2.371294,0.771941,0,56,2025-06-05
+GLM Poisson (a) [deslizante 364 d],solución,19,1.280466,1.484719,1.779458,1.062095,0,56,2025-06-12
+GLM Poisson (a) [deslizante 364 d],solución,20,1.078754,1.372385,1.712928,0.940141,0,56,2025-06-19
+GLM Poisson (a) [deslizante 364 d],solución,21,0.973014,1.276287,1.628195,1.018456,0,56,2025-06-26
+GLM Poisson (a) [deslizante 364 d],solución,22,0.83121,1.170296,1.485579,1.078994,0,56,2025-07-03
+GLM Poisson (a) [deslizante 364 d],solución,23,1.082789,1.425757,1.872032,0.879263,0,56,2025-07-10
+GLM Poisson (a) [deslizante 364 d],solución,24,1.188709,1.433742,1.832711,1.007496,0,56,2025-07-17
+GLM Poisson (a) [deslizante 364 d],solución,25,1.135219,1.36078,1.834652,1.067269,0,56,2025-07-24
+GLM Poisson (a) [deslizante 364 d],solución,26,0.919015,1.379431,1.701423,1.022456,0,56,2025-07-31
+GLM Poisson (a) [deslizante 364 d],solución,27,1.060951,1.435313,1.694622,0.912185,0,56,2025-08-07
+GLM Poisson (a) [deslizante 364 d],solución,28,1.329864,1.553162,1.952945,0.875134,0,56,2025-08-14
+GLM Poisson (a) [deslizante 364 d],solución,29,0.890682,1.226408,1.58328,1.058653,0,56,2025-08-21
+GLM Poisson (a) [deslizante 364 d],solución,30,1.65354,1.755008,2.130469,1.017205,0,56,2025-08-28
+GLM Poisson (a) [deslizante 364 d],solución,31,0.596106,1.095421,1.431893,0.915341,0,56,2025-09-04
+GLM Poisson (a) [deslizante 364 d],solución,32,1.139245,1.50765,1.927168,0.952849,0,56,2025-09-11
+GLM Poisson (a) [deslizante 364 d],solución,33,0.911416,1.206936,1.504912,1.061668,0,56,2025-09-18
+GLM Poisson (a) [deslizante 364 d],solución,34,0.888573,1.29766,1.567799,0.921202,0,56,2025-09-25
+GLM Poisson (a) [deslizante 364 d],solución,35,0.816998,1.222866,1.54537,0.894,0,56,2025-10-02
+GLM Poisson (a) [deslizante 364 d],solución,36,0.71582,1.112436,1.372647,1.06329,0,56,2025-10-09
+GLM Poisson (a) [deslizante 364 d],solución,37,1.143866,1.459191,1.908052,0.975135,0,56,2025-10-16
+GLM Poisson (a) [deslizante 364 d],solución,38,1.134456,1.416501,1.696435,1.127187,0,56,2025-10-23
+GLM Poisson (a) [deslizante 364 d],solución,39,0.823673,1.204763,1.5803,0.912213,0,56,2025-10-30
+GLM Poisson (a) [deslizante 364 d],solución,40,0.923752,1.301954,1.535391,0.983685,0,56,2025-11-06
+GLM Poisson (a) [deslizante 364 d],solución,41,1.025,1.34183,1.608428,1.031165,0,56,2025-11-13
+GLM Poisson (a) [deslizante 364 d],solución,42,1.364535,1.580924,1.907205,0.987374,0,56,2025-11-20
+GLM Poisson (a) [deslizante 364 d],solución,43,0.874594,1.14953,1.430987,0.981482,0,56,2025-11-27
+GLM Poisson (a) [deslizante 364 d],solución,44,0.965958,1.371133,1.68025,0.993604,0,56,2025-12-04
+GLM Poisson (a) [deslizante 364 d],solución,45,1.304473,1.689578,2.1258,0.778674,0,56,2025-12-11
+GLM Poisson (a) [deslizante 364 d],solución,46,1.190445,1.509294,1.855936,0.916597,0,56,2025-12-18
+GLM Poisson (a) [deslizante 364 d],solución,47,1.16047,1.351326,1.651356,1.135347,0,56,2025-12-25
+GLM Poisson (a) [expansiva],sensibilidad,1,0.979498,1.181719,1.48888,1.082328,0,56,2025-02-06
+GLM Poisson (a) [expansiva],sensibilidad,2,1.161086,1.43035,1.761733,1.011138,0,56,2025-02-13
+GLM Poisson (a) [expansiva],sensibilidad,3,1.264277,1.366615,1.655093,0.998003,0,56,2025-02-20
+GLM Poisson (a) [expansiva],sensibilidad,4,1.299547,1.397452,1.767905,0.880319,0,56,2025-02-27
+GLM Poisson (a) [expansiva],sensibilidad,5,1.571459,1.749271,2.19941,0.827423,0,56,2025-03-06
+GLM Poisson (a) [expansiva],sensibilidad,6,0.786421,1.174988,1.403365,1.005963,0,56,2025-03-13
+GLM Poisson (a) [expansiva],sensibilidad,7,1.32953,1.461515,1.944767,0.865431,0,56,2025-03-20
+GLM Poisson (a) [expansiva],sensibilidad,8,1.436057,1.545148,2.164775,0.922934,0,56,2025-03-27
+GLM Poisson (a) [expansiva],sensibilidad,9,0.759549,1.171433,1.460356,0.912544,0,56,2025-04-03
+GLM Poisson (a) [expansiva],sensibilidad,10,1.322685,1.393438,1.966162,0.760585,0,56,2025-04-10
+GLM Poisson (a) [expansiva],sensibilidad,11,1.042515,1.179511,1.433812,0.947648,0,56,2025-04-17
+GLM Poisson (a) [expansiva],sensibilidad,12,1.229508,1.568803,2.042146,0.747012,0,56,2025-04-24
+GLM Poisson (a) [expansiva],sensibilidad,13,1.142794,1.413736,1.794144,0.891448,0,56,2025-05-01
+GLM Poisson (a) [expansiva],sensibilidad,14,1.27617,1.659089,2.009847,0.748879,0,56,2025-05-08
+GLM Poisson (a) [expansiva],sensibilidad,15,1.416401,1.572188,2.043784,0.850749,0,56,2025-05-15
+GLM Poisson (a) [expansiva],sensibilidad,16,1.219484,1.596403,1.861458,0.882387,0,56,2025-05-22
+GLM Poisson (a) [expansiva],sensibilidad,17,1.444949,1.486233,1.950032,0.947238,0,56,2025-05-29
+GLM Poisson (a) [expansiva],sensibilidad,18,1.67869,1.862557,2.459781,0.723799,0,56,2025-06-05
+GLM Poisson (a) [expansiva],sensibilidad,19,1.259769,1.495453,1.762629,0.991563,0,56,2025-06-12
+GLM Poisson (a) [expansiva],sensibilidad,20,1.146929,1.392664,1.761185,0.881055,0,56,2025-06-19
+GLM Poisson (a) [expansiva],sensibilidad,21,0.986848,1.258017,1.637165,0.955594,0,56,2025-06-26
+GLM Poisson (a) [expansiva],sensibilidad,22,0.798554,1.133776,1.443842,1.011328,0,56,2025-07-03
+GLM Poisson (a) [expansiva],sensibilidad,23,1.132142,1.431495,1.913346,0.824985,0,56,2025-07-10
+GLM Poisson (a) [expansiva],sensibilidad,24,1.217689,1.423794,1.863448,0.935475,0,56,2025-07-17
+GLM Poisson (a) [expansiva],sensibilidad,25,1.101656,1.300135,1.805165,0.999954,0,56,2025-07-24
+GLM Poisson (a) [expansiva],sensibilidad,26,0.900737,1.319687,1.683201,0.95727,0,56,2025-07-31
+GLM Poisson (a) [expansiva],sensibilidad,27,1.083701,1.453122,1.724578,0.853424,0,56,2025-08-07
+GLM Poisson (a) [expansiva],sensibilidad,28,1.392327,1.575996,1.999392,0.81861,0,56,2025-08-14
+GLM Poisson (a) [expansiva],sensibilidad,29,0.875057,1.16415,1.568031,0.980645,0,56,2025-08-21
+GLM Poisson (a) [expansiva],sensibilidad,30,1.639045,1.740344,2.111765,0.947999,0,56,2025-08-28
+GLM Poisson (a) [expansiva],sensibilidad,31,0.672883,1.139265,1.499469,0.850859,0,56,2025-09-04
+GLM Poisson (a) [expansiva],sensibilidad,32,1.17492,1.486946,1.948537,0.885109,0,56,2025-09-11
+GLM Poisson (a) [expansiva],sensibilidad,33,0.897563,1.215919,1.494851,0.985317,0,56,2025-09-18
+GLM Poisson (a) [expansiva],sensibilidad,34,0.935599,1.314958,1.625602,0.856867,0,56,2025-09-25
+GLM Poisson (a) [expansiva],sensibilidad,35,0.882055,1.30777,1.610919,0.8305,0,56,2025-10-02
+GLM Poisson (a) [expansiva],sensibilidad,36,0.687279,1.094613,1.353629,0.979471,0,56,2025-10-09
+GLM Poisson (a) [expansiva],sensibilidad,37,1.116384,1.433342,1.889266,0.908052,0,56,2025-10-16
+GLM Poisson (a) [expansiva],sensibilidad,38,1.081668,1.336681,1.63876,1.046871,0,56,2025-10-23
+GLM Poisson (a) [expansiva],sensibilidad,39,0.883158,1.247517,1.618665,0.843118,0,56,2025-10-30
+GLM Poisson (a) [expansiva],sensibilidad,40,0.938667,1.290431,1.550705,0.914195,0,56,2025-11-06
+GLM Poisson (a) [expansiva],sensibilidad,41,1.040055,1.341506,1.615587,0.958946,0,56,2025-11-13
+GLM Poisson (a) [expansiva],sensibilidad,42,1.367686,1.57752,1.913775,0.920124,0,56,2025-11-20
+GLM Poisson (a) [expansiva],sensibilidad,43,0.895545,1.192953,1.464726,0.915186,0,56,2025-11-27
+GLM Poisson (a) [expansiva],sensibilidad,44,0.966178,1.364358,1.678899,0.926308,0,56,2025-12-04
+GLM Poisson (a) [expansiva],sensibilidad,45,1.422502,1.770421,2.216283,0.730236,0,56,2025-12-11
+GLM Poisson (a) [expansiva],sensibilidad,46,1.250524,1.557467,1.905858,0.858051,0,56,2025-12-18
+GLM Poisson (a) [expansiva],sensibilidad,47,1.137766,1.317966,1.629188,1.061472,0,56,2025-12-25
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,1,1.006067,1.222723,1.521305,1.135422,0,56,2025-02-06
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,2,1.181897,1.455337,1.786766,1.059889,0,56,2025-02-13
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,3,1.266827,1.367915,1.650421,1.046824,0,56,2025-02-20
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,4,1.273259,1.410743,1.770382,0.954094,0,56,2025-02-27
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,5,1.575885,1.790187,2.194211,0.870431,0,56,2025-03-06
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,6,0.787886,1.194172,1.397759,1.059784,0,56,2025-03-13
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,7,1.264228,1.465581,1.896256,0.911937,0,56,2025-03-20
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,8,1.492045,1.603686,2.202605,0.973861,0,56,2025-03-27
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,9,0.755618,1.17764,1.453764,0.965366,0,56,2025-04-03
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,10,1.242716,1.371896,1.919556,0.86143,0,56,2025-04-10
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,11,1.104475,1.190824,1.484509,1.074835,0,56,2025-04-17
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,12,1.068707,1.485835,1.934212,0.78763,0,56,2025-04-24
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,13,1.132761,1.446685,1.795521,0.961823,0,56,2025-05-01
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,14,1.244165,1.623513,1.98801,0.791128,0,56,2025-05-08
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,15,1.282324,1.521974,1.962651,0.908087,0,56,2025-05-15
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,16,1.246675,1.62763,1.891747,0.931709,0,56,2025-05-22
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,17,1.470547,1.540362,1.961349,1.001615,0,56,2025-05-29
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,18,1.588284,1.864389,2.414204,0.768617,0,56,2025-06-05
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,19,1.262573,1.510031,1.764244,1.05724,0,56,2025-06-12
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,20,1.087651,1.40505,1.733841,0.95325,0,56,2025-06-19
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,21,0.941759,1.25655,1.593221,1.013911,0,56,2025-06-26
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,22,0.813854,1.174342,1.461391,1.074329,0,56,2025-07-03
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,23,1.114642,1.446319,1.906624,0.875349,0,56,2025-07-10
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,24,1.228671,1.455858,1.861441,1.024061,0,56,2025-07-17
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,25,1.136047,1.380248,1.830946,1.06227,0,56,2025-07-24
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,26,0.928111,1.375735,1.707408,1.017732,0,56,2025-07-31
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,27,1.126418,1.506481,1.755205,0.907922,0,56,2025-08-07
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,28,1.313282,1.53607,1.95515,0.871106,0,56,2025-08-14
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,29,0.882314,1.233562,1.575282,1.070966,0,56,2025-08-21
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,30,1.59734,1.74609,2.093127,1.012357,0,56,2025-08-28
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,31,0.577696,1.078287,1.415144,0.910891,0,56,2025-09-04
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,32,1.101019,1.461922,1.900903,0.948405,0,56,2025-09-11
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,33,0.96849,1.263109,1.561754,1.056683,0,56,2025-09-18
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,34,0.948717,1.349278,1.637069,0.916767,0,56,2025-09-25
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,35,0.824473,1.258033,1.5686,0.889593,0,56,2025-10-02
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,36,0.754929,1.140653,1.404654,1.064843,0,56,2025-10-09
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,37,1.157964,1.499543,1.927241,0.970405,0,56,2025-10-16
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,38,1.111942,1.381689,1.667841,1.121545,0,56,2025-10-23
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,39,0.762189,1.18508,1.529621,0.913033,0,56,2025-10-30
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,40,0.963054,1.346748,1.580728,0.978966,0,56,2025-11-06
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,41,1.01044,1.335001,1.588177,1.026058,0,56,2025-11-13
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,42,1.350527,1.590784,1.900267,0.982604,0,56,2025-11-20
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,43,0.938309,1.215317,1.49931,0.976773,0,56,2025-11-27
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,44,0.977188,1.371788,1.688204,0.988862,0,56,2025-12-04
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,45,1.36356,1.732132,2.183887,0.774752,0,56,2025-12-11
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,46,1.207101,1.533216,1.878464,0.911909,0,56,2025-12-18
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,47,1.196423,1.364723,1.667472,1.151416,0,56,2025-12-25
+Media constante,referencia,1,1.056253,1.257514,1.553892,1.061412,0,56,2025-02-06
+Media constante,referencia,2,1.260308,1.461397,1.837169,0.991735,0,56,2025-02-13
+Media constante,referencia,3,1.526227,1.528226,1.852468,0.978981,0,56,2025-02-20
+Media constante,referencia,4,1.311937,1.471785,1.80935,0.966619,0,56,2025-02-27
+Media constante,referencia,5,2.01876,2.013164,2.466549,0.811692,0,56,2025-03-06
+Media constante,referencia,6,1.08922,1.428571,1.672112,0.986811,0,56,2025-03-13
+Media constante,referencia,7,1.434216,1.579161,2.017234,0.849047,0,56,2025-03-20
+Media constante,referencia,8,1.765188,1.683899,2.369841,0.905464,0,56,2025-03-27
+Media constante,referencia,9,1.070882,1.397452,1.729921,0.895288,0,56,2025-04-03
+Media constante,referencia,10,1.45211,1.571429,2.064375,0.885403,0,56,2025-04-10
+Media constante,referencia,11,1.268838,1.285714,1.62975,1.088492,0,56,2025-04-17
+Media constante,referencia,12,1.338483,1.619949,2.141333,0.73234,0,56,2025-04-24
+Media constante,referencia,13,1.202511,1.483922,1.857094,0.919307,0,56,2025-05-01
+Media constante,referencia,14,1.543298,1.786105,2.204271,0.733998,0,56,2025-05-08
+Media constante,referencia,15,1.416219,1.585065,2.074987,0.835768,0,56,2025-05-15
+Media constante,referencia,16,1.453332,1.689234,2.043103,0.864936,0,56,2025-05-22
+Media constante,referencia,17,1.819909,1.724724,2.201141,0.92855,0,56,2025-05-29
+Media constante,referencia,18,1.952422,2.013128,2.642813,0.709575,0,56,2025-06-05
+Media constante,referencia,19,1.329959,1.554116,1.815431,0.97198,0,56,2025-06-12
+Media constante,referencia,20,1.335738,1.571946,1.932894,0.908841,0,56,2025-06-19
+Media constante,referencia,21,1.087645,1.339709,1.719741,0.937002,0,56,2025-06-26
+Media constante,referencia,22,0.931691,1.295183,1.56987,0.991727,0,56,2025-07-03
+Media constante,referencia,23,1.386708,1.599447,2.116502,0.809073,0,56,2025-07-10
+Media constante,referencia,24,1.481151,1.553571,2.039833,0.980228,0,56,2025-07-17
+Media constante,referencia,25,1.252983,1.464171,1.922655,0.980321,0,56,2025-07-24
+Media constante,referencia,26,1.065063,1.428571,1.82016,0.938566,0,56,2025-07-31
+Media constante,referencia,27,1.508346,1.750072,2.050828,0.836804,0,56,2025-08-07
+Media constante,referencia,28,1.531446,1.642003,2.12699,0.802665,0,56,2025-08-14
+Media constante,referencia,29,1.005376,1.286447,1.677168,1.015046,0,56,2025-08-21
+Media constante,referencia,30,1.579722,1.741248,2.089014,0.929376,0,56,2025-08-28
+Media constante,referencia,31,0.715115,1.167747,1.550555,0.834218,0,56,2025-09-04
+Media constante,referencia,32,1.146941,1.418743,1.955308,0.867811,0,56,2025-09-11
+Media constante,referencia,33,1.133906,1.382824,1.718504,0.966108,0,56,2025-09-18
+Media constante,referencia,34,1.271879,1.524099,1.921967,0.840227,0,56,2025-09-25
+Media constante,referencia,35,1.01147,1.450206,1.740103,0.814391,0,56,2025-10-02
+Media constante,referencia,36,0.922605,1.229866,1.574298,0.962064,0,56,2025-10-09
+Media constante,referencia,37,1.37945,1.588113,2.09531,0.890343,0,56,2025-10-16
+Media constante,referencia,38,1.143615,1.350136,1.690972,1.026519,0,56,2025-10-23
+Media constante,referencia,39,0.895453,1.29602,1.662907,0.828806,0,56,2025-10-30
+Media constante,referencia,40,1.090536,1.388542,1.702191,0.896692,0,56,2025-11-06
+Media constante,referencia,41,1.187154,1.427033,1.745157,0.940643,0,56,2025-11-13
+Media constante,referencia,42,1.443087,1.587693,1.976311,0.90261,0,56,2025-11-20
+Media constante,referencia,43,1.219016,1.475399,1.753233,0.897814,0,56,2025-11-27
+Media constante,referencia,44,1.206449,1.486613,1.86694,0.908762,0,56,2025-12-04
+Media constante,referencia,45,1.774435,1.990654,2.455827,0.716431,0,56,2025-12-11
+Media constante,referencia,46,1.476683,1.707667,2.083689,0.841782,0,56,2025-12-18
+Media constante,referencia,47,1.320176,1.36962,1.759445,1.097568,0,56,2025-12-25
+L0 (8 semanas),referencia,1,1.033459,1.120536,1.496275,1.0,0,56,2025-02-06
+L0 (8 semanas),referencia,2,1.435736,1.53125,1.953705,0.898693,0,56,2025-02-13
+L0 (8 semanas),referencia,3,1.34431,1.40625,1.71489,0.864516,0,56,2025-02-20
+L0 (8 semanas),referencia,4,1.507548,1.450893,1.858559,0.875796,0,56,2025-02-27
+L0 (8 semanas),referencia,5,1.971317,1.899554,2.396694,0.773396,0,56,2025-03-06
+L0 (8 semanas),referencia,6,0.837538,1.171875,1.447269,0.978084,0,56,2025-03-13
+L0 (8 semanas),referencia,7,1.381729,1.497768,1.96914,0.859637,0,56,2025-03-20
+L0 (8 semanas),referencia,8,1.620152,1.707589,2.312078,0.944196,0,56,2025-03-27
+L0 (8 semanas),referencia,9,0.789427,1.174107,1.478454,0.952941,0,56,2025-04-03
+L0 (8 semanas),referencia,10,1.400507,1.564732,2.060537,0.961483,0,56,2025-04-10
+L0 (8 semanas),referencia,11,1.225788,1.25,1.617945,1.198214,0,56,2025-04-17
+L0 (8 semanas),referencia,12,1.306657,1.627232,2.05525,0.797476,0,56,2025-04-24
+L0 (8 semanas),referencia,13,1.41042,1.660714,1.986,1.037651,0,56,2025-05-01
+L0 (8 semanas),referencia,14,1.194605,1.582589,1.910892,0.815505,0,56,2025-05-08
+L0 (8 semanas),referencia,15,1.51565,1.649554,2.090649,0.963798,0,56,2025-05-15
+L0 (8 semanas),referencia,16,1.425464,1.680804,2.018262,0.999294,0,56,2025-05-22
+L0 (8 semanas),referencia,17,1.538275,1.625,2.029085,1.078788,0,56,2025-05-29
+L0 (8 semanas),referencia,18,1.58839,1.845982,2.364108,0.821181,0,56,2025-06-05
+L0 (8 semanas),referencia,19,1.431811,1.604911,1.917597,1.157437,0,56,2025-06-12
+L0 (8 semanas),referencia,20,1.215259,1.502232,1.860135,1.095414,0,56,2025-06-19
+L0 (8 semanas),referencia,21,1.141246,1.473214,1.808185,1.099085,0,56,2025-06-26
+L0 (8 semanas),referencia,22,0.93381,1.303571,1.629629,1.16129,0,56,2025-07-03
+L0 (8 semanas),referencia,23,1.232232,1.551339,1.99602,0.9125,0,56,2025-07-10
+L0 (8 semanas),referencia,24,1.45376,1.620536,2.062094,1.109873,0,56,2025-07-17
+L0 (8 semanas),referencia,25,1.234829,1.424107,1.928406,1.093949,0,56,2025-07-24
+L0 (8 semanas),referencia,26,0.964652,1.370536,1.734787,1.041159,0,56,2025-07-31
+L0 (8 semanas),referencia,27,1.147074,1.491071,1.739445,0.892663,0,56,2025-08-07
+L0 (8 semanas),referencia,28,1.369488,1.571429,1.972184,0.872396,0,56,2025-08-14
+L0 (8 semanas),referencia,29,0.989278,1.292411,1.711062,1.120888,0,56,2025-08-21
+L0 (8 semanas),referencia,30,1.707327,1.761161,2.161,1.017319,0,56,2025-08-28
+L0 (8 semanas),referencia,31,0.606651,1.125,1.398341,0.92027,0,56,2025-09-04
+L0 (8 semanas),referencia,32,1.3354,1.595982,2.043678,0.952949,0,56,2025-09-11
+L0 (8 semanas),referencia,33,1.1038,1.348214,1.721386,1.076562,0,56,2025-09-18
+L0 (8 semanas),referencia,34,0.995552,1.323661,1.678298,0.938179,0,56,2025-09-25
+L0 (8 semanas),referencia,35,0.993548,1.435268,1.729229,0.921711,0,56,2025-10-02
+L0 (8 semanas),referencia,36,0.854173,1.234375,1.543546,1.092391,0,56,2025-10-09
+L0 (8 semanas),referencia,37,1.154056,1.46875,1.897778,0.988506,0,56,2025-10-16
+L0 (8 semanas),referencia,38,1.288846,1.504464,1.864704,1.157285,0,56,2025-10-23
+L0 (8 semanas),referencia,39,0.976001,1.270089,1.719196,0.924465,0,56,2025-10-30
+L0 (8 semanas),referencia,40,1.049428,1.399554,1.663436,1.000723,0,56,2025-11-06
+L0 (8 semanas),referencia,41,1.096428,1.339286,1.666536,1.045455,0,56,2025-11-13
+L0 (8 semanas),referencia,42,1.456121,1.667411,2.007867,1.006541,0,56,2025-11-20
+L0 (8 semanas),referencia,43,0.953309,1.243304,1.547157,0.992052,0,56,2025-11-27
+L0 (8 semanas),referencia,44,1.082655,1.459821,1.772653,0.991228,0,56,2025-12-04
+L0 (8 semanas),referencia,45,1.336638,1.732143,2.142262,0.786866,0,56,2025-12-11
+L0 (8 semanas),referencia,46,1.34783,1.636161,1.968289,0.952027,0,56,2025-12-18
+L0 (8 semanas),referencia,47,1.449988,1.569196,1.929925,1.270246,0,56,2025-12-25
+L1 (nivel x calendario de 8 niveles),referencia,1,0.980542,1.181304,1.48965,1.07857,0,56,2025-02-06
+L1 (nivel x calendario de 8 niveles),referencia,2,1.157097,1.428826,1.757843,1.007676,0,56,2025-02-13
+L1 (nivel x calendario de 8 niveles),referencia,3,1.264488,1.364176,1.65564,0.994613,0,56,2025-02-20
+L1 (nivel x calendario de 8 niveles),referencia,4,1.30423,1.398915,1.769448,0.875879,0,56,2025-02-27
+L1 (nivel x calendario de 8 niveles),referencia,5,1.574976,1.749835,2.202328,0.82462,0,56,2025-03-06
+L1 (nivel x calendario de 8 niveles),referencia,6,0.785345,1.173142,1.402054,1.00249,0,56,2025-03-13
+L1 (nivel x calendario de 8 niveles),referencia,7,1.32917,1.460141,1.944371,0.862463,0,56,2025-03-20
+L1 (nivel x calendario de 8 niveles),referencia,8,1.440868,1.545701,2.168353,0.919729,0,56,2025-03-27
+L1 (nivel x calendario de 8 niveles),referencia,9,0.760574,1.170305,1.461179,0.909361,0,56,2025-04-03
+L1 (nivel x calendario de 8 niveles),referencia,10,1.331397,1.396012,1.970678,0.754745,0,56,2025-04-10
+L1 (nivel x calendario de 8 niveles),referencia,11,1.044544,1.178756,1.434631,0.939935,0,56,2025-04-17
+L1 (nivel x calendario de 8 niveles),referencia,12,1.234147,1.570111,2.044548,0.744363,0,56,2025-04-24
+L1 (nivel x calendario de 8 niveles),referencia,13,1.148572,1.415283,1.797113,0.88745,0,56,2025-05-01
+L1 (nivel x calendario de 8 niveles),referencia,14,1.287856,1.665408,2.01833,0.746134,0,56,2025-05-08
+L1 (nivel x calendario de 8 niveles),referencia,15,1.422337,1.572421,2.046808,0.847269,0,56,2025-05-15
+L1 (nivel x calendario de 8 niveles),referencia,16,1.220393,1.594865,1.862019,0.879035,0,56,2025-05-22
+L1 (nivel x calendario de 8 niveles),referencia,17,1.441875,1.482741,1.948427,0.943618,0,56,2025-05-29
+L1 (nivel x calendario de 8 niveles),referencia,18,1.692344,1.866093,2.467092,0.721034,0,56,2025-06-05
+L1 (nivel x calendario de 8 niveles),referencia,19,1.259879,1.494488,1.762385,0.987667,0,56,2025-06-12
+L1 (nivel x calendario de 8 niveles),referencia,20,1.152158,1.394406,1.764013,0.876929,0,56,2025-06-19
+L1 (nivel x calendario de 8 niveles),referencia,21,0.989867,1.258147,1.639652,0.951854,0,56,2025-06-26
+L1 (nivel x calendario de 8 niveles),referencia,22,0.800721,1.134369,1.446225,1.007375,0,56,2025-07-03
+L1 (nivel x calendario de 8 niveles),referencia,23,1.137316,1.43369,1.917089,0.821778,0,56,2025-07-10
+L1 (nivel x calendario de 8 niveles),referencia,24,1.218349,1.422503,1.864336,0.930122,0,56,2025-07-17
+L1 (nivel x calendario de 8 niveles),referencia,25,1.101736,1.297912,1.805663,0.99601,0,56,2025-07-24
+L1 (nivel x calendario de 8 niveles),referencia,26,0.903489,1.318262,1.68467,0.953513,0,56,2025-07-31
+L1 (nivel x calendario de 8 niveles),referencia,27,1.088493,1.454738,1.728855,0.85008,0,56,2025-08-07
+L1 (nivel x calendario de 8 niveles),referencia,28,1.397311,1.576828,2.002833,0.815373,0,56,2025-08-14
+L1 (nivel x calendario de 8 niveles),referencia,29,0.877636,1.163388,1.570265,0.976442,0,56,2025-08-21
+L1 (nivel x calendario de 8 niveles),referencia,30,1.636933,1.738778,2.109768,0.944212,0,56,2025-08-28
+L1 (nivel x calendario de 8 niveles),referencia,31,0.677968,1.1433,1.503789,0.847465,0,56,2025-09-04
+L1 (nivel x calendario de 8 niveles),referencia,32,1.178481,1.485299,1.950016,0.881551,0,56,2025-09-11
+L1 (nivel x calendario de 8 niveles),referencia,33,0.898708,1.218008,1.496309,0.981341,0,56,2025-09-18
+L1 (nivel x calendario de 8 niveles),referencia,34,0.936685,1.31464,1.627021,0.853421,0,56,2025-09-25
+L1 (nivel x calendario de 8 niveles),referencia,35,0.886908,1.312178,1.615737,0.827137,0,56,2025-10-02
+L1 (nivel x calendario de 8 niveles),referencia,36,0.684299,1.092129,1.350957,0.975132,0,56,2025-10-09
+L1 (nivel x calendario de 8 niveles),referencia,37,1.116544,1.43152,1.889096,0.90434,0,56,2025-10-16
+L1 (nivel x calendario de 8 niveles),referencia,38,1.083146,1.33366,1.639069,1.042583,0,56,2025-10-23
+L1 (nivel x calendario de 8 niveles),referencia,39,0.887306,1.24895,1.620855,0.83943,0,56,2025-10-30
+L1 (nivel x calendario de 8 niveles),referencia,40,0.941715,1.291861,1.553352,0.910457,0,56,2025-11-06
+L1 (nivel x calendario de 8 niveles),referencia,41,1.043693,1.343528,1.61811,0.955021,0,56,2025-11-13
+L1 (nivel x calendario de 8 niveles),referencia,42,1.371668,1.579567,1.91705,0.916363,0,56,2025-11-20
+L1 (nivel x calendario de 8 niveles),referencia,43,0.897641,1.195562,1.467663,0.911444,0,56,2025-11-27
+L1 (nivel x calendario de 8 niveles),referencia,44,0.968154,1.363857,1.681176,0.922514,0,56,2025-12-04
+L1 (nivel x calendario de 8 niveles),referencia,45,1.432612,1.774684,2.223233,0.727243,0,56,2025-12-11
+L1 (nivel x calendario de 8 niveles),referencia,46,1.25961,1.562282,1.912463,0.85447,0,56,2025-12-18
+L1 (nivel x calendario de 8 niveles),referencia,47,1.135705,1.316384,1.627266,1.056355,0,56,2025-12-25

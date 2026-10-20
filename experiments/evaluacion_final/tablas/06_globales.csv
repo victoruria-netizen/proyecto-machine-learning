@@ -1,0 +1,7 @@
+modelo,papel,desvianza,error_estandar,mae,rmse,total_pred_obs,dias_prediccion_cero,desvio_entre_cortes,peor_municipio,desvianza_peor_municipio,referencia_de_su_conjunto,dif_vs_su_referencia,cortes_que_gana_a_su_referencia,dif_vs_media_constante,cortes_que_gana_a_media_constante,desvianza_validacion,error_estandar_validacion,total_pred_obs_validacion,dif_final_menos_validacion
+GLM Poisson (a) [deslizante 364 d],solución,1.106342,0.033535,1.398536,1.767687,0.960566,0,0.229902,MUNICIPIO CH,1.277692,L1 (nivel x calendario de 8 niveles),-0.029519,33.0,-0.208847,46,1.220513,0.036394,0.971655,-0.114171
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],contraste,1.11981,0.034144,1.414782,1.78257,0.960754,0,0.234076,MUNICIPIO CH,1.268017,L1 (nivel x calendario de 8 niveles),-0.016052,22.0,-0.19538,46,1.228034,0.037669,0.971183,-0.108224
+GLM Poisson (a) [expansiva],sensibilidad,1.132883,0.035539,1.401888,1.789997,0.898888,0,0.243642,MUNICIPIO CH,1.288304,L1 (nivel x calendario de 8 niveles),-0.002978,40.0,-0.182307,44,1.230204,0.035934,0.934095,-0.097321
+L1 (nivel x calendario de 8 niveles),referencia,1.135861,0.035705,1.402318,1.792103,0.89516,0,0.244784,MUNICIPIO CH,1.288709,,,,-0.179328,44,1.231879,0.035821,0.93049,-0.096018
+L0 (8 semanas),referencia,1.243152,0.038664,1.484375,1.87759,0.978473,0,0.265069,MUNICIPIO CH,1.431416,Media constante,-0.072037,34.0,-0.072037,34,1.362644,0.041407,1.006698,-0.119492
+Media constante,referencia,1.31519,0.040134,1.524423,1.937625,0.89444,0,0.275147,MUNICIPIO C,1.61492,,,,0.0,0,1.396707,0.044654,0.930538,-0.081517
