@@ -32,3 +32,21 @@ Solo en `app/app.py` (D67); ningún otro archivo heredado se modificó.
 Las que importa `app/` se agregaron a `requirements.txt` del repositorio (fase 5, 2026-10-21): streamlit, plotly, pydeck,
 psycopg2-binary, pymongo, SQLAlchemy y python-dotenv. `streamlit-option-menu` no se agregó: `ui.py` ya no lo importa.
 `app/requirements.txt` es el del despliegue con Docker del PID y no se modificó (D70).
+
+## Archivos nuevos del PAA en `app/` (no vienen del PID)
+
+- `pagina_prediccion.py`: pestaña «Predicción (PAA)». Lee solo `models/modelo_final.json`, `experiments/evaluacion_final/predicciones_bloque_final.csv`
+  y la capa de abajo; no usa bases de datos ni `config`.
+- `assets/municipios_montevideo_simplificado.geojson` (38,8 kB): capa de los 8 municipios de Montevideo para el mapa.
+
+### Procedencia y licencia de la capa de municipios
+
+- **Fuente:** GeoServer de la Intendencia de Montevideo, capa `mapstore-tematicas:zon_v_sig_municipios`, consulta WFS `GetFeature` en
+  GeoJSON, EPSG:4326 (la consulta completa está en `HANDOFF.md`, sección «Zonificación por municipios y corte de pandemia»).
+- **Licencia:** el `GetCapabilities` del servicio declara `Fees: none` y `AccessConstraints: none`.
+- **Archivo de partida:** `data/raw/municipios_montevideo.geojson` (no versionado), sha256 `c5d9f651aa6d88d6ff5bb32b831664b5850b275bfe562bed9e68246492c48d4a`
+  en la copia usada para esta fase. **Ojo:** `experiments/etl_montevideo/tablas/03b_procedencia_capa_zonas.csv` registra otra huella
+  para ese archivo (`ed0ba13e…`); `HANDOFF.md` ya consigna que existió una copia con la huella `c5d9f651…` y que no se sabe en qué difería.
+  Los 8 polígonos y sus nombres coinciden; la simplificación no se hizo sobre la copia registrada por el ETL.
+- **Transformación:** se conservaron solo el campo `municipio` (con el prefijo `MUNICIPIO `, como en el panel) y la geometría; se simplificó con
+  `geopandas` (`simplify(0.0003, preserve_topology=True)`, unos 30 m) y se escribió con 5 decimales. Sirve para colorear el mapa, no para medir áreas ni límites.
