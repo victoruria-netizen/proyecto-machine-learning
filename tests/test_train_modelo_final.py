@@ -89,17 +89,28 @@ def test_glm_mu_y_alpha_dentro_del_criterio(panel_dev, origenes):
         assert tmf.diferencia_relativa([m["alpha"]], [a_src]) <= tmf.TOL_COMPARACION
 
 
-def test_raiz_en_el_layout_del_servidor(tmp_path):
-    "En el servidor el script está en la raíz del workspace (/work), con data/ al lado; en el repositorio, en train/."
-    (tmp_path / "data" / "processed").mkdir(parents=True)
-    (tmp_path / tmf.REL_PANEL).write_text("", encoding="utf-8")
+def test_rutas_relativas_a_la_carpeta_del_script(tmp_path):
+    "En el servidor el script está en /train, con data/processed/ y models/ al lado (Guia_entrenamientos_CPU_GPU, §1)."
     script = tmp_path / "train_modelo_final.py"
     script.write_bytes((datos.RAIZ / "train" / "train_modelo_final.py").read_bytes())
     spec = importlib.util.spec_from_file_location("tmf_servidor", script)
     copia = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(copia)
-    assert copia.RAIZ == tmp_path and copia.RUTA_MODELO_LOCAL == tmp_path / "models" / "modelo_final.json"
-    assert tmf.RAIZ == datos.RAIZ or not datos.RUTA_PANEL.exists()
+    assert copia.RUTA_PANEL == tmp_path / "data" / "processed" / "panel_diario_montevideo.csv"
+    assert copia.RUTA_MODELO_LOCAL == tmp_path / "models" / "modelo_final.json"
+    assert copia.RUTA_METADATA_LOCAL == tmp_path / "models" / "metadata.json"
+
+
+def test_run_info(tmp_path, monkeypatch):
+    "run_info.txt con las claves de la guía (§11) que pidió el equipo."
+    monkeypatch.setenv("SLURM_JOB_ID", "37")
+    monkeypatch.setenv("SLURM_JOB_NAME", "grp04_cpu_train_modelo_final")
+    monkeypatch.setenv("SLURM_CPUS_PER_TASK", "4")
+    tmf.escribir_run_info(tmp_path, "20261021_120000")
+    lineas = (tmp_path / "run_info.txt").read_text(encoding="utf-8").splitlines()
+    assert lineas == ["run_id=20261021_120000", "slurm_job_id=37", "slurm_job_name=grp04_cpu_train_modelo_final",
+                      "slurm_log_file=/outputs/logs/grp04_cpu_train_modelo_final_37.out", "slurm_cpus_per_task=4",
+                      f"output_dir={tmp_path}"]
 
 
 def test_irls_recupera_coeficientes_conocidos():

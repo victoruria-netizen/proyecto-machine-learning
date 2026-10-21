@@ -24,17 +24,19 @@
 #   - el tipo_dia de la semana a predecir es una constante calculada localmente con var.tipo_dia (D50); el test exige
 #     que coincida. Si el contenedor tiene holidays, el script además lo recalcula y lo compara.
 #
-# Uso: submit_cpu train_modelo_final.py
-#      Localmente: python train/train_modelo_final.py --salida <carpeta fuera del repositorio>
-# Entrada: data/processed/panel_diario_montevideo.csv (no se versiona) y, para la comparación, models/modelo_final.json.
-#      En el servidor van en /train/data/processed/ y /train/models/ (Jupyter), junto al script en /train/; el
-#      contenedor los ve en /work (train/README.md).
-# Salida: /outputs/runs/<RUN_ID>/ (modelo_final.json, prediccion_semana_2026-01-01.csv, resumen_corrida.json).
+# Uso: submit_cpu train_modelo_final.py   (desde /train, sólo el nombre del archivo; Guia_entrenamientos_CPU_GPU, §4)
+#      Localmente: python train/train_modelo_final.py --panel ... --modelo ... --metadata ... --salida <fuera del repo>
+# Entradas, relativas a la carpeta del script (Path(__file__).parent), que en el servidor es /train:
+#      data/processed/panel_diario_montevideo.csv   (no se versiona)
+#      models/modelo_final.json y models/metadata.json   (la exportación local, para verificar y comparar)
+# Salida: /outputs/runs/<RUN_ID>/ (run_info.txt, modelo_final.json, prediccion_semana_2026-01-01.csv,
+#      resumen_corrida.json); desde Jupyter, /train/outputs/runs/<RUN_ID>/ (guía, §9 a §11).
 
 import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import platform
 import sys
 from datetime import datetime
@@ -47,23 +49,11 @@ import pandas as pd
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-REL_PANEL = Path("data") / "processed" / "panel_diario_montevideo.csv"
-
-
-def _raiz() -> Path:
-    """Primera carpeta, subiendo desde el script o desde el directorio de trabajo, que contiene el panel.
-
-    En el repositorio es la raíz (el script está en train/); en el servidor es /work, donde el script queda en la raíz
-    del workspace, como train_base.py (log del 18/09/2026: «Raíz del repositorio: /work»).
-    """
-    aqui = Path(__file__).resolve()
-    candidatos = [aqui.parent, *aqui.parents, Path.cwd(), *Path.cwd().parents]
-    return next((p for p in candidatos if (p / REL_PANEL).exists()), aqui.parent.parent)
-
-
-RAIZ = _raiz()
-RUTA_PANEL = RAIZ / REL_PANEL
-RUTA_MODELO_LOCAL = RAIZ / "models" / "modelo_final.json"
+# Rutas relativas a la carpeta del script: en el servidor, /train (el script se envía por nombre desde ahí).
+DIR_SCRIPT = Path(__file__).resolve().parent
+RUTA_PANEL = DIR_SCRIPT / "data" / "processed" / "panel_diario_montevideo.csv"
+RUTA_MODELO_LOCAL = DIR_SCRIPT / "models" / "modelo_final.json"
+RUTA_METADATA_LOCAL = DIR_SCRIPT / "models" / "metadata.json"
 SHA256_PANEL = "82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06"     # models/metadata.json
 
 CONFIGURACION = "GLM Poisson (a) [deslizante 364 d]"
@@ -236,11 +226,29 @@ def comparar_con_local(modelo: dict, semana: pd.DataFrame, ruta_local: Path) -> 
             "cumple": all(v is not None and v <= TOL_COMPARACION for v in filas.values()), "tolerancia": TOL_COMPARACION}
 
 
+def sha256(ruta: Path) -> str:
+    return hashlib.sha256(ruta.read_bytes()).hexdigest()
+
+
+def escribir_run_info(salida: Path, run_id: str) -> dict:
+    "run_info.txt de la guía (§11): relaciona la carpeta de resultados con el log de Slurm."
+    job_id = os.environ.get("SLURM_JOB_ID", "no_slurm")
+    job_name = os.environ.get("SLURM_JOB_NAME", "no_slurm")
+    info = {"run_id": run_id, "slurm_job_id": job_id, "slurm_job_name": job_name,
+            "slurm_log_file": f"/outputs/logs/{job_name}_{job_id}.out",
+            "slurm_cpus_per_task": os.environ.get("SLURM_CPUS_PER_TASK", "no_definido"), "output_dir": str(salida)}
+    (salida / "run_info.txt").write_text("".join(f"{k}={v}\n" for k, v in info.items()), encoding="utf-8")
+    return info
+
+
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Entrenamiento del modelo final (D51, D56).")
     parser.add_argument("--panel", default=str(RUTA_PANEL))
+    parser.add_argument("--modelo", default=str(RUTA_MODELO_LOCAL), help="exportación local, para comparar")
+    parser.add_argument("--metadata", default=str(RUTA_METADATA_LOCAL), help="metadata de la exportación local")
     parser.add_argument("--salida", default=None, help="carpeta de salida (por omisión /outputs/runs/<RUN_ID>)")
     args = parser.parse_args(argv)
+    ruta_panel, ruta_modelo, ruta_metadata = Path(args.panel), Path(args.modelo), Path(args.metadata)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     if args.salida:
@@ -250,65 +258,84 @@ def main(argv=None):
     else:
         raise SystemExit("No existe /outputs: indicar --salida (fuera del repositorio).")
     salida.mkdir(parents=True, exist_ok=True)
+    run_info = escribir_run_info(salida, run_id)
 
     print("=== train_modelo_final.py ===", flush=True)
-    print("RUN_ID:", run_id)
-    print("Excepción declarada (D51): lee el panel completo, incluido el bloque final; entrena y no evalúa.")
-    print("Implementación:", IMPLEMENTACION)
-    print("α: por momentos (plan B de D28); NB2 por máxima verosimilitud no se intenta (sin statsmodels).")
+    for k, v in run_info.items():
+        print(f"{k:<20}: {v}", flush=True)
+    print("Excepción declarada (D51): lee el panel completo, incluido el bloque final; entrena y no evalúa.", flush=True)
+    print("Implementación:", IMPLEMENTACION, flush=True)
+    print("α: por momentos (plan B de D28); NB2 por máxima verosimilitud no se intenta (sin statsmodels).", flush=True)
     versiones = {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__,
                  **{p: version(p) for p in ("scikit-learn", "scipy", "statsmodels", "holidays")}}
-    print("Versiones del entorno:", json.dumps(versiones, ensure_ascii=False))
-    print("Plataforma:", platform.platform())
+    print("Versiones del entorno:", json.dumps(versiones, ensure_ascii=False), flush=True)
+    print("Plataforma:", platform.platform(), flush=True)
 
-    print("Raíz:", RAIZ)
-    ruta_panel = Path(args.panel)
+    print("\nRutas resueltas (relativas a la carpeta del script):", flush=True)
+    print("  script   :", Path(__file__).resolve(), flush=True)
+    for nombre, ruta in (("panel", ruta_panel), ("modelo", ruta_modelo), ("metadata", ruta_metadata)):
+        print(f"  {nombre:<9}: {ruta} ({'existe' if ruta.exists() else 'NO EXISTE'})", flush=True)
     if not ruta_panel.exists():
         raise SystemExit(f"No está el panel {ruta_panel}: copiarlo a data/processed/ junto al script (train/README.md).")
-    sha = hashlib.sha256(ruta_panel.read_bytes()).hexdigest()
-    print(f"\nPanel: {ruta_panel}\n  sha256 {sha}")
-    if sha != SHA256_PANEL:
-        raise SystemExit(f"El sha256 del panel no es el de models/metadata.json ({SHA256_PANEL}): DETENERSE.")
+
+    sha_esperado = SHA256_PANEL
+    if ruta_metadata.exists():
+        meta = json.loads(ruta_metadata.read_text(encoding="utf-8"))
+        sha_esperado = meta["panel"]["sha256"]
+        print(f"\nmetadata.json: commit_base {meta['commit_base']}, fecha de corte {meta['fecha_de_corte']}", flush=True)
+        if sha_esperado != SHA256_PANEL:
+            raise SystemExit("El sha256 del panel en metadata.json no es el del script: DETENERSE.")
+    else:
+        print(f"\nNo está {ruta_metadata}: se usa el sha256 del panel fijado en el script.", flush=True)
+
+    sha = sha256(ruta_panel)
+    print(f"Panel: sha256 {sha} ({'coincide' if sha == sha_esperado else 'NO COINCIDE'})", flush=True)
+    if sha != sha_esperado:
+        raise SystemExit(f"El sha256 del panel no es el esperado ({sha_esperado}): DETENERSE.")
     panel = leer_panel(ruta_panel)
     assert panel["fecha"].max() == FECHA_CORTE and sorted(panel["zona_id"].unique()) == MUNICIPIOS
     origen = FECHA_CORTE + pd.Timedelta(days=1)
 
     modelo = entrenar(panel, origen)
     print(f"\nEntrenamiento: {modelo['desde']} a {modelo['hasta']} ({modelo['dias_entrenamiento']} días, "
-          f"{modelo['filas_entrenamiento']} filas); origen {modelo['origen']}")
+          f"{modelo['filas_entrenamiento']} filas); origen {modelo['origen']}", flush=True)
     print(f"IRLS: convergió = {modelo['convergio']}, iteraciones = {modelo['iteraciones']}, "
-          f"desvianza = {modelo['desvianza_entrenamiento']!r}")
-    print("Coeficientes:")
+          f"desvianza = {modelo['desvianza_entrenamiento']!r}", flush=True)
+    print("Coeficientes:", flush=True)
     for c in COLUMNAS:
-        print(f"  {c:<15} {modelo['coeficientes'][c]!r}")
-    print(f"α (momentos): {modelo['alpha']!r}")
+        print(f"  {c:<15} {modelo['coeficientes'][c]!r}", flush=True)
+    print(f"α (momentos): {modelo['alpha']!r}", flush=True)
 
     con_holidays = tipo_dia_con_holidays(pd.date_range(origen, periods=HORIZONTE, freq="D"))
     if con_holidays is None:
-        print("\nCalendario de la semana: holidays no está instalado; se usa la constante TIPO_DIA_SEMANA (D50).")
+        print("\nCalendario de la semana: holidays no está instalado; se usa la constante TIPO_DIA_SEMANA (D50).",
+              flush=True)
     else:
         print("\nCalendario de la semana: holidays", version("holidays"), "- coincide con la constante:",
-              con_holidays == TIPO_DIA_SEMANA)
+              con_holidays == TIPO_DIA_SEMANA, flush=True)
         if con_holidays != TIPO_DIA_SEMANA:
             raise SystemExit("holidays da otro calendario que TIPO_DIA_SEMANA: DETENERSE.")
 
     semana = predecir_semana(modelo["coeficientes"], origen, TIPO_DIA_SEMANA)
-    print("μ de la semana del 2026-01-01 (56 filas):")
+    print("μ de la semana del 2026-01-01 (56 filas):", flush=True)
     for r in semana.itertuples(index=False):
-        print(f"  {r.fecha:%Y-%m-%d} {r.zona_id:<13} {r.calendario:<10} {r.pred!r}")
+        print(f"  {r.fecha:%Y-%m-%d} {r.zona_id:<13} {r.calendario:<10} {r.pred!r}", flush=True)
 
-    resumen = {"run_id": run_id, "script": "train/train_modelo_final.py", "versiones": versiones, "sha256_panel": sha,
-               "implementacion": IMPLEMENTACION}
-    if RUTA_MODELO_LOCAL.exists():
-        comp = comparar_con_local(modelo, semana, RUTA_MODELO_LOCAL)
-        resumen["comparacion_con_local"] = comp
-        print(f"\nComparación con {RUTA_MODELO_LOCAL.relative_to(RAIZ).as_posix()} (origen de α local: "
-              f"{comp['origen_alpha_local']}); diferencia relativa máxima:")
+    resumen = {"run_id": run_id, "script": "train/train_modelo_final.py", "run_info": run_info, "versiones": versiones,
+               "sha256_panel": sha, "implementacion": IMPLEMENTACION}
+    if ruta_modelo.exists():
+        # Sólo se informa: el sha256_modelo de metadata.json depende de los fines de línea con que se escribió el
+        # archivo, y la comparación de coeficientes, μ y α ya verifica el contenido.
+        sha_modelo = sha256(ruta_modelo)
+        comp = comparar_con_local(modelo, semana, ruta_modelo)
+        resumen["comparacion_con_local"] = {"sha256_modelo_local": sha_modelo, **comp}
+        print(f"\nComparación con {ruta_modelo} (sha256 {sha_modelo}; origen de α local: "
+              f"{comp['origen_alpha_local']}); diferencia relativa máxima:", flush=True)
         for k, v in comp["diferencia_relativa_maxima"].items():
-            print(f"  {k:<13} {v!r}")
-        print(f"Criterio (<= {TOL_COMPARACION:g} en todo): {'CUMPLE' if comp['cumple'] else 'NO CUMPLE'}")
+            print(f"  {k:<13} {v!r}", flush=True)
+        print(f"Criterio (<= {TOL_COMPARACION:g} en todo): {'CUMPLE' if comp['cumple'] else 'NO CUMPLE'}", flush=True)
     else:
-        print(f"\nNo está {RUTA_MODELO_LOCAL}: sin comparación con la exportación local.")
+        print(f"\nNo está {ruta_modelo}: sin comparación con la exportación local.", flush=True)
 
     (salida / "modelo_final.json").write_text(json.dumps(modelo, ensure_ascii=False, indent=2, allow_nan=False),
                                               encoding="utf-8")
@@ -316,7 +343,7 @@ def main(argv=None):
         salida / "prediccion_semana_2026-01-01.csv", index=False, encoding="utf-8", float_format="%.17g")
     (salida / "resumen_corrida.json").write_text(json.dumps(resumen, ensure_ascii=False, indent=2, allow_nan=False),
                                                  encoding="utf-8")
-    print("\nSalidas en", salida)
+    print("\nSalidas en", salida, flush=True)
     print("Corrida finalizada.", flush=True)
     if "comparacion_con_local" in resumen and not resumen["comparacion_con_local"]["cumple"]:
         sys.exit(1)

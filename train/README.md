@@ -7,6 +7,49 @@ y para dónde quedan logs y resultados.
 | Script | Notebook de origen | Comando de envío | GPU |
 | --- | --- | --- | --- |
 | `diagnostico_entorno.py` | — (utilitario) | `submit_cpu diagnostico_entorno.py`, sólo para depurar | No |
+| `train_modelo_final.py` | `notebooks/evaluacion_final.ipynb`, sección 13 (exportación del modelo final, D51) | `submit_cpu train_modelo_final.py` | No |
+
+## `train_modelo_final.py` — modelo final del Entregable 3 (D51, D56)
+
+Entrena la solución (GLM Poisson (a), ventana deslizante de 364 días) con todos los datos hasta el 2025-12-31 y
+compara el resultado con la exportación local (`models/modelo_final.json`): diferencia relativa máxima ≤ 1e-6 en los
+coeficientes, en μ de las 56 filas de la semana del 01/01/2026 y en α. **Es una excepción declarada a la regla de
+lectura del bloque final (D51):** lee el panel completo para entrenar y no calcula ninguna métrica.
+
+No importa `src/`: el contenedor tiene pandas 1.5.3 (sin `stack(future_stack=True)`) y no tiene statsmodels ni
+`holidays`. Arma la matriz del conjunto (a) con numpy y pandas, ajusta el GLM con IRLS en numpy y calcula α por
+momentos (plan B de D28; NB2 por máxima verosimilitud no se intenta). `tests/test_train_modelo_final.py` exige, con el
+panel de desarrollo, que la matriz sea idéntica a la de `src/` y que coeficientes, μ y α queden dentro de 1e-6 de
+statsmodels.
+
+**Estructura dentro de `/train`** (Jupyter; `Guia_entrenamientos_CPU_GPU.md`, §1). El script resuelve todas sus
+entradas relativas a su propia carpeta (`Path(__file__).parent`) e imprime las rutas resueltas al arrancar:
+
+```
+/train/
+├── train_modelo_final.py
+├── data/
+│   └── processed/
+│       └── panel_diario_montevideo.csv      (no se versiona: copiarlo desde la copia local)
+└── models/
+    ├── modelo_final.json                    (exportación local, para la comparación)
+    └── metadata.json                        (sha256 esperado del panel)
+```
+
+**Antes de enviarlo:**
+
+1. Copiar `train/train_modelo_final.py` del repositorio a `/train/train_modelo_final.py`.
+2. Crear `/train/data/processed/` y subir ahí el panel (*Upload* del explorador de archivos de Jupyter). El script
+   verifica su sha256 contra `models/metadata.json` y se detiene si no coincide.
+3. Crear `/train/models/` y subir `models/modelo_final.json` y `models/metadata.json`. Sin `modelo_final.json`, el
+   script entrena igual pero avisa que no compara; sin `metadata.json`, usa el sha256 del panel fijado en el script.
+4. Desde la terminal de Jupyter, en `/train`: `submit_cpu train_modelo_final.py` (sólo el nombre del archivo; guía, §4).
+
+**Después:** el log queda en `/train/outputs/logs/<SLURM_JOB_NAME>_<SLURM_JOB_ID>.out` y los resultados en
+`/train/outputs/runs/<RUN_ID>/`: `run_info.txt` (guía, §11: `run_id`, `slurm_job_id`, `slurm_job_name`,
+`slurm_log_file`, `slurm_cpus_per_task`, `output_dir`), `modelo_final.json`, `prediccion_semana_2026-01-01.csv` y
+`resumen_corrida.json`. Guardar el log en `documentacion/logs/log_servidor_modelo_final.txt`. La corrida está bien si
+el log dice `Criterio (<= 1e-06 en todo): CUMPLE` y el trabajo termina con código 0 (si no cumple, sale con código 1).
 
 **Nota (2026-09-24):** `train_base.py` y `train_base_2.py` (versiones de `notebooks/base.ipynb` y
 `notebooks/base_2.ipynb`) se retiraron junto con esos notebooks, unificados en
