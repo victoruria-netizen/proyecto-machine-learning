@@ -283,10 +283,11 @@ NAV = {
     "WHO/Alcohol": "🍷 Indicador WHO — Alcohol",
     "MongoDB":     "🗄️ Consulta MongoDB",
     "Calidad":     "✅ Calidad & Cobertura",
+    "Predicción (PAA)": "🔮 Predicción (PAA)",
 }
 NAV_ICONS = ["house", "graph-up", "globe-americas", "exclamation-triangle",
              "car-front", "geo-alt", "cloud-rain", "heart-pulse", "cup-straw",
-             "database", "check2-circle"]
+             "database", "check2-circle", "graph-up-arrow"]
 pagina = NAV[ui.render_navbar(NAV.keys(), icons=NAV_ICONS)]
 
 # Feedback del filtro de país persistente (las páginas comparten key="pais_sel").
@@ -1810,6 +1811,10 @@ elif pagina == "✅ Calidad & Cobertura":
     except Exception as e:
         st.error("Error cargando datos de calidad.")
         st.exception(e)
+
+elif pagina == "🔮 Predicción (PAA)":
+    import pagina_prediccion
+    pagina_prediccion.render()
 
 # ── Footer (marca, población de referencia y fuentes; antes en la sidebar) ───
 ui.footer()
