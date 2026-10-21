@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-21 (E3, fase 4: evaluación final ejecutada y modelo final exportado; corrida del servidor pendiente)_
+_Última actualización: 2026-10-21 (E3, fase 4: evaluación final ejecutada y modelo final exportado; verificado en el servidor, job 136)_
 
 ---
 
@@ -2038,6 +2038,9 @@ HANDOFF, el registro de IA, `train/README.md` y los archivos de la corrida del s
   `metadata.json` coincida con el archivo en git; el script del servidor informa «coincide / no coincide» sin detener la corrida.
 - Además (sin número en esta sesión): rutas del script relativas a su carpeta (`/train`) y `run_info.txt` según la guía del servidor.
 
+- **D57:** la guía del servidor (`Guia_entrenamientos_CPU_GPU`) es la fuente para lo que corre en él; la corrida la hace el equipo y solo
+  esa cuenta como evidencia; la prueba en el entorno simulado es un chequeo previo y no va al informe.
+
 **Hecho.**
 - **Ejecución oficial (4b):** primera ejecución completa el 2026-10-20T19:28:50 sobre `86630a3`, 0 errores. Control en validación: 35/35.
   Bloque final (`tablas/06`): solución 1,1063, contraste 1,1198, sensibilidad 1,1329, L1 1,1359, L0 1,2432, media constante 1,3152.
@@ -2066,6 +2069,26 @@ HANDOFF, el registro de IA, `train/README.md` y los archivos de la corrida del s
   citan las versiones del 18/09 (pandas 1.5.3); no se tocaron para que el script commiteado siga siendo el que corrió en el servidor.
 
 **Próximo:** review de la fase 4; después, fase 5 (prototipo) y fase 6 (alinear el informe, D49).
+
+### Entregable 3, fase 4: fix de la review R3 (2026-10-21, sesión de Claude)
+
+La review R3 (`documentacion/reviews/E3_fase_4.md`) desaprobó la fase por F4-B5. Fix sin review posterior; no se tocaron `notebooks/`,
+`experiments/`, `models/`, `src/` ni `train/`, y no se leyó el bloque final.
+
+**Decisiones D59 a D65** (las de este fix; D57 está arriba):
+- **D60 (F4-B5):** `tests/test_modelo.py::test_modelo_exportado_reproduce_la_prediccion_del_servidor`: sha256 de `models/modelo_final.json`
+  = el de `metadata.json`; carga con `cargar_modelo`; predice la semana con origen 2026-01-01 sin historia (D51); las 56 μ contra
+  `documentacion/logs/servidor_modelo_final/prediccion_semana_2026-01-01.csv` (job 136), diferencia relativa máxima ≤ 1e-6 (D56).
+  Compara contra el servidor, no contra el notebook. `pytest`: **46 pasados**.
+- **D61:** cada reejecución reescribe `commit_base` y `fecha_generacion` de `metadata.json`; es el único diff aceptado en `models/`.
+- **D65:** `predicciones_bloque_final.csv` versiona los conteos observados del bloque final; el equipo confirmó el 21/10/2026 que
+  versionarlos no viola las restricciones de uso de los datos de UNASEV.
+- **D59, D62, D63 y D64:** el prompt del fix las nombra (D59 a D62 en el encabezado, D59 a D65 en el registro) pero no define su contenido
+  más allá de lo asignado arriba. <!-- PENDIENTE: el equipo debe indicar el contenido de D59, D62, D63 y D64 -->
+
+**Resumen (`resumen_evaluacion_final.md`):** commit del modelo `d93cf0c` (`git log -- models/modelo_final.json`); D57 en §1.2; §3.2 y §3.4
+con las inferencias bajo «Lectura del equipo»; coberturas con la esperada por el modelo (de `tablas/17` y `modelos_candidatos/tablas/46`);
+limitaciones 9 a 12 (D61, log sin versión del script, deuda de pandas 1.5.3, D65); el test nuevo en §1.3. Cifras sin cambios.
 
 ## 4. Pendiente (próximos pasos)
 

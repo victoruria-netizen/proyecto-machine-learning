@@ -5,7 +5,7 @@
 **Artefactos:** `experiments/evaluacion_final/` (`tablas/00` a `20`, `figuras/fig1` a `fig5`, `predicciones_bloque_final.csv`,
 `registro_ejecucion.csv`) y `models/` (`modelo_final.json`, `metadata.json`).
 **Código que usa:** `src/modelo.py` (nuevo en la fase 4), `src/variables.py` (con `tipo_dia`, D50), `src/datos.py`; pruebas en
-`tests/test_modelo.py`, `tests/test_variables.py` y `tests/test_train_modelo_final.py` (`pytest`: 45 pasados).
+`tests/test_modelo.py`, `tests/test_variables.py` y `tests/test_train_modelo_final.py` (`pytest`: 46 pasados).
 **Fecha de ejecución:** primera ejecución completa el **2026-10-20T19:28:50, commit `86630a3`** (`registro_ejecucion.csv`); la versión
 vigente del notebook es la reejecución sobre `c235ce2`, commiteada en `6be0383`, que reproduce ese registro (§1.6).
 **Alcance:** los ocho municipios de Montevideo; 47 cortes de 7 días en el bloque final (329 días, 2.632 pares día-municipio), con
@@ -48,7 +48,7 @@ Espejo de la celda «Precisiones de la evaluación final» del notebook.
 | D51 | Intervalos solo para la solución (NB2 principal, Poisson secundario); exportación local dentro del notebook después del registro; `train/train_modelo_final.py`, excepción declarada a la regla de lectura del bloque final; `models/historia_reciente.csv` fuera del alcance; tolerancia de los tests 6e-7 | Equipo, 20/10/2026 |
 | D52 | Elecciones de análisis: cortes y ventanas; control previo en validación; métricas; comparaciones (contra L1, media constante y la propia validación; pareado descriptivo); análisis de errores; formato de `predicciones_bloque_final.csv`; registro con tolerancia relativa 1e-10; estado de los objetivos fijado antes, con los resultados del test como evidencia | Propuesta de la IA, confirmada por el equipo con dos ajustes |
 
-### 1.2 Decisiones posteriores a la primera ejecución (D53 a D56 y D58)
+### 1.2 Decisiones posteriores a la primera ejecución (D53 a D58)
 
 Ninguna cambia una decisión de modelado ni una cifra de la evaluación: tratan del registro, de la exportación y del script del servidor.
 
@@ -58,6 +58,7 @@ Ninguna cambia una decisión de modelado ni una cifra de la evaluación: tratan 
 | D54 | `metadata.json` no lleva `arbol_limpio` sino **`fuentes_limpias`**: `git status --porcelain -- . ":(exclude)experiments" ":(exclude)models"` vacío, calculado en la primera celda de la sección 13, antes de escribir en `models/`; su definición va escrita en el JSON. `cargar_modelo` y la predicción con el modelo cargado no dependen de statsmodels ni de xgboost (se importan solo dentro de `entrenar`); scipy y `holidays` se mantienen (cuantiles de D44 y calendario de D50) | Que el prototipo y el servidor puedan cargar y predecir sin esas bibliotecas; un indicador de árbol limpio que no confunda las salidas de la propia ejecución con fuentes sin commitear |
 | D55 | La celda 32 (índice de artefactos) se corrige para no listarse a sí misma: **excepción declarada a D53** (error de código sin efecto en métricas; §1.6). Las marcas de tiempo de nbconvert y las salidas de las celdas 7 y 26 se aceptan en el diff (el criterio de D53 se lee sobre el código). Los α ausentes van como `null` (`allow_nan=False`). El resumen declara el α por momentos del modelo exportado (§4.1) | Índice no idempotente; JSON estándar legible fuera de Python |
 | D56 | `train/train_modelo_final.py`: comparación con la exportación local por **diferencia relativa máxima ≤ 1e-6** en coeficientes, μ de las 56 filas de la semana del 01/01/2026 y α; el log declara la implementación y las versiones del contenedor. Por compatibilidad con el contenedor (sin statsmodels ni `holidays`; Python 3.10.12 y pandas 2.3.3 según el log del job 136): matriz del conjunto (a) armada en el script con un test que exige igualdad con `src/`; IRLS en numpy; α por momentos (NB2 por MV no se intenta); calendario de la semana como constante verificada contra `var.tipo_dia`. Prueba previa en un entorno simulado | `src/variables.py` importa `holidays` y `src/modelo.py` entrena con statsmodels. Al decidirlo se usaron las versiones del 18/09/2026 (pandas 1.5.3, sin `stack(future_stack=True)`); el contenedor del 21/10 tenía otras (§4.3) |
+| D57 | La guía del servidor (`Guia_entrenamientos_CPU_GPU`) es la fuente para todo lo que corre en él. La corrida la hace el equipo y **solo esa cuenta como evidencia**. La prueba en el entorno simulado es un chequeo previo y no va al informe | Equipo; texto de la decisión según el prompt del fix de la review R3 (21/10/2026) |
 | D58 | `guardar_modelo` y la celda de metadata escriben los JSON con fin de línea LF (`newline="\n"`), con test; `.gitattributes` con `models/*.json text eol=lf`; reejecución con los chequeos de D55 y verificación de que `sha256_modelo` coincide con el archivo en git. El script del servidor compara el sha256 del modelo recibido con el de `metadata.json` **solo para informarlo** («coincide / no coincide»), sin detener la corrida | El `sha256_modelo` anterior se calculó sobre el JSON escrito con CRLF en Windows, distinto del archivo que guarda git (LF) |
 
 Además, por indicación del equipo (21/10/2026), el script del servidor resuelve sus entradas relativas a su propia carpeta (`/train`) y
@@ -76,6 +77,11 @@ escribe `run_info.txt` según la guía del servidor (§4.2).
   reconstruido en el test, y a 6e-7 con `tablas/31` (solución, sensibilidad y contraste), `45` y `46` de `modelos_candidatos`.
   `var.tipo_dia` coincide con el `tipo_dia` del ETL en los 1.316 días de desarrollo. Ida y vuelta exacta por JSON; carga y predicción en
   un proceso aparte con statsmodels y xgboost bloqueados en `sys.modules` (D54); un α no finito se escribe como `null` (D55).
+  **Modelo exportado (D60):** `test_modelo_exportado_reproduce_la_prediccion_del_servidor` comprueba que el sha256 de
+  `models/modelo_final.json` es el de `metadata.json`, carga el modelo y predice, sin historia (D51), la semana con origen 2026-01-01; compara las
+  56 μ (8 municipios × 7 días) con `documentacion/logs/servidor_modelo_final/prediccion_semana_2026-01-01.csv` (job 136), con diferencia relativa
+  máxima ≤ 1e-6 (criterio de D56). **Compara contra el servidor, no contra el notebook:** el notebook solo imprime esas predicciones a 3 decimales.
+  No lee el panel.
 
 ### 1.4 Procedimiento de la evaluación
 
@@ -236,8 +242,11 @@ desvianza está en sábado (1,2353) y feriado (1,2256); la menor, en viernes (0,
 | 5 | 8 | 2025-03-27 a 04-02 | 1,3992 | 1,4409 | 5 | 168 | 164,19 | 0,9773 | 0 |
 
 **Los datos muestran:** las cinco peores semanas de la solución son también las cinco peores de L1. Ninguna tiene feriados. En tres
-(cortes 30, 17 y 8) el total predicho está dentro del 3 % del observado: la desvianza alta viene de la distribución entre días y
-municipios, no del volumen semanal. El corte 18 es el de mayor subestimación (216 observados, 166,74 predichos).
+(cortes 30, 17 y 8) el total predicho está dentro del 3 % del observado. El corte 18 es el de mayor subestimación (216 observados, 166,74
+predichos).
+
+**Lectura del equipo (inferencia, a validar):** la desvianza alta de esas semanas viene de la distribución entre días y municipios, no del
+volumen semanal.
 
 ### 3.3 Calibración por deciles y residuos por corte (`tablas/14`, `15`, `16`; `figuras/fig4`)
 
@@ -275,15 +284,17 @@ Global (n = 2.632):
 | Poisson (secundario) | 80 % | 0,8913 | 0,8873 | 0,0334 | 0,0752 | 4,30 |
 | Poisson (secundario) | 95 % | 0,9745 | 0,9799 | 0,0038 | 0,0217 | 6,44 |
 
-Validación, para comparar (`modelos_candidatos/tablas/46`, reproducida en `tablas/02`): NB2 0,8883 (80 %) y 0,9787 (95 %); Poisson 0,8712 y
-0,9734.
+Validación, para comparar (`modelos_candidatos/tablas/46`, reproducida en `tablas/02`), empírica (esperada por el modelo): NB2 0,8883 (0,8959)
+al 80 % y 0,9787 (0,9840) al 95 %; Poisson 0,8712 (0,8937) y 0,9734 (0,9833).
 
 Por municipio, NB2 al 80 %: empírica entre 0,8815 (B y D) y 0,9179 (G), esperada entre 0,8700 (C) y 0,9072 (CH); al 95 %, empírica entre
 0,9696 (D) y 0,9909 (A), esperada entre 0,9711 (C) y 0,9862 (CH).
 
 **Los datos muestran:** al 80 %, la cobertura empírica de NB2 supera a la esperada por el modelo en 1,3 puntos (0,9005 contra 0,8871); al
 95 %, queda 0,2 puntos por debajo (0,9791 contra 0,9810). Los fallos son asimétricos: hay más observaciones por **encima** del intervalo
-que por debajo (al 80 %, 6,8 % contra 3,2 %), coherente con la subestimación del total (§2.1).
+que por debajo (al 80 %, 6,8 % contra 3,2 %).
+
+**Lectura del equipo (inferencia, a validar):** la asimetría es coherente con la subestimación del total (§2.1).
 
 ---
 
@@ -300,6 +311,7 @@ que por debajo (al 80 %, 6,8 % contra 3,2 %), coherente con la subestimación de
 | sha256 del panel | `82467fc8…114a1b06` (igual al del diagnóstico) | `metadata.json`, `panel` |
 | `commit_base` / `fuentes_limpias` | `c235ce2…` / `true` | `metadata.json` |
 | `sha256_modelo` | `94e562db…2a01939`, igual al del archivo en git (LF; D58) | `metadata.json`; `git show HEAD:models/modelo_final.json` |
+| Commit que contiene el modelo | `d93cf0c` (único commit que toca `models/modelo_final.json`; el blob no cambió en `6be0383`, D58) | `git log -- models/modelo_final.json` |
 | Tamaño | `modelo_final.json` 1.335 bytes; `metadata.json` 4.001 bytes (LF) | salida de la celda 36 |
 
 **α por momentos (D55, ítem 4).** El modelo exportado usa α por momentos (0,009395) porque **NB2 no convergió en la ventana final**
@@ -385,6 +397,15 @@ con statsmodels, y el contenedor no tiene ninguno de los dos: el script autocont
 7. **Sin meteorología:** el objetivo 2 no se cumplió en esa dimensión (§6, punto 2; `tablas/19`).
 8. **La verificación en el servidor compara modelos, no evalúa:** muestra que el entrenamiento es reproducible con otra implementación
    y otro entorno (§4.3), no dice nada nuevo sobre el desempeño.
+9. **Cada reejecución reescribe `commit_base` y `fecha_generacion` de `metadata.json`** (registran el HEAD y la hora de generación). Son el
+   **único diff aceptado en `models/`** (D61): la comprobación es `modelo_final.json` idéntico y `metadata.json` igual salvo esos dos campos.
+10. **El log del servidor no identifica la versión del script que corrió** (no trae su sha256 ni su commit). La evidencia es indirecta: el log
+    imprime la comparación del sha256 del modelo, que solo existe desde `82c0c3a`, y `git log -- train/train_modelo_final.py` no tiene commits
+    posteriores.
+11. **Los comentarios del script y el docstring de sus tests que citan pandas 1.5.3 son deuda aceptada:** no afectan el cálculo, pero
+    contradicen §4.3 y `train/README.md`.
+12. **`predicciones_bloque_final.csv` versiona los conteos observados del bloque final** (2025-02-06 a 2025-12-31, por municipio y día). El
+    equipo confirmó el 21/10/2026 que versionarlos no viola las restricciones de uso de los datos de UNASEV (D65).
 
 **Frases que NO deben aparecer en el informe:**
 - «La solución es significativamente mejor que L1 (o que la sensibilidad)». Las razones media/EE no son pruebas de significación (§2.2).
@@ -435,7 +456,7 @@ Estados fijados antes de leer el bloque final (D52, ítem 8); las cifras del blo
 | --- | --- | --- | --- |
 | 1. Adaptar el ETL del PID | Cumplido (Entregable 2) | `preparacion_montevideo.ipynb`, 16 verificaciones automáticas; clima cacheado en `data/raw/clima_montevideo.csv` | — |
 | 2. Evaluar y comparar estrategias (con y sin exógenas; expansiva y deslizante) | Cumplido en calendario y ventanas; **no cumplido en meteorología** | Validación: conjuntos (0) sin exógenas y (a)–(c) con calendario (`modelos_candidatos/tablas/11`); ventanas expansiva, 364, 546 y 728 d (`modelos_candidatos/tablas/26`). Bloque final: solución (364 d) 1,1063; sensibilidad (expansiva) 1,1329; solución − sensibilidad −0,0265 (EE 0,0067; 33 de 47); L0 1,2432; L1 1,1359 | La meteorología no se evaluó: conjunto (d) retirado antes de ejecutar |
-| 3. Seleccionar el modelo con mejor desempeño y solidez | Cumplido en el procedimiento, **con la salvedad de D42** | Selección fijada antes del bloque final (`1560a5b`). Bloque final: solución 1,1063 (EE 0,0335); L1 1,1359; media constante 1,3152; solución − L1 −0,0295 (33 de 47); validación 1,2205; pred./obs. 0,9606; cobertura NB2 0,9005 (80 %) y 0,9791 (95 %) | La configuración final no es la que eligió la regla (D42) |
+| 3. Seleccionar el modelo con mejor desempeño y solidez | Cumplido en el procedimiento, **con la salvedad de D42** | Selección fijada antes del bloque final (`1560a5b`). Bloque final: solución 1,1063 (EE 0,0335); L1 1,1359; media constante 1,3152; solución − L1 −0,0295 (33 de 47); validación 1,2205; pred./obs. 0,9606; cobertura NB2 0,9005 (esperada por el modelo 0,8871) al 80 % y 0,9791 (esperada 0,9810) al 95 % (`tablas/17`) | La configuración final no es la que eligió la regla (D42) |
 | 4. Nueva pestaña del dashboard | **No cumplido en esta fase** (fase 5) | Preparado: `src/modelo.py` (`entrenar`, `predecir_semana`, `cargar_modelo`) y `predicciones_bloque_final.csv` para el modo «Histórico» | El código del dashboard del PID no está en este repositorio |
 
 ---

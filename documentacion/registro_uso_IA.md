@@ -4979,3 +4979,176 @@ local dio las mismas. `models/modelo_final.json` no se tocó (`git status`). **A
 
 **Cierre de la entrada.** La fase 4 queda con la evaluación final ejecutada, el modelo final exportado y verificado en el servidor
 (job 136). Todos los mensajes del equipo de esta sesión se copiaron por programa del `.jsonl` y se verificó que aparecen textuales.
+
+## Sesión 2026-10-21 (review R3, E3 fase 4) — lucaspimentel-uy — Claude Code (Anthropic, Claude Opus 5.5)
+
+**Contexto:** review de verificación (no de corrección) de la fase 4 del Entregable 3, en la rama `e3/fase-4-evaluacion-final` (base
+`4cc063a`, HEAD `c0f8d61`). El revisor no participó en la fase. Solo crea `documentacion/reviews/E3_fase_4.md` y esta entrada; no hace
+commit.
+
+### Prompt 1
+> Sos el revisor de la fase 4 del Entregable 3, en la rama e3/fase-4-evaluacion-final. No trabajaste en esta
+> fase. Tu tarea es verificar, no corregir: no modifiques ningún archivo salvo el informe de
+> review.
+>
+> 1. Leé CLAUDE.md, el prompt de la fase y documentacion/resumen_modelos_candidatos.md.
+> 2. Mirá los cambios de la fase con `git diff main...e3/fase-4-evaluacion-final --stat` y luego el diff completo.
+> 3. Evaluá cada criterio común y cada criterio específico. Para cada uno: CUMPLE o NO CUMPLE,
+>    con la evidencia concreta (comando ejecutado y su salida, archivo y línea, cifra contra
+>    el CSV). Sin evidencia, el criterio es NO CUMPLE.
+> 4. Ejecutá vos mismo los notebooks de la fase con nbconvert y `pytest`. No te bases en las
+>    salidas guardadas.
+> 5. Veredicto, aplicando la regla sin interpretación:
+>    - DESAPROBADA si falla al menos un criterio bloqueante (B).
+>    - APROBADA CON OBSERVACIONES si fallan solo criterios no bloqueantes (N).
+>    - APROBADA si cumplen todos.
+> 6. Escribí documentacion/reviews/E3_fase_<N>.md con: fecha, commit revisado (hash), tabla de
+>    criterios (ID, criterio, resultado, evidencia), veredicto, lista numerada de
+>    observaciones con lo que habría que hacer para corregir cada una, y cualquier riesgo que
+>    veas aunque no esté en los criterios (como "riesgo fuera de criterios", sin afectar el
+>    veredicto).
+> 7. Agregá al final de documentacion/registro_uso_IA.md la entrada de esta sesión, con este
+>    prompt textual completo y el veredicto (D30). Es el único otro archivo que podés tocar.
+> 8. Mostrame el veredicto y las observaciones. No hagas commit.
+>
+> Criterios específicos de la fase:
+> Contexto de la fase 4 para esta review, además de sus criterios del plan:
+> - Hay decisiones posteriores al prompt de la fase 4: D48 y D50 a D58 (entrada de la fase 4 del
+>   HANDOFF). Donde el prompt difiera, mandan esas decisiones. No evalúes si son correctas.
+> - Lectura única del bloque final: la ejecución oficial es la de 3852498 (registro_ejecucion.csv,
+>   2026-10-20T19:28:50, commit base 86630a3). Verificá con git que 86630a3, con las precisiones, es
+>   anterior y no contiene salidas del bloque final. Las reejecuciones posteriores solo agregaron la
+>   exportación y correcciones (D53, D55, D58): verificá que reproducen el registro dentro de 1e-10, que
+>   experiments/evaluacion_final/ no cambió desde 3852498 y que ninguna celda que existía en 3852498
+>   cambió de código, salvo la celda 32 (D55).
+> - arbol_limpio = False en el registro está explicado por D53: es hallazgo solo si el resumen no lo
+>   explica.
+> - Servidor: la evidencia es documentacion/logs/log_servidor_modelo_final.txt (job 136) y la carpeta
+>   servidor_modelo_final/. El job 135 es un intento fallido documentado. Verificá que el resumen cita
+>   esas cifras y no las de la prueba en el entorno simulado. Los comentarios del script que dicen
+>   pandas 1.5.3 son deuda declarada.
+> - No leas el bloque final fuera de una única reejecución completa del notebook con nbconvert. Después
+>   verificá el registro (1e-10), git diff vacío en experiments/ y models/, y git restore.
+> - Alineación (D49): verificá que el resumen tiene «Diferencias con el informe» y que cada punto dice
+>   qué dice el informe, qué se hizo y por qué. No evalúes si las diferencias son aceptables.
+> - Frases: verificá que el resumen no presenta el pareado como prueba de significación, no compara la
+>   cobertura contra la nominal sin la esperada por el modelo y no presenta el test como validación de
+>   D42.
+
+**Respuesta (extracto relevante):** la IA leyó `CLAUDE.md`, el HANDOFF, el prompt de la fase en este registro, los resúmenes y las
+reviews anteriores, de donde tomó los criterios comunes B1 a B6 y N1 a N6. Como los criterios del plan para la fase 4 no estaban en el
+repositorio ni en el prompt (solo aparece «F4-B1» citado en `resumen_modelos_candidatos.md:918`), preguntó antes de evaluar.
+
+**Uso y verificación:** la consulta se resolvió en el prompt 2. **Archivos afectados:** ninguno.
+
+### Prompt 2 — criterios específicos de la fase 4
+Respuesta del equipo en el cuadro de preguntas de la herramienta, a la pregunta «Los criterios específicos del plan para la fase 4 (F4-B1,
+F4-B2, …, F4-N…) no están en el repositorio ni en el prompt pegado (solo aparece «F4-B1» citado en resumen_modelos_candidatos.md:918).
+¿Cómo sigo?»:
+
+> Criterios específicos de la fase 4 (del plan del Entregable 3; se evalúan junto con los criterios comunes B1–B6 y N1–N6):| ID | Criterio || --- | --- || F4-B1 | `solucion_seleccionada.json` no cambió desde el commit de la fase 3 || F4-B2 | El bloque final se lee solo en `evaluacion_final.ipynb` || F4-B3 | La reejecución reproduce exactamente las métricas del registro de ejecución || F4-B4 | Las referencias y el contraste se evaluaron con el mismo procedimiento que la solución || F4-B5 | El modelo exportado carga y reproduce las predicciones del notebook (test en `tests/test_modelo.py`) || F4-N1 | La comparación con referencias y objetivos separa evidencia de inferencia || F4-N2 | El log del servidor está incorporado y coincide con la corrida local || F4-N3 | `metadata.json` está completo y el uso de los conteos agregados quedó confirmado por el equipo |Precisión sobre F4-N3: models/historia_reciente.csv quedó fuera del alcance por D51 (el conjunto (a) no usa historia), así que no hay conteos agregados versionados que confirmar. Evaluá la segunda mitad de F4-N3 contra D51: es hallazgo solo si se versionaron conteos agregados o si el resumen no explica por qué no existe ese archivo. La primera mitad (metadata.json completo) se evalúa igual, con los campos que pide el paso 4c y D48.El commit de la fase 3 para F4-B1 es 1560a5b (identificado con git log del JSON), no el campo commit_del_repositorio (5f207e2), según D46.
+
+**Respuesta (extracto relevante):** veredicto **DESAPROBADA**. Falla un bloqueante, **F4-B5**: ningún test de `tests/test_modelo.py`
+carga `models/modelo_final.json`. Los tests de guardar/cargar usan un modelo sintético. Los otros 10 bloqueantes y los 9 no bloqueantes
+cumplen. En el fondo, el modelo exportado sí carga y reproduce: lo comprueban el `assert` de la celda 35 y el revisor, que obtuvo 0,0 contra
+la salida de la celda 35 a 3 decimales y 3,42e-12 contra el CSV del servidor. Pero el criterio pide un test. Resultados de la verificación:
+`pytest` 45 pasados; nbconvert con exit 0 en 98 s, 0 errores y 0 `stderr`; registro reproducido a 2,51e-15; `git diff` sobre
+`experiments/` vacío; en `models/`, solo cambian `commit_base` y `fecha_generacion` de `metadata.json`, por diseño. `86630a3` no tiene
+salidas y su código es idéntico al de `3852498`; desde `3852498` solo cambió la fuente de la celda 32. El JSON de la fase 3 tiene un único
+commit, `1560a5b`. El servidor coincide con la corrida local: coeficientes 4,25e-12, α 5,26e-13 y μ 3,42e-12, recalculados por el
+revisor. Las 312 cifras del resumen y las 11 del HANDOFF están en los artefactos. Las citas de este registro de la fase 4 son textuales
+contra los `.jsonl` en 18 de 18. Observaciones: (1) el test de F4-B5; (2) «`git diff` vacío en `models/`» no se puede cumplir al pie de
+la letra; (3) `HANDOFF.md:6` desactualizado; (4) el resumen no da el commit del modelo (`d93cf0c`); (5) D57 no figura en el repositorio;
+(6) inferencias bajo «Los datos muestran» en §3.2 y §3.4; (7) coberturas sin la esperada en §6.1 y §3.4. Hay además cinco riesgos fuera
+de criterios, entre ellos el versionado de los conteos observados del bloque final en `predicciones_bloque_final.csv`.
+
+**Uso y verificación:** el informe es `documentacion/reviews/E3_fase_4.md`. La única reejecución se hizo con el árbol limpio y antes de
+escribir el informe; después, `git restore notebooks/ models/ experiments/` dejó `git status` vacío. Scripts del revisor en el scratchpad
+de la sesión, fuera del repositorio. El revisor no leyó el bloque final fuera de esa reejecución: de `predicciones_bloque_final.csv` leyó
+solo el encabezado. Sin commit. **Archivos afectados:** `documentacion/reviews/E3_fase_4.md` (nuevo), `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-10-21 (fix de la review R3, E3 fase 4) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** fix de la review R3 de la fase 4 (D57, D59 a D65). Archivos: `tests/test_modelo.py`, `HANDOFF.md`,
+`documentacion/resumen_evaluacion_final.md`. No se tocaron `notebooks/`, `experiments/`, `models/`, `src/` ni `train/`; no se leyó el bloque final.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase 4, en la rama e3/fase-4-evaluacion-final.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/fase-4-evaluacion-final. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/fase-4-evaluacion-final solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fix de R3 (fase 4), sin review posterior (D59 a D62). Leé documentacion/reviews/E3_fase_4.md.
+> No ejecutes notebooks ni leas el bloque final. No toques notebooks/, experiments/, models/,
+> src/ ni train/.
+>
+> 1. F4-B5 (D60). En tests/test_modelo.py agregá un test que:
+>    - verifique que el sha256 de models/modelo_final.json coincide con el de
+>      models/metadata.json;
+>    - cargue el modelo con cargar_modelo;
+>    - prediga con predecir_semana la semana con origen 2026-01-01, sin historia (D51);
+>    - compare las 56 μ (8 municipios × 7 días) con el CSV de predicciones del job 136 en
+>      servidor_modelo_final/, con el criterio de D56: diferencia relativa máxima ≤ 1e-6.
+>    Si ese CSV no tiene μ por municipio y día, o la predicción necesita algo que no está en
+>    models/, detenete y consultame. No cambies ningún otro test. Corré pytest completo.
+> 2. HANDOFF.md, línea 6: sacá «corrida del servidor pendiente»; la corrida es el job 136.
+> 3. documentacion/resumen_evaluacion_final.md:
+>    a. Agregá el commit que contiene el modelo, d93cf0c, verificado con
+>       git log -- models/modelo_final.json.
+>    b. Agregá D57 donde se listan D56 y D58, en el resumen y en el HANDOFF: la guía del
+>       servidor (Guia_entrenamientos_CPU_GPU) es la fuente para lo que corre en él; la corrida
+>       la hace el equipo y solo esa cuenta como evidencia; la prueba en el entorno simulado es
+>       un chequeo previo y no va al informe.
+>    c. §3.2 y §3.4: pasá a «Lectura del equipo» las inferencias que la review marcó bajo «Los
+>       datos muestran». No cambies cifras.
+>    d. §6.1 (objetivo 3) y §3.4 (línea 278): poné cada cobertura junto a la esperada por el
+>       modelo, tomada de un artefacto que ya la tenga. Si no está en ningún artefacto, no la
+>       calcules: marcala y avisame.
+>    e. §5, limitaciones: (i) cada reejecución reescribe commit_base y fecha_generacion de
+>       metadata.json, que son el único diff aceptado en models/ (D61); (ii) el log del
+>       servidor no identifica la versión del script que corrió; (iii) los comentarios del
+>       script que citan pandas 1.5.3 son deuda aceptada; (iv) predicciones_bloque_final.csv
+>       versiona los conteos observados del bloque final, y el equipo confirmó el 21/10 que
+> versionarlos no viola las restricciones de uso de los datos de UNASEV (D65). Registralo
+> en el HANDOFF junto con D59 a D65. Después hacé el commit.
+>    f. Donde el resumen describe los tests, mencioná el test nuevo y que compara contra el
+>       servidor, no contra el notebook (D60).
+> 4. HANDOFF y registro de IA: entrada del fix con este prompt textual.
+>
+> Antes del commit mostrame: la salida de pytest; git diff --stat, que solo puede incluir
+> tests/test_modelo.py, HANDOFF.md, documentacion/resumen_evaluacion_final.md,
+> documentacion/registro_uso_IA.md y documentacion/reviews/E3_fase_4.md (que dejó la review);
+> y git diff vacío en notebooks/, experiments/, models/, src/ y train/. Un solo commit.
+>
+> DETENETE.
+
+**Respuesta (extracto relevante):** test `test_modelo_exportado_reproduce_la_prediccion_del_servidor` en `tests/test_modelo.py`
+(sha256 del modelo = `metadata.json`; `cargar_modelo`; `predecir_semana` con historia vacía y origen 2026-01-01; 56 μ contra
+`documentacion/logs/servidor_modelo_final/prediccion_semana_2026-01-01.csv`, relativa ≤ 1e-6). Ediciones del resumen y del HANDOFF según los puntos 2 y 3.
+Dos desviaciones, avisadas: (a) el CSV del servidor está en `documentacion/logs/servidor_modelo_final/`, no en `servidor_modelo_final/` en la raíz; tiene
+columnas `fecha, zona_id, pred` (μ por municipio y día, 56 filas), así que no hubo motivo para detenerse; (b) el prompt define D57, D60, D61 y D65, pero no
+D59, D62, D63 ni D64: en el HANDOFF quedaron nombradas con un marcador `PENDIENTE`, sin inventar su contenido. Las esperadas por el modelo de §3.4 (validación) y §6.1
+salen de `modelos_candidatos/tablas/46` y `evaluacion_final/tablas/17`, ya existentes; no se calculó ninguna.
+
+**Uso y verificación:** utilizado tal cual. `python -m pytest -q` en el `.venv`: 46 pasados (antes 45). `git diff --stat` y `git diff` por carpeta, mostrados al equipo antes del commit.
+**Archivos afectados:** `tests/test_modelo.py`, `HANDOFF.md`, `documentacion/resumen_evaluacion_final.md`, `documentacion/registro_uso_IA.md`.

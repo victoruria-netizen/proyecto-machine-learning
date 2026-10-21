@@ -13,6 +13,7 @@ bloqueados en ``sys.modules``.
 Los tests con el panel real se saltan si el archivo no está y lo leen sólo por ``cargar_panel_desarrollo``.
 """
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -205,6 +206,30 @@ def test_cargar_y_predecir_sin_statsmodels_ni_xgboost(sintetico, tmp_path):
 
 
 # ----------------------------------------------------------------------------------- α (D29, D28, D50)
+
+
+DIR_SERVIDOR = datos.RAIZ / "documentacion" / "logs" / "servidor_modelo_final"
+
+
+def test_modelo_exportado_reproduce_la_prediccion_del_servidor():
+    """D60: el modelo exportado (models/modelo_final.json) carga y predice, sin historia (D51), la semana con origen
+    2026-01-01. Las 56 μ se comparan con el CSV del job 136 del servidor (no con el notebook), con el criterio de D56:
+    diferencia relativa máxima <= 1e-6."""
+    ruta = datos.RAIZ / "models" / "modelo_final.json"
+    meta = json.loads((datos.RAIZ / "models" / "metadata.json").read_text(encoding="utf-8"))
+    assert hashlib.sha256(ruta.read_bytes()).hexdigest() == meta["sha256_modelo"]
+    m = mod.cargar_modelo(ruta)
+    historia = pd.DataFrame({"fecha": pd.Series(dtype="datetime64[ns]"), "zona_id": pd.Series(dtype=str),
+                             "tipo_dia": pd.Series(dtype=str)})
+    s = mod.predecir_semana(m, historia, pd.Timestamp("2026-01-01"))
+    servidor = pd.read_csv(DIR_SERVIDOR / "prediccion_semana_2026-01-01.csv", parse_dates=["fecha"])
+    assert len(s) == len(servidor) == 56 and s["zona_id"].nunique() == 8 and s["fecha"].nunique() == 7
+    j = s.merge(servidor, on=["fecha", "zona_id"], suffixes=("", "_servidor"), validate="one_to_one")
+    assert len(j) == 56
+    dif = (j["pred"] - j["pred_servidor"]).abs() / j["pred_servidor"].abs()
+    assert dif.max() <= 1e-6
+
+
 def test_decidir_alpha():
     llamado = []
     momentos = lambda: llamado.append(1) or 0.05
