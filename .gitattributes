@@ -1,0 +1,3 @@
+# D58: el modelo exportado y su metadata se escriben con LF y se versionan con LF en cualquier sistema, para que el
+# sha256_modelo de models/metadata.json coincida con el archivo del repositorio.
+models/*.json text eol=lf

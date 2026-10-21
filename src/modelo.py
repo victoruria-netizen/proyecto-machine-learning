@@ -165,14 +165,15 @@ def guardar_modelo(modelo: dict, ruta) -> None:
 
     Sólo el GLM: μ = exp(X β) con la matriz de D31, así que los coeficientes bastan. Los float de JSON se escriben con
     su ``repr`` y se leen exactos. JSON estándar (D55): un valor no finito, como ``alpha_mv`` cuando NB2 no converge,
-    se escribe como ``null``.
+    se escribe como ``null``. Fin de línea LF en cualquier sistema (D58), para que su sha256 sea el del archivo en git.
     """
     if modelo["modelo"] != "GLM":
         raise ValueError(f"sólo se guarda el GLM en JSON, no {modelo['modelo']}")
     out = dict(modelo)
     for c in _CAMPOS_FECHA:
         out[c] = pd.Timestamp(out[c]).strftime("%Y-%m-%d")
-    Path(ruta).write_text(json.dumps(_sin_no_finitos(out), ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
+    Path(ruta).write_text(json.dumps(_sin_no_finitos(out), ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8",
+                          newline="\n")
 
 
 def cargar_modelo(ruta) -> dict:

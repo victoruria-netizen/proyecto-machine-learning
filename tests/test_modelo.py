@@ -150,6 +150,14 @@ def test_guardar_escribe_alpha_no_finito_como_null(sintetico, tmp_path):
                                   check_exact=True)
 
 
+def test_guardar_escribe_fin_de_linea_lf(sintetico, tmp_path):
+    "D58: LF en cualquier sistema, para que el sha256 del archivo sea el mismo que en git (models/*.json text eol=lf)."
+    ruta = tmp_path / "modelo.json"
+    mod.guardar_modelo(sintetico[2], ruta)
+    contenido = ruta.read_bytes()
+    assert b"\r" not in contenido and contenido.count(b"\n") > 10
+
+
 def test_guardar_rechaza_xgboost(sintetico, tmp_path):
     p, origen, _ = sintetico
     m = mod.entrenar(mod.cargar_configuracion("contraste"), p[p["fecha"] < origen], ajustar_alpha=False)
