@@ -1,7 +1,7 @@
 {
   "descripcion": "Modelo final del Entregable 3: la solución fijada en la fase 3 (D42), entrenada con todos los datos hasta la fecha de corte y su ventana. Los coeficientes están en modelo_final.json (mod.cargar_modelo).",
   "archivo_modelo": "models/modelo_final.json",
-  "sha256_modelo": "debb3ec69cd22ec24018858f6f0b11e1a84adf1313578fde02c1b6a91695863a",
+  "sha256_modelo": "94e562dbfb34a6f308e1b47f80e28dc9a4a2bfc58ea33675963a0ab5d2a01939",
   "configuracion": {
     "configuracion": "GLM Poisson (a) [deslizante 364 d]",
     "modelo": "GLM",
@@ -106,8 +106,8 @@
     "holidays": "0.103"
   },
   "generado_por": "notebooks/evaluacion_final.ipynb",
-  "fecha_generacion": "2026-10-20T21:07:21",
-  "commit_base": "42fe260e4fcce3ae10f2aae198722ee7955e17f7",
+  "fecha_generacion": "2026-10-21T09:16:03",
+  "commit_base": "c235ce2fd2fecb8ed590265683b54ef684bf5089",
   "commit_base_nota": "HEAD al generar. El commit que contiene el modelo se identifica con git log -- models/modelo_final.json, no con este campo (D48).",
   "fuentes_limpias": true,
   "fuentes_limpias_definicion": "Verdadero si, al empezar la exportación y antes de escribir en models/, git status --porcelain -- . \":(exclude)experiments\" \":(exclude)models\" no devolvía nada: no había fuentes sin commitear. Se excluyen experiments/ y models/ porque son las salidas de la propia ejecución; nbconvert no reescribe el notebook hasta el final (D54)."
