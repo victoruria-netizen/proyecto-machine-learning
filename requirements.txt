@@ -50,3 +50,14 @@ branca==0.8.2            # escalas y leyendas de los mapas folium
 jupyter==1.1.1           # incluye nbconvert (jupyter nbconvert --execute)
 ipykernel==7.3.0
 ipython==9.17.1          # los notebooks importan IPython.display
+
+# --- Prototipo / dashboard (app/, Entregable 3 fase 5) ---
+# Versiones elegidas con más de dos semanas de publicadas al 2026-10-21 (pymongo 4.18.3 y
+# SQLAlchemy 2.1.x quedaron fuera por ese criterio). streamlit-option-menu no se agrega: ui.py ya no lo importa.
+streamlit==1.65.0
+plotly==7.1.0
+pydeck==0.9.3
+psycopg2-binary==2.9.13   # lo importa config.py al conectar (no se usa en la pestaña de predicción)
+pymongo==4.18.2           # idem
+SQLAlchemy==2.0.54        # app.py importa create_engine/text
+python-dotenv==1.2.4      # config.py
