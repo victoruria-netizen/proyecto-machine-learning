@@ -278,10 +278,10 @@ def main(argv=None):
     if not ruta_panel.exists():
         raise SystemExit(f"No está el panel {ruta_panel}: copiarlo a data/processed/ junto al script (train/README.md).")
 
-    sha_esperado = SHA256_PANEL
+    sha_esperado, sha_modelo_metadata = SHA256_PANEL, None
     if ruta_metadata.exists():
         meta = json.loads(ruta_metadata.read_text(encoding="utf-8"))
-        sha_esperado = meta["panel"]["sha256"]
+        sha_esperado, sha_modelo_metadata = meta["panel"]["sha256"], meta.get("sha256_modelo")
         print(f"\nmetadata.json: commit_base {meta['commit_base']}, fecha de corte {meta['fecha_de_corte']}", flush=True)
         if sha_esperado != SHA256_PANEL:
             raise SystemExit("El sha256 del panel en metadata.json no es el del script: DETENERSE.")
@@ -324,13 +324,18 @@ def main(argv=None):
     resumen = {"run_id": run_id, "script": "train/train_modelo_final.py", "run_info": run_info, "versiones": versiones,
                "sha256_panel": sha, "implementacion": IMPLEMENTACION}
     if ruta_modelo.exists():
-        # Sólo se informa: el sha256_modelo de metadata.json depende de los fines de línea con que se escribió el
-        # archivo, y la comparación de coeficientes, μ y α ya verifica el contenido.
+        # D58: el sha256 del modelo recibido se compara con el de metadata.json sólo para informarlo; no detiene la
+        # corrida (la comparación de coeficientes, μ y α verifica el contenido).
         sha_modelo = sha256(ruta_modelo)
+        coincide = None if sha_modelo_metadata is None else sha_modelo == sha_modelo_metadata
+        print(f"\nModelo local: sha256 {sha_modelo} ("
+              + {True: "coincide", False: "no coincide", None: "sin metadata.json"}[coincide]
+              + " con sha256_modelo de metadata.json)", flush=True)
         comp = comparar_con_local(modelo, semana, ruta_modelo)
-        resumen["comparacion_con_local"] = {"sha256_modelo_local": sha_modelo, **comp}
-        print(f"\nComparación con {ruta_modelo} (sha256 {sha_modelo}; origen de α local: "
-              f"{comp['origen_alpha_local']}); diferencia relativa máxima:", flush=True)
+        resumen["comparacion_con_local"] = {"sha256_modelo_local": sha_modelo,
+                                            "sha256_modelo_coincide_con_metadata": coincide, **comp}
+        print(f"Comparación con {ruta_modelo} (origen de α local: {comp['origen_alpha_local']}); "
+              "diferencia relativa máxima:", flush=True)
         for k, v in comp["diferencia_relativa_maxima"].items():
             print(f"  {k:<13} {v!r}", flush=True)
         print(f"Criterio (<= {TOL_COMPARACION:g} en todo): {'CUMPLE' if comp['cumple'] else 'NO CUMPLE'}", flush=True)
