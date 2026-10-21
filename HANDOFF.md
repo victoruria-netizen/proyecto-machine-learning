@@ -2083,8 +2083,14 @@ La review R3 (`documentacion/reviews/E3_fase_4.md`) desaprobó la fase por F4-B5
 - **D61:** cada reejecución reescribe `commit_base` y `fecha_generacion` de `metadata.json`; es el único diff aceptado en `models/`.
 - **D65:** `predicciones_bloque_final.csv` versiona los conteos observados del bloque final; el equipo confirmó el 21/10/2026 que
   versionarlos no viola las restricciones de uso de los datos de UNASEV.
-- **D59, D62, D63 y D64:** el prompt del fix las nombra (D59 a D62 en el encabezado, D59 a D65 en el registro) pero no define su contenido
-  más allá de lo asignado arriba. <!-- PENDIENTE: el equipo debe indicar el contenido de D59, D62, D63 y D64 -->
+- **D59:** acción sobre R3 (desaprobada solo por F4-B5). Fix mínimo en la misma rama, en Sonnet, sin review completa nueva. Control: `pytest`
+  completo, `git diff` limitado a los archivos del prompt y diff vacío en `notebooks/`, `experiments/`, `models/`, `src/` y `train/`; el equipo
+  verifica y hace el `merge --no-ff`. Motivo: uso disponible bajo; R3 verificó por su cuenta la propiedad de F4-B5 (3,42e-12 contra el
+  servidor), faltaba el test.
+- **D62:** alcance del fix: F4-B5 más las observaciones 3 a 7 de R3, solo en texto; los riesgos fuera de criterios se declaran en §5 del resumen.
+- **D63:** la fase 5 no tiene review. Sonnet; la sesión muestra cada criterio F5 con su evidencia y el equipo hace la prueba manual y el clon
+  limpio antes del merge. Prompt corregido: sin `historia_reciente.csv` (D51); «Histórico» lee `predicciones_bloque_final.csv` sin recalcular.
+- **D64:** fase 6: Claude Code genera un documento con los cambios necesarios en el informe y la redacción se hace en Claude web.
 
 **Resumen (`resumen_evaluacion_final.md`):** commit del modelo `d93cf0c` (`git log -- models/modelo_final.json`); D57 en §1.2; §3.2 y §3.4
 con las inferencias bajo «Lectura del equipo»; coberturas con la esperada por el modelo (de `tablas/17` y `modelos_candidatos/tablas/46`);
