@@ -2148,6 +2148,11 @@ enteros de 2 o 3 cifras, 173 de 195 halladas y las demás revisadas a mano.
 
 **Próximo:** redacción en Claude web con `cambios_informe.md`; Entregable 3 el 25/10.
 
+**Insumos de redacción (2026-10-21).** `documentacion/insumos_redaccion_e3.md`: cronología con commits, población y columnas del registro, alcance comprometido (E1 y Guía), hipótesis previas
+al 19/10, prototipo, tiempos registrados y figuras. Hallazgos para el equipo: la **Tabla A2 del informe no coincide con `etl_montevideo/tablas/`** (62.427, 39.676, 36.713 y «90 duplicados» sin artefacto);
+el informe dice «todos con personas lesionadas» y una tabla del historial (`8de1454`) da 28,12 % `SIN LESIONADOS` en el archivo completo; **sin log del job 137, sin fecha de prueba manual, sin capturas**;
+`README.md` «Resultados esperados» sigue describiendo el E3 como futuro.
+
 ## 4. Pendiente (próximos pasos)
 
 **Reorganizado el 2026-09-25** en dos partes: lo que cierra con el Entregable 2 (histórico, no

@@ -5416,3 +5416,50 @@ informe o del log). Comprobaciones puntuales por fila y columna con `pandas` (`M
 residuo positivo» eran siete; un rango de desvianza mal rotulado) que se corrigieron. No se ejecutó `pytest` (el contenedor de la sesión no tiene el entorno del proyecto) porque no se cambió código; las líneas del informe citadas
 (`L<n>`) se comprobaron contra el archivo.
 **Archivos afectados:** `documentacion/cambios_informe.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-10-21 (E3, fase 6: insumos para la redacción del informe) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** continuación de la fase 6 en `e3/fase-6-informe`. Se creó `documentacion/insumos_redaccion_e3.md`. Solo lectura de archivos versionados (también `git show` de una tabla borrada, `8de1454`); no se ejecutó nada ni se leyó el bloque final.
+
+### Prompt 1
+> Fase 6, insumos para la redacción del informe. Solo lectura de archivos versionados: no
+> ejecutes notebooks, no leas data/ ni el bloque final, no calcules nada nuevo. Si algo no
+> tiene artefacto, escribí "SIN ARTEFACTO"; no lo infieras.
+>
+> Creá documentacion/insumos_redaccion_e3.md con:
+>
+> 1. Cronología verificable: fecha y commit (o artefacto) de cada hito. Descarga de las tres
+> fuentes; última consulta del bloque final en el E2 y corte del 05/10/2026; sección 1 de
+> modelos_candidatos (74eafbd); solucion_seleccionada.json (1560a5b); primera ejecución de
+> evaluacion_final; modelo exportado; jobs 135, 136 y 137; commits del prototipo; última
+> corrida de pytest. Agregá las fechas de período, desarrollo, validación (primer y último
+> origen) y bloque final, tal como figuran en MC02 y EF03.
+> 2. Población y participantes: las 11 columnas del registro de UNASEV y si alguna clasifica
+> el tipo de siniestro, de vehículo o de participante. Si un artefacto versionado ya trae
+> conteos por esa categoría para el recorte, copialos con su ruta; si no, SIN ARTEFACTO.
+> Verificá las cifras de la Tabla A2 del informe (recorte) contra su artefacto.
+> 3. Alcance comprometido: buscá en el repo la propuesta del Entregable 1 o cualquier documento
+> con entregables, criterios de aceptación, pregunta de investigación o hipótesis. Copiá
+> los pasajes textuales con ruta y fecha.
+> 4. Hipótesis previas a los resultados: todo texto fechado antes del 19/10/2026 (informe,
+> resúmenes, celdas markdown de notebooks) que exprese una expectativa sobre los
+> resultados. Ejemplo: un solo modelo con nivel por municipio, calendario, tendencia.
+> Texto literal, ruta, commit y fecha.
+> 5. Prototipo: de app/ORIGEN.md y README.md, cómo se ejecuta sin reentrenar (comandos), qué
+> muestra cada modo, procedencia y licencia de la capa de municipios. Si están registradas,
+> la fecha de la prueba manual y la existencia de capturas.
+> 6. Desempeño técnico: tiempos de entrenamiento o de inferencia, solo si algún log o
+> artefacto los registra (por ejemplo, el log del job 136).
+> 7. Si el log del job 137 está versionado, su ruta; si no, decilo.
+> 8. Confirmá que existen estas figuras y su tamaño en píxeles:
+> modelos_candidatos/figuras/fig7_coeficientes_glm.png y
+> evaluacion_final/figuras/fig1_desvianza_por_corte.png, fig4_calibracion_y_residuos.png,
+> fig5_cobertura_intervalos.png.
+>
+> Límite: 300 líneas. Verificá cada cifra contra su artefacto y decime cuántas verificaste.
+> Un commit en e3/fase-6-informe, con push para poder descargarlo. DETENETE.
+
+**Respuesta (extracto relevante):** documento de ~200 líneas. Hallazgos señalados: la Tabla A2 del informe no coincide con sus artefactos (62.427, 39.676, 36.713 y «90 duplicados» sin artefacto; el artefacto da 347 duplicados sobre el país completo antes de filtrar); `INF` dice «todos con personas lesionadas» pero una tabla del historial git (archivo completo) da 28,12 % `SIN LESIONADOS`; ninguna columna clasifica vehículo ni participante y no hay conteos por categoría para el recorte; no hay log del job 137, ni fecha de prueba manual, ni capturas; el texto del informe se subió el 2026-10-20 (posterior al 19/10) y solo su título lo ubica antes.
+
+**Uso y verificación:** utilizado. Verificación con scripts en el directorio temporal (sin artefacto): 71 cifras con decimales o miles halladas en las fuentes (67 en el texto de los archivos citados y 4 tamaños en bytes comprobados contra el sistema de archivos), 4 de 4 dimensiones de figura leídas del encabezado PNG, 36 de 36 hashes de commit existentes con fecha coherente (una fila distingue a propósito la fecha de decisión de la del commit). Referencias de línea comprobadas con `grep` y corregidas donde no coincidían. Tabla A2 comparada fila a fila a mano.
+**Archivos afectados:** `documentacion/insumos_redaccion_e3.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
