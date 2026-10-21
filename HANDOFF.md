@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-20 (E3, fase 4: paso 4a y preparación del 4b, antes de ejecutar)_
+_Última actualización: 2026-10-21 (E3, fase 4: evaluación final ejecutada y modelo final exportado; corrida del servidor pendiente)_
 
 ---
 
@@ -2015,6 +2015,57 @@ sus secciones 0 a 3, sin el bloque final, se probaron aparte y reproducen las 35
 `resumen_evaluacion_final.md` es por ahora un esqueleto, con «Diferencias con el informe» (6 puntos, lista abierta).
 
 **Próximo:** commit y push de la rama **antes** de ejecutar; ejecución con `nbconvert` (cerrar antes visores y sincronizadores); paso 4c.
+
+### Entregable 3, fase 4: ejecución del 4b y paso 4c (2026-10-20/21, sesión de Claude)
+
+**Rama:** `e3/fase-4-evaluacion-final`. Commits: `3852498` (ejecución oficial, pusheado), `ba17c8d` y `42fe260` (código de la exportación
+y fixes de D55), `d93cf0c` (reejecución con `models/`), `7f53fe5`, `037851b` y `3dc9d78` (script del servidor), `c235ce2` y `6be0383`
+(D58: JSON en LF y reejecución vigente), `82c0c3a` (script, D58); todos pusheados. El commit final de la fase lleva el resumen, el
+HANDOFF, el registro de IA, `train/README.md` y los archivos de la corrida del servidor (`documentacion/logs/`).
+
+**Decisiones del equipo de esta sesión** (texto completo en `resumen_evaluacion_final.md` §1.2):
+- **D53:** los resultados de la ejecución oficial se commitean tal como salieron; `registro_ejecucion.csv` queda con `arbol_limpio = False`
+  (calculado después de que la ejecución creara `experiments/evaluacion_final/`; la evidencia de árbol limpio es `86630a3`, pusheado antes
+  de ejecutar); la exportación va en celdas nuevas al final, con el código commiteado antes de reejecutar.
+- **D54:** `fuentes_limpias` en lugar de `arbol_limpio` en `metadata.json` (git status excluyendo `experiments/` y `models/`); cargar y
+  predecir sin statsmodels ni xgboost (scipy y `holidays` se mantienen), con test que los bloquea en `sys.modules`.
+- **D55:** fix de la celda 32 (el índice se listaba a sí mismo: 27 → 28 filas), excepción declarada a D53; marcas de tiempo y salidas de
+  las celdas 7 y 26 aceptadas en el diff; α ausentes como `null`; declarar el α por momentos del modelo exportado.
+- **D56:** `train/train_modelo_final.py`: criterio ≤ 1e-6 (coeficientes, μ de 56 filas, α); autocontenido (el contenedor no tiene
+  statsmodels ni `holidays`): matriz propia con test contra `src/`, IRLS en numpy, α por momentos, calendario constante verificado. Se
+  diseñó con las versiones del 18/09 (pandas 1.5.3); el contenedor del 21/10 tenía pandas 2.3.3 (ver abajo).
+- **D58:** `models/*.json` con fin de línea LF (`guardar_modelo`, celda de metadata y `.gitattributes`), para que `sha256_modelo` de
+  `metadata.json` coincida con el archivo en git; el script del servidor informa «coincide / no coincide» sin detener la corrida.
+- Además (sin número en esta sesión): rutas del script relativas a su carpeta (`/train`) y `run_info.txt` según la guía del servidor.
+
+**Hecho.**
+- **Ejecución oficial (4b):** primera ejecución completa el 2026-10-20T19:28:50 sobre `86630a3`, 0 errores. Control en validación: 35/35.
+  Bloque final (`tablas/06`): solución 1,1063, contraste 1,1198, sensibilidad 1,1329, L1 1,1359, L0 1,2432, media constante 1,3152.
+  Un intento previo falló en la celda 3 por lanzar `nbconvert` sin activar el `.venv` (Python 3.13.9 del sistema): **no leyó el bloque
+  final**. Lección: siempre `.venv\Scripts\Activate.ps1` y verificar `python` antes de `nbconvert`.
+- **Exportación (4c):** sección 13 del notebook (4 celdas nuevas). `src/modelo.py`: `guardar_modelo`/`cargar_modelo` (JSON, sin pickle),
+  statsmodels y xgboost solo dentro de `entrenar`. Reejecución sobre `42fe260`: registro reproducido (2,51e-15), índice de 27 filas igual a
+  `3852498`, `git diff` sobre `experiments/` vacío, JSON sin NaN. Versión vigente: reejecución sobre `c235ce2` (D58), commiteada en
+  `6be0383`, con los mismos chequeos y coeficientes, α y μ idénticos (durante esa reejecución los tres documentos sin commitear se
+  apartaron con `git stash`, porque no participan del cálculo, y se restauraron después). `models/modelo_final.json` (1.335 bytes) y `metadata.json`
+  (4.001 bytes), en LF; `sha256_modelo` verificado contra `git show HEAD:models/modelo_final.json`. α = 0,009395 **por momentos** (NB2
+  no convergió en la ventana final; también pasó en los cortes 45 y 47 del test).
+- **Script del servidor:** `train/train_modelo_final.py` y `tests/test_train_modelo_final.py` (`pytest`: **45 pasados**). Rutas
+  relativas a la carpeta del script (`/train`, con `data/processed/` y `models/` al lado) y `run_info.txt` según la guía del servidor
+  (§11), por indicación del equipo; reemplaza la búsqueda de raíz de `037851b`. Chequeo previo en un `/train` simulado con las versiones
+  del 18/09 (Python 3.10, pandas 1.5.3) y los JSON de git: corre. **No es evidencia del servidor.** Instrucciones en `train/README.md`.
+- **Corrida en el servidor (la hizo el equipo):** job 136, RUN_ID `20261021_094404`, 21/10/2026. Contenedor: Python 3.10.12, numpy
+  1.26.4, pandas 2.3.3, scikit-learn 1.7.2, scipy 1.12.0, sin statsmodels ni `holidays`; `/train` se monta como `/work/train`. sha256 del
+  panel y del modelo: coinciden. Diferencia relativa máxima contra `models/modelo_final.json`: coeficientes 4,25e-12, μ 3,42e-12, α
+  5,26e-13 → **CUMPLE**. Fuentes: `documentacion/logs/log_servidor_modelo_final.txt` y `documentacion/logs/servidor_modelo_final/`.
+  `models/modelo_final.json` no se reemplazó. Primer intento, job 135: no encontró el panel porque la carpeta se subió como `processed `
+  (con un espacio al final); se corrigió y se reenvió (`log_servidor_modelo_final_intento1_job135.txt`).
+- **Documentación:** `resumen_evaluacion_final.md` completo (con §4.3), «Diferencias con el informe» (10 puntos) y objetivos;
+  `train/README.md` con la estructura de `/train` y las versiones del contenedor del 21/10.
+- **Pendiente menor:** los comentarios de `train/train_modelo_final.py` y el docstring de `tests/test_train_modelo_final.py` todavía
+  citan las versiones del 18/09 (pandas 1.5.3); no se tocaron para que el script commiteado siga siendo el que corrió en el servidor.
+
+**Próximo:** review de la fase 4; después, fase 5 (prototipo) y fase 6 (alinear el informe, D49).
 
 ## 4. Pendiente (próximos pasos)
 

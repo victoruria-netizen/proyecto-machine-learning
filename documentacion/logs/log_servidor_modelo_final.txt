@@ -1,0 +1,140 @@
+=================================
+ Trabajo CPU enviado por Slurm
+ Grupo: grp04
+ Host: lidia
+ Job ID: 136
+ Script: train_modelo_final.py
+ Workspace: /srv/data-platform/grp04/workspace
+ Outputs: /data/models/grp04
+ Imagen: /opt/apptainer-images/tensorflow_ngc_24.04_tf2_py3_mlcv.sif
+ Partición: cpu
+ CPUs asignadas: 4
+ Memoria solicitada: 12G
+ Tiempo máximo: 04:00:00
+ Inicio: mié 21 oct 2026 09:44:02 -03
+=================================
+Límites de paralelismo CPU:
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+LOKY_MAX_CPU_COUNT=4
+=================================
+CPU affinity dentro del batch antes de srun:
+pid 1545565's current affinity list: 0,1,12,13
+cpu-bind=MASK - lidia, task  0  0 [1545584]: mask 0x3003 set
+=== train_modelo_final.py ===
+run_id              : 20261021_094404
+slurm_job_id        : 136
+slurm_job_name      : grp04_cpu_train_modelo_final
+slurm_log_file      : /outputs/logs/grp04_cpu_train_modelo_final_136.out
+slurm_cpus_per_task : 4
+output_dir          : /outputs/runs/20261021_094404
+Excepción declarada (D51): lee el panel completo, incluido el bloque final; entrena y no evalúa.
+Implementación: IRLS en numpy (mínimos cuadrados ponderados con numpy.linalg.lstsq; arranque μ = (y + media(y))/2, como statsmodels; corta cuando el cambio relativo de la desvianza es <= 1e-12)
+α: por momentos (plan B de D28); NB2 por máxima verosimilitud no se intenta (sin statsmodels).
+Versiones del entorno: {"python": "3.10.12", "numpy": "1.26.4", "pandas": "2.3.3", "scikit-learn": "1.7.2", "scipy": "1.12.0", "statsmodels": "no instalado", "holidays": "no instalado"}
+Plataforma: Linux-5.15.0-179-generic-x86_64-with-glibc2.35
+
+Rutas resueltas (relativas a la carpeta del script):
+  script   : /work/train/train_modelo_final.py
+  panel    : /work/train/data/processed/panel_diario_montevideo.csv (existe)
+  modelo   : /work/train/models/modelo_final.json (existe)
+  metadata : /work/train/models/metadata.json (existe)
+
+metadata.json: commit_base c235ce2fd2fecb8ed590265683b54ef684bf5089, fecha de corte 2025-12-31
+Panel: sha256 82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06 (coincide)
+
+Entrenamiento: 2025-01-02 a 2025-12-31 (364 días, 2912 filas); origen 2026-01-01
+IRLS: convergió = True, iteraciones = 5, desvianza = 3279.1174046169963
+Coeficientes:
+  mun_A           1.297199783122415
+  mun_B           1.3133291650522991
+  mun_C           1.4042661600444015
+  mun_CH          0.8582535563907995
+  mun_D           1.3378266366526856
+  mun_E           0.9881528881729377
+  mun_F           1.1236203898243267
+  mun_G           0.9463152433183858
+  cal_martes      0.016871321712765754
+  cal_miércoles   -0.030582836913923828
+  cal_jueves      0.02770260254933931
+  cal_viernes     0.0605981839256504
+  cal_sábado      -0.216649716438041
+  cal_domingo     -0.4137213265771837
+  cal_feriado     -0.3563647555979744
+α (momentos): 0.009395087677645849
+
+Calendario de la semana: holidays no está instalado; se usa la constante TIPO_DIA_SEMANA (D50).
+μ de la semana del 2026-01-01 (56 filas):
+  2026-01-01 MUNICIPIO A   feriado    2.562119966024464
+  2026-01-01 MUNICIPIO B   feriado    2.603780453276896
+  2026-01-01 MUNICIPIO C   feriado    2.8516603524288575
+  2026-01-01 MUNICIPIO CH  feriado    1.6518383195588615
+  2026-01-01 MUNICIPIO D   feriado    2.668354208518161
+  2026-01-01 MUNICIPIO E   feriado    1.8809709994472297
+  2026-01-01 MUNICIPIO F   feriado    2.153847190950648
+  2026-01-01 MUNICIPIO G   feriado    1.8038990980302305
+  2026-01-02 MUNICIPIO A   viernes    3.8876231950492834
+  2026-01-02 MUNICIPIO B   viernes    3.9508365803346397
+  2026-01-02 MUNICIPIO C   viernes    4.326956222782498
+  2026-01-02 MUNICIPIO CH  viernes    2.5064107265642934
+  2026-01-02 MUNICIPIO D   viernes    4.048817327526935
+  2026-01-02 MUNICIPIO E   viernes    2.8540843456337432
+  2026-01-02 MUNICIPIO F   viernes    3.2681320192528136
+  2026-01-02 MUNICIPIO G   viernes    2.7371395828558334
+  2026-01-03 MUNICIPIO A   sábado     2.9462997667552058
+  2026-01-03 MUNICIPIO B   sábado     2.9942070800357796
+  2026-01-03 MUNICIPIO C   sábado     3.279255594055187
+  2026-01-03 MUNICIPIO CH  sábado     1.8995249715746971
+  2026-01-03 MUNICIPIO D   sábado     3.0684634156206645
+  2026-01-03 MUNICIPIO E   sábado     2.163015194617847
+  2026-01-03 MUNICIPIO F   sábado     2.4768080966055965
+  2026-01-03 MUNICIPIO G   sábado     2.0743866650487846
+  2026-01-04 MUNICIPIO A   domingo    2.419300518740619
+  2026-01-04 MUNICIPIO B   domingo    2.458638738557541
+  2026-01-04 MUNICIPIO C   domingo    2.6927011464682202
+  2026-01-04 MUNICIPIO CH  domingo    1.5597604157409029
+  2026-01-04 MUNICIPIO D   domingo    2.519612979273766
+  2026-01-04 MUNICIPIO E   domingo    1.7761206247339678
+  2026-01-04 MUNICIPIO F   domingo    2.0337859645347978
+  2026-01-04 MUNICIPIO G   domingo    1.7033449180726619
+  2026-01-05 MUNICIPIO A   lunes      3.6590362136144825
+  2026-01-05 MUNICIPIO B   lunes      3.718532737413094
+  2026-01-05 MUNICIPIO C   lunes      4.072537054014822
+  2026-01-05 MUNICIPIO CH  lunes      2.3590371686148646
+  2026-01-05 MUNICIPIO D   lunes      3.810752349300935
+  2026-01-05 MUNICIPIO E   lunes      2.686268049507219
+  2026-01-05 MUNICIPIO F   lunes      3.0759702803881113
+  2026-01-05 MUNICIPIO G   lunes      2.576199480479787
+  2026-01-06 MUNICIPIO A   feriado    2.562119966024464
+  2026-01-06 MUNICIPIO B   feriado    2.603780453276896
+  2026-01-06 MUNICIPIO C   feriado    2.8516603524288575
+  2026-01-06 MUNICIPIO CH  feriado    1.6518383195588615
+  2026-01-06 MUNICIPIO D   feriado    2.668354208518161
+  2026-01-06 MUNICIPIO E   feriado    1.8809709994472297
+  2026-01-06 MUNICIPIO F   feriado    2.153847190950648
+  2026-01-06 MUNICIPIO G   feriado    1.8038990980302305
+  2026-01-07 MUNICIPIO A   miércoles  3.548826360707022
+  2026-01-07 MUNICIPIO B   miércoles  3.6065308543770573
+  2026-01-07 MUNICIPIO C   miércoles  3.9498725917137545
+  2026-01-07 MUNICIPIO CH  miércoles  2.2879831740168033
+  2026-01-07 MUNICIPIO D   miércoles  3.695972819565605
+  2026-01-07 MUNICIPIO E   miércoles  2.605357889201986
+  2026-01-07 MUNICIPIO F   miércoles  2.9833223227407015
+  2026-01-07 MUNICIPIO G   miércoles  2.498604575912421
+
+Modelo local: sha256 94e562dbfb34a6f308e1b47f80e28dc9a4a2bfc58ea33675963a0ab5d2a01939 (coincide con sha256_modelo de metadata.json)
+Comparación con /work/train/models/modelo_final.json (origen de α local: momentos); diferencia relativa máxima:
+  coeficientes  4.248798842213082e-12
+  mu_56_filas   3.416353505867013e-12
+  alpha         5.256744700594516e-13
+Criterio (<= 1e-06 en todo): CUMPLE
+
+Salidas en /outputs/runs/20261021_094404
+Corrida finalizada.
+=================================
+ Trabajo CPU finalizado
+ Fin: mié 21 oct 2026 09:44:04 -03
+ Resultados en: /data/models/grp04
+=================================

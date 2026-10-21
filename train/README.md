@@ -16,14 +16,16 @@ compara el resultado con la exportación local (`models/modelo_final.json`): dif
 coeficientes, en μ de las 56 filas de la semana del 01/01/2026 y en α. **Es una excepción declarada a la regla de
 lectura del bloque final (D51):** lee el panel completo para entrenar y no calcula ninguna métrica.
 
-No importa `src/`: el contenedor tiene pandas 1.5.3 (sin `stack(future_stack=True)`) y no tiene statsmodels ni
-`holidays`. Arma la matriz del conjunto (a) con numpy y pandas, ajusta el GLM con IRLS en numpy y calcula α por
+No importa `src/`: el contenedor no tiene statsmodels ni `holidays` (versiones medidas en la corrida del 21/10/2026,
+abajo). Arma la matriz del conjunto (a) con numpy y pandas, ajusta el GLM con IRLS en numpy y calcula α por
 momentos (plan B de D28; NB2 por máxima verosimilitud no se intenta). `tests/test_train_modelo_final.py` exige, con el
 panel de desarrollo, que la matriz sea idéntica a la de `src/` y que coeficientes, μ y α queden dentro de 1e-6 de
 statsmodels.
 
-**Estructura dentro de `/train`** (Jupyter; `Guia_entrenamientos_CPU_GPU.md`, §1). El script resuelve todas sus
-entradas relativas a su propia carpeta (`Path(__file__).parent`) e imprime las rutas resueltas al arrancar:
+**Estructura dentro de `/train`** (Jupyter; `Guia_entrenamientos_CPU_GPU.md`, §1). Dentro del trabajo, `/train` se
+monta como `/work/train` (el `.sbatch` del job 136 ejecuta `python /work/train/train_modelo_final.py`). El script
+resuelve todas sus entradas relativas a su propia carpeta (`Path(__file__).parent`) e imprime las rutas resueltas al
+arrancar:
 
 ```
 /train/
@@ -51,6 +53,12 @@ entradas relativas a su propia carpeta (`Path(__file__).parent`) e imprime las r
 `resumen_corrida.json`. Guardar el log en `documentacion/logs/log_servidor_modelo_final.txt`. La corrida está bien si
 el log dice `Criterio (<= 1e-06 en todo): CUMPLE` y el trabajo termina con código 0 (si no cumple, sale con código 1).
 
+**Corrida del 21/10/2026.** Job 136, RUN_ID `20261021_094404`: CUMPLE, y el sha256 del modelo coincide con
+`metadata.json` (log en `documentacion/logs/log_servidor_modelo_final.txt`; salidas en
+`documentacion/logs/servidor_modelo_final/`). El primer intento, job 135, se detuvo porque el panel no estaba en la ruta
+esperada (`... (NO EXISTE)`; `documentacion/logs/log_servidor_modelo_final_intento1_job135.txt`): la carpeta se había
+subido como `processed ` (con un espacio al final). Se corrigió el nombre y se reenvió.
+
 **Nota (2026-09-24):** `train_base.py` y `train_base_2.py` (versiones de `notebooks/base.ipynb` y
 `notebooks/base_2.ipynb`) se retiraron junto con esos notebooks, unificados en
 `notebooks/linea_base.ipynb`. Quedan preservados en la rama `entregable_2`. Si hace falta
@@ -76,11 +84,16 @@ debería enviarse con `submit_gpu`.
 - `submit_cpu` ejecuta el script dentro de un contenedor Apptainer fijo
   (`tensorflow_ngc_24.04_tf2_py3_mlcv.sif`, Python 3.10 del sistema), **separado** del entorno de la
   terminal de Jupyter: instalar algo con `pip` en Jupyter no tiene efecto sobre los trabajos.
-- **`/work` (donde vive `train/`) es de sólo lectura**; el único mount escribible es `/outputs`.
-  Por eso los scripts sólo leen de `/work` y escriben todo en `/outputs/runs/<RUN_ID>/`.
-- Versiones que trae el contenedor: `numpy 1.24.4`, `pandas 1.5.3`, `scikit-learn 1.2.0`,
-  `matplotlib 3.10.9`. **Los scripts tienen que depender sólo de eso**: agregar una librería
-  significa que el equipo del servidor la instale en la imagen, no instalarla desde acá.
+- **`/work` (donde vive `train/`; `/train` de Jupyter se monta como `/work/train`) es de sólo lectura**;
+  el único mount escribible es `/outputs`. Por eso los scripts sólo leen de `/work` y escriben todo en
+  `/outputs/runs/<RUN_ID>/`.
+- Versiones que trae el contenedor, **según el log del job 136 (21/10/2026)**: Python 3.10.12,
+  `numpy 1.26.4`, `pandas 2.3.3`, `scikit-learn 1.7.2`, `scipy 1.12.0`; **sin statsmodels ni
+  `holidays`**. El 18/09/2026 (job 104, `log_servidor_base.txt`), con la misma imagen, el log
+  registraba `numpy 1.24.4`, `pandas 1.5.3`, `scikit-learn 1.2.0` y `matplotlib 3.10.9`: el entorno
+  cambió entre ambas fechas, así que conviene leer las versiones del log de cada corrida. **Los
+  scripts tienen que depender sólo de lo que trae el contenedor**: agregar una librería significa
+  que el equipo del servidor la instale en la imagen, no instalarla desde acá.
 
 **Dato de entrada:** los scripts que entrenen sobre la serie de MUNICIPIO C leen
 `data/processed/panel_zona_top.csv` (no se versiona en git; generarlo con
@@ -95,5 +108,5 @@ corrida elegida a esa carpeta del repositorio.
 **Cómo verificar una corrida del servidor** (valores de referencia, desvianza de Poisson en el
 bloque final): media constante 1,2625; L0 1,3324; L1 (tasa × calendario) 1,0848; árbol
 candidato preliminar 1,6789 (`experiments/linea_base/tablas/05_evaluacion_test.csv`). El
-contenedor trae `scikit-learn 1.2.0` (localmente se probó con 1.9.0), así que conviene comparar:
-si difiere en algo, es la primera pista a revisar.
+contenedor traía `scikit-learn 1.2.0` el 18/09/2026 y `1.7.2` el 21/10/2026 (localmente se probó
+con 1.9.0), así que conviene comparar: si difiere en algo, es la primera pista a revisar.
