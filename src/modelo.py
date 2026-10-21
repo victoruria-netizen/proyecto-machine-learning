@@ -149,22 +149,37 @@ def entrenar(config: dict, panel_hasta: pd.DataFrame, ajustar_alpha: bool = True
 _CAMPOS_FECHA = ("origen", "desde", "hasta")
 
 
+def _sin_no_finitos(x):
+    "Reemplaza los float no finitos (NaN, ±inf) por None, para escribir JSON estándar (D55)."
+    if isinstance(x, dict):
+        return {k: _sin_no_finitos(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_sin_no_finitos(v) for v in x]
+    if isinstance(x, float) and not np.isfinite(x):
+        return None
+    return x
+
+
 def guardar_modelo(modelo: dict, ruta) -> None:
     """Escribe el GLM de ``entrenar`` en JSON (coeficientes, α y datos del ajuste), sin pickle.
 
     Sólo el GLM: μ = exp(X β) con la matriz de D31, así que los coeficientes bastan. Los float de JSON se escriben con
-    su ``repr`` y se leen exactos.
+    su ``repr`` y se leen exactos. JSON estándar (D55): un valor no finito, como ``alpha_mv`` cuando NB2 no converge,
+    se escribe como ``null``.
     """
     if modelo["modelo"] != "GLM":
         raise ValueError(f"sólo se guarda el GLM en JSON, no {modelo['modelo']}")
     out = dict(modelo)
     for c in _CAMPOS_FECHA:
         out[c] = pd.Timestamp(out[c]).strftime("%Y-%m-%d")
-    Path(ruta).write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    Path(ruta).write_text(json.dumps(_sin_no_finitos(out), ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
 
 
 def cargar_modelo(ruta) -> dict:
-    "Lee el JSON de ``guardar_modelo`` y devuelve el diccionario que espera ``predecir_semana`` (sin statsmodels, D54)."
+    """Lee el JSON de ``guardar_modelo`` y devuelve el diccionario que espera ``predecir_semana`` (sin statsmodels, D54).
+
+    Un ``alpha_mv`` no finito al guardar vuelve como None (D55); no interviene en la predicción.
+    """
     modelo = json.loads(Path(ruta).read_text(encoding="utf-8"))
     if modelo.get("modelo") != "GLM" or sorted(modelo["coeficientes"]) != sorted(modelo["columnas"]):
         raise ValueError(f"{ruta} no es un GLM guardado con guardar_modelo")

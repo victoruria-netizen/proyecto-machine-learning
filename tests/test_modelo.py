@@ -130,6 +130,26 @@ def test_guardar_y_cargar_ida_y_vuelta(sintetico, tmp_path):
                                   check_exact=True)
 
 
+def _json_estricto(ruta):
+    "json.loads que falla ante NaN, Infinity o -Infinity (no son JSON estándar)."
+    def rechazar(c):
+        raise ValueError(f"constante no estándar en el JSON: {c}")
+    return json.loads(ruta.read_text(encoding="utf-8"), parse_constant=rechazar)
+
+
+def test_guardar_escribe_alpha_no_finito_como_null(sintetico, tmp_path):
+    "D55: si NB2 no converge, alpha_mv es NaN; se guarda como null y la predicción no cambia."
+    p, origen, m = sintetico
+    m_nan = {**m, "alpha_mv": float("nan"), "nb2_convergio": False, "origen_alpha": "momentos"}
+    ruta = tmp_path / "modelo.json"
+    mod.guardar_modelo(m_nan, ruta)
+    assert _json_estricto(ruta)["alpha_mv"] is None
+    cargado = mod.cargar_modelo(ruta)
+    assert cargado["alpha_mv"] is None and cargado["alpha"] == m["alpha"]
+    pd.testing.assert_frame_equal(mod.predecir_semana(cargado, p, origen), mod.predecir_semana(m_nan, p, origen),
+                                  check_exact=True)
+
+
 def test_guardar_rechaza_xgboost(sintetico, tmp_path):
     p, origen, _ = sintetico
     m = mod.entrenar(mod.cargar_configuracion("contraste"), p[p["fecha"] < origen], ajustar_alpha=False)
