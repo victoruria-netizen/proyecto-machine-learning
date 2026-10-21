@@ -5321,3 +5321,98 @@ Se probó además en un clon limpio sin `data/` (entorno nuevo, Python 3.13.9) y
 streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1. README (sección del prototipo) probado con `streamlit run app/app.py` en el clon limpio (`/_stcore/health` en 200).
 **Archivos afectados:** `app/pagina_prediccion.py`, `app/assets/municipios_montevideo_simplificado.geojson`, `app/ORIGEN.md`, `tests/test_pipeline_inferencia.py`, `tests/test_app.py`,
 `documentacion/pruebas_pipeline.md`, `README.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-10-21 (E3, fase 6: documento de cambios al informe, D64) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** fase 6 del Entregable 3 en la rama `e3/fase-6-informe` (creada en la sesión desde el HEAD de `claude/festive-turing-yq1jd3`, que ya contenía las fases 0 a 5 mergeadas). Se creó
+`documentacion/cambios_informe.md` (insumo para redactar el informe en Claude web) y se actualizaron `HANDOFF.md` y este registro. Solo se leyeron archivos versionados; no se ejecutó
+ningún notebook, no se tocó código ni `experiments/`, y no se leyó el bloque final (ni `data/`, ni `predicciones_bloque_final.csv`).
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase 6, en la rama e3/fase-6-informe, si no esta creada, creala.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/fase-6-informe. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/fase-6-informe solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fase 6: documento de cambios al informe (D64). No redactes el informe: preparás el insumo
+> para redactarlo en Claude web. Solo leés archivos versionados; no ejecutes notebooks ni
+> leas el bloque final.
+>
+> Fuentes: el informe vigente en documentacion/informe/, resumen_modelos_candidatos.md,
+> resumen_evaluacion_final.md, pruebas_pipeline.md, app/ORIGEN.md, HANDOFF.md y la tabla de
+> cambios de abajo.
+>
+> Creá documentacion/cambios_informe.md con:
+> 1. Una sección por cada sección del informe vigente que cambia (número y título del
+>    informe): qué dice hoy (resumen breve con la línea), qué tiene que decir y los hechos
+>    que lo sostienen. Cada cifra con su artefacto (ruta y fila o columna) y cada decisión
+>    con su ID. Solo hechos, en viñetas cortas; nada de prosa lista para pegar.
+> 2. Las secciones nuevas de resultados (experimentación, solución y regla, evaluación final,
+>    análisis crítico y explicabilidad, prototipo y pruebas), con el mismo formato y
+>    separando «Los datos muestran» de «Lectura del equipo».
+> 3. La lista de tablas y figuras a incluir: número propuesto, título, ruta del archivo y
+>    sección donde va. Marcá cuáles van al anexo.
+> 4. Las limitaciones a declarar: las del §5 de resumen_evaluacion_final.md, el despliegue en
+>    el servidor pendiente (D69), las versiones del job 136 (no pandas 1.5.3), el lock con
+>    Python 3.13.9, la capa de municipios c5d9f651 y el α por momentos (D55).
+> 5. Las inconsistencias de Introducción, Marco conceptual y Referencias (2.3.2, 2.3.4 y
+>    otras), para el equipo. No las corrijas.
+> 6. Las frases prohibidas de todos los resúmenes, juntas.
+> 7. Al final, la lista de pendientes del equipo.
+>
+> Límite: el documento no supera 900 líneas. Si algo no entra, priorizá cifras y decisiones
+> sobre explicaciones.
+>
+> Tabla de cambios:
+> **Cambios al informe vigente**
+>
+> | Sección | Cambio | Quién |
+> | --- | --- | --- |
+> | 2.3.4 Árboles de decisión | Pasar de "árbol único, conjuntos como trabajo futuro" a XGBoost con pérdida Poisson como candidato | Equipo |
+> | 2.3.2 Respuesta al Comité | Indicar que la lista se cerró antes de comparar, y cuál fue | Equipo |
+> | 3.4.2 Variables | Calendario de 8 niveles derivado de la fecha, nivel del municipio, nivel reciente, rezagos de 7 días o más; lluvia excluida por no estar disponible al predecir (D14) | Claude |
+> | 3.4.3 Evaluación | Panel de 8 municipios; reentrenamiento semanal también en el bloque final, en lugar de "ajuste congelado" (D2); ventanas | Claude |
+> | Cuadro 3 | Medidas contra la fuga: dos notebooks, carga con recorte y `assert`, configuración commiteada antes de leer el test | Claude |
+> | 3.4.5 y Cuadro 4 | Lista nueva; L0 de 8 semanas (D17); árbol retirado (D4) | Claude |
+> | Nuevas secciones de resultados | Experimentación (pasos A, B, C); solución seleccionada y regla; evaluación final; análisis crítico y explicabilidad; prototipo y pruebas | Claude redacta, equipo valida |
+> | Discusión preliminar y conclusiones | Cumplimiento de objetivos, limitaciones, trabajo futuro | Borrador de Claude, reescritura del equipo |
+> | Glosario | GLM, binomial negativa, XGBoost, importancia por permutación | Claude |
+> | Referencias | Solo fuentes consultadas por el equipo, en APA 7. Si se cita XGBoost o la binomial negativa, el equipo aporta la fuente | Equipo |
+> | Corrida en el servidor (observación del 21/10) | Citar las versiones que registra el log del job 136 (Python 3.10.12, numpy 1.26.4, pandas 2.3.3, scikit-learn 1.7.2, scipy 1.12.0), no pandas 1.5.3. El job 137 muestra que el contenedor tiene instaladas dos versiones de numpy, pandas y scikit-learn; D56 suponía pandas 1.5.3. El resultado no cambia (job 136 reproduce el local con 1e-12) | Claude |
+>
+> Antes del commit, verificá que cada cifra del documento aparece en el artefacto que cita, y
+> decime cuántas verificaste. Un solo commit, sin push. DETENETE.
+
+**Respuesta (extracto relevante):** la rama `e3/fase-6-informe` no existía y se creó desde el HEAD (`0142520`, con las fases 0 a 5). Se creó `documentacion/cambios_informe.md` (~556 líneas): 11 secciones del
+informe vigente con su cambio (§1), las cinco secciones nuevas de resultados con «Los datos muestran» y «Lectura del equipo» (§2), 17 tablas y 17 figuras propuestas (una es la captura pendiente del prototipo) con ruta y marca de anexo (§3),
+limitaciones (§4), inconsistencias de Introducción, Marco y Referencias sin corregir (§5), frases prohibidas de cinco resúmenes (§6) y pendientes del equipo (§7). Se señalaron en el propio documento: (i) **D2, D4, D14 y D69
+no están definidas en ningún archivo versionado** (`grep`), se citaron como las dio el prompt y se pide al equipo que las confirme o las escriba en `HANDOFF.md`; (ii) **no hay log versionado del job 137**,
+de modo que esa observación quedó marcada `SIN ARTEFACTO`; (iii) `tablas/19_cumplimiento_objetivos.csv` marca el objetivo 4 como no cumplido porque es anterior a la fase 5.
+
+**Uso y verificación:** utilizado, con las advertencias de arriba. Verificación de cifras con un script en el directorio temporal de la sesión (sin artefacto en el repositorio): cada número con decimales, exponente o separador
+de miles de cada línea se buscó en las fuentes citadas por esa línea (celdas numéricas de los CSV con redondeo al número de decimales escrito, números del JSON o del texto del documento citado): **299 de 299 halladas**;
+los enteros de 2 o 3 cifras (conteos de cortes, filas, líneas de log) se comprobaron aparte: 173 de 195 halladas en las fuentes citadas y las 22 restantes revisadas a mano (recuentos de filas de las tablas, referencias a líneas del
+informe o del log). Comprobaciones puntuales por fila y columna con `pandas` (`MC34`, `MC38`, `MC39`, `MC40`, `MC42`, `EF07`, `EF10`, `EF11`, `EF12`, `EF14`, `EF16`, `EF17`) detectaron dos redacciones imprecisas («seis municipios con
+residuo positivo» eran siete; un rango de desvianza mal rotulado) que se corrigieron. No se ejecutó `pytest` (el contenedor de la sesión no tiene el entorno del proyecto) porque no se cambió código; las líneas del informe citadas
+(`L<n>`) se comprobaron contra el archivo.
+**Archivos afectados:** `documentacion/cambios_informe.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
