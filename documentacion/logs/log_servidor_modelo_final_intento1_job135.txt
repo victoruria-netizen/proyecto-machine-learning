@@ -1,0 +1,45 @@
+=================================
+ Trabajo CPU enviado por Slurm
+ Grupo: grp04
+ Host: lidia
+ Job ID: 135
+ Script: train_modelo_final.py
+ Workspace: /srv/data-platform/grp04/workspace
+ Outputs: /data/models/grp04
+ Imagen: /opt/apptainer-images/tensorflow_ngc_24.04_tf2_py3_mlcv.sif
+ Partición: cpu
+ CPUs asignadas: 4
+ Memoria solicitada: 12G
+ Tiempo máximo: 04:00:00
+ Inicio: mié 21 oct 2026 09:27:03 -03
+=================================
+Límites de paralelismo CPU:
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+LOKY_MAX_CPU_COUNT=4
+=================================
+CPU affinity dentro del batch antes de srun:
+pid 1543485's current affinity list: 0,1,12,13
+cpu-bind=MASK - lidia, task  0  0 [1543504]: mask 0x3003 set
+=== train_modelo_final.py ===
+run_id              : 20261021_092704
+slurm_job_id        : 135
+slurm_job_name      : grp04_cpu_train_modelo_final
+slurm_log_file      : /outputs/logs/grp04_cpu_train_modelo_final_135.out
+slurm_cpus_per_task : 4
+output_dir          : /outputs/runs/20261021_092704
+Excepción declarada (D51): lee el panel completo, incluido el bloque final; entrena y no evalúa.
+Implementación: IRLS en numpy (mínimos cuadrados ponderados con numpy.linalg.lstsq; arranque μ = (y + media(y))/2, como statsmodels; corta cuando el cambio relativo de la desvianza es <= 1e-12)
+α: por momentos (plan B de D28); NB2 por máxima verosimilitud no se intenta (sin statsmodels).
+Versiones del entorno: {"python": "3.10.12", "numpy": "1.26.4", "pandas": "2.3.3", "scikit-learn": "1.7.2", "scipy": "1.12.0", "statsmodels": "no instalado", "holidays": "no instalado"}
+Plataforma: Linux-5.15.0-179-generic-x86_64-with-glibc2.35
+
+Rutas resueltas (relativas a la carpeta del script):
+  script   : /work/train/train_modelo_final.py
+  panel    : /work/train/data/processed/panel_diario_montevideo.csv (NO EXISTE)
+  modelo   : /work/train/models/modelo_final.json (existe)
+  metadata : /work/train/models/metadata.json (existe)
+No está el panel /work/train/data/processed/panel_diario_montevideo.csv: copiarlo a data/processed/ junto al script (train/README.md).
+srun: error: lidia: task 0: Exited with exit code 1

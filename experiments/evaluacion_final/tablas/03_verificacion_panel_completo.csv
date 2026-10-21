@@ -1,0 +1,10 @@
+verificación,ok
+sha256 del panel = el registrado en diagnostico_municipios/tablas/00_procedencia.csv,True
+"1.645 días, de 2021-07-01 a 2025-12-31, sin huecos",True
+8 municipios,True
+"13.160 filas, sin pares (fecha, municipio) repetidos",True
+"objetivo sin nulos, entero y no negativo",True
+tipo_dia con los tres niveles del ETL,True
+la parte de desarrollo es idéntica a cargar_panel_desarrollo(),True
+"bloque final: 329 días, de 2025-02-06 a 2025-12-31",True
+47 cortes de 7 días; el último termina el 2025-12-31,True

@@ -1,0 +1,36 @@
+modelo,metrica,recalculado,guardado,fuente,diferencia,ok
+GLM Poisson (a) [deslizante 364 d],desvianza_poisson,1.2205129799581895,1.220513,modelos_candidatos/tablas/26,-2.0041810433468754e-08,True
+GLM Poisson (a) [deslizante 364 d],error_estandar_47_cortes,0.0363940343329154,0.036394,modelos_candidatos/tablas/26,3.433291539955974e-08,True
+GLM Poisson (a) [deslizante 364 d],mae,1.4067058105823806,1.406706,modelos_candidatos/tablas/26,-1.8941761936730472e-07,True
+GLM Poisson (a) [deslizante 364 d],rmse,1.7881549463193809,1.788155,modelos_candidatos/tablas/26,-5.368061906096955e-08,True
+GLM Poisson (a) [deslizante 364 d],razon_total,0.9716554967223384,0.971655,modelos_candidatos/tablas/26,4.967223383722796e-07,True
+GLM Poisson (a) [expansiva],desvianza_poisson,1.230203854288787,1.230204,modelos_candidatos/tablas/26,-1.457112130953675e-07,True
+GLM Poisson (a) [expansiva],error_estandar_47_cortes,0.035934273909596595,0.035934,modelos_candidatos/tablas/26,2.7390959659451264e-07,True
+GLM Poisson (a) [expansiva],mae,1.4013104152191938,1.40131,modelos_candidatos/tablas/26,4.152191936945826e-07,True
+GLM Poisson (a) [expansiva],rmse,1.7950999725309322,1.7951,modelos_candidatos/tablas/26,-2.7469067687135862e-08,True
+GLM Poisson (a) [expansiva],razon_total,0.9340945208725308,0.934095,modelos_candidatos/tablas/26,-4.791274692550473e-07,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],desvianza_poisson,1.228034064485783,1.228034,modelos_candidatos/tablas/26,6.448578293571927e-08,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],error_estandar_47_cortes,0.0376693637325172,0.037669,modelos_candidatos/tablas/26,3.6373251719595823e-07,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],mae,1.417788448123584,1.417788,modelos_candidatos/tablas/26,4.481235840181341e-07,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],rmse,1.79605182081909,1.796052,modelos_candidatos/tablas/26,-1.7918090988722213e-07,True
+XGBoost (a) d=2 n=100 lr=0.1 [deslizante 364 d],razon_total,0.9711831494216356,0.971183,modelos_candidatos/tablas/26,1.4942163562015054e-07,True
+Media constante,desvianza_poisson,1.3967067456417122,1.396707,modelos_candidatos/tablas/05 y 08,-2.543582877656547e-07,True
+Media constante,error_estandar_47_cortes,0.04465382462368057,0.044654,modelos_candidatos/tablas/05 y 08,-1.7537631943204124e-07,True
+Media constante,mae,1.5209044122262965,1.520904,modelos_candidatos/tablas/05 y 08,4.1222629643122843e-07,True
+Media constante,rmse,1.921242475294342,1.921242,modelos_candidatos/tablas/05 y 08,4.7529434210602517e-07,True
+Media constante,razon_total,0.9305377800205124,0.930538,modelos_candidatos/tablas/05 y 08,-2.1997948762564334e-07,True
+L0 (8 semanas),desvianza_poisson,1.3626440359755132,1.362644,modelos_candidatos/tablas/05 y 08,3.5975513235086964e-08,True
+L0 (8 semanas),error_estandar_47_cortes,0.04140657230041207,0.041407,modelos_candidatos/tablas/05 y 08,-4.276995879265444e-07,True
+L0 (8 semanas),mae,1.4956781914893618,1.495678,modelos_candidatos/tablas/05 y 08,1.9148936170054753e-07,True
+L0 (8 semanas),rmse,1.8957830568280303,1.895783,modelos_candidatos/tablas/05 y 08,5.682803028150829e-08,True
+L0 (8 semanas),razon_total,1.0066976040021063,1.006698,modelos_candidatos/tablas/05 y 08,-3.9599789380950767e-07,True
+L1 (nivel x calendario de 8 niveles),desvianza_poisson,1.2318794451088209,1.231879,modelos_candidatos/tablas/05 y 08,4.4510882091230997e-07,True
+L1 (nivel x calendario de 8 niveles),error_estandar_47_cortes,0.03582070651238832,0.035821,modelos_candidatos/tablas/05 y 08,-2.9348761167863335e-07,True
+L1 (nivel x calendario de 8 niveles),mae,1.4005859245371215,1.400586,modelos_candidatos/tablas/05 y 08,-7.54628786125977e-08,True
+L1 (nivel x calendario de 8 niveles),rmse,1.7960074446943797,1.796007,modelos_candidatos/tablas/05 y 08,4.446943797642433e-07,True
+L1 (nivel x calendario de 8 niveles),razon_total,0.9304901891903248,0.93049,modelos_candidatos/tablas/05 y 08,1.8919032473974084e-07,True
+GLM Poisson (a) [deslizante 364 d],alpha de NB2 (máx. |dif.| en 47 cortes),4.917677537616405e-07,0.0,modelos_candidatos/tablas/45,4.917677537616405e-07,True
+GLM Poisson (a) [deslizante 364 d],cobertura NB2 80 %,0.8882978723404256,0.888298,modelos_candidatos/tablas/46,-1.276595744670317e-07,True
+GLM Poisson (a) [deslizante 364 d],cobertura NB2 95 %,0.9787234042553191,0.978723,modelos_candidatos/tablas/46,4.042553191085929e-07,True
+GLM Poisson (a) [deslizante 364 d],cobertura Poisson 80 %,0.8712006079027356,0.871201,modelos_candidatos/tablas/46,-3.9209726443445447e-07,True
+GLM Poisson (a) [deslizante 364 d],cobertura Poisson 95 %,0.973404255319149,0.973404,modelos_candidatos/tablas/46,2.553191489340634e-07,True

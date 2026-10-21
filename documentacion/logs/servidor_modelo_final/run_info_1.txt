@@ -1,0 +1,6 @@
+run_id=20261021_094404
+slurm_job_id=136
+slurm_job_name=grp04_cpu_train_modelo_final
+slurm_log_file=/outputs/logs/grp04_cpu_train_modelo_final_136.out
+slurm_cpus_per_task=4
+output_dir=/outputs/runs/20261021_094404

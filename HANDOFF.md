@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-20 (fix de la review R2, fases 2 y 3 del E3)_
+_Última actualización: 2026-10-21 (E3, fase 4: evaluación final ejecutada y modelo final exportado; verificado en el servidor, job 136)_
 
 ---
 
@@ -1994,6 +1994,107 @@ D46. Es una declaración del equipo; no hay otro artefacto que la respalde.
 
 **Estado:** los cambios de esta sesión quedaron commiteados en `e3/fase-3-seleccion` (mensaje «Fix de la review R2 (D46, D47)…»; el hash
 está en `git log`), sin push y nunca en `main`. **Próximo:** la review corta y el merge; después, la fase 4.
+
+### Entregable 3, fase 4: paso 4a y preparación del 4b (2026-10-20, sesión de Claude)
+
+**Rama:** `e3/fase-4-evaluacion-final`. Informe del equipo commiteado aparte (`24b790e`). Entrada en curso: se completa al cerrar la fase 4.
+
+**Decisiones del equipo de esta sesión** (texto completo en la celda de precisiones de `notebooks/evaluacion_final.ipynb` y en
+`resumen_evaluacion_final.md` §1.1):
+- **D48:** modelos de la evaluación final (solución, sensibilidad, contraste y referencias) e intervalos según D44.
+- **D50:** reproducción de la fase 2 con doble control (1e-9 contra el camino de la fase 2 reconstruido en el test; tolerancia de redondeo
+  contra `tablas/31`, `45`, `46`); `entrenar` recibe el panel recortado y `src/modelo.py` no lee archivos; **fallback de NB2: plan B de
+  D28 y Poisson solo si no da α positivo** (reemplaza a D48 en ese punto); `var.tipo_dia` para las fechas fuera del panel.
+- **D51:** intervalos solo para la solución; exportación local dentro del notebook después del registro; `train/train_modelo_final.py` es
+  una excepción declarada a la regla de lectura del bloque final; `historia_reciente.csv` fuera del alcance; tolerancia de los tests 6e-7.
+- **D52:** elecciones de análisis (propuestas por la IA y confirmadas con dos ajustes): el registro de ejecución compara reejecuciones con
+  tolerancia relativa 1e-10; el estado de cada objetivo se fija antes y la tabla lleva los resultados del test como evidencia.
+
+**Hecho.** `src/modelo.py`, `var.tipo_dia` y `tests/test_modelo.py` (`pytest`: 33 pasados). El notebook se escribió y **no se ejecutó**:
+sus secciones 0 a 3, sin el bloque final, se probaron aparte y reproducen las 35 cifras de validación comprobadas.
+`resumen_evaluacion_final.md` es por ahora un esqueleto, con «Diferencias con el informe» (6 puntos, lista abierta).
+
+**Próximo:** commit y push de la rama **antes** de ejecutar; ejecución con `nbconvert` (cerrar antes visores y sincronizadores); paso 4c.
+
+### Entregable 3, fase 4: ejecución del 4b y paso 4c (2026-10-20/21, sesión de Claude)
+
+**Rama:** `e3/fase-4-evaluacion-final`. Commits: `3852498` (ejecución oficial, pusheado), `ba17c8d` y `42fe260` (código de la exportación
+y fixes de D55), `d93cf0c` (reejecución con `models/`), `7f53fe5`, `037851b` y `3dc9d78` (script del servidor), `c235ce2` y `6be0383`
+(D58: JSON en LF y reejecución vigente), `82c0c3a` (script, D58); todos pusheados. El commit final de la fase lleva el resumen, el
+HANDOFF, el registro de IA, `train/README.md` y los archivos de la corrida del servidor (`documentacion/logs/`).
+
+**Decisiones del equipo de esta sesión** (texto completo en `resumen_evaluacion_final.md` §1.2):
+- **D53:** los resultados de la ejecución oficial se commitean tal como salieron; `registro_ejecucion.csv` queda con `arbol_limpio = False`
+  (calculado después de que la ejecución creara `experiments/evaluacion_final/`; la evidencia de árbol limpio es `86630a3`, pusheado antes
+  de ejecutar); la exportación va en celdas nuevas al final, con el código commiteado antes de reejecutar.
+- **D54:** `fuentes_limpias` en lugar de `arbol_limpio` en `metadata.json` (git status excluyendo `experiments/` y `models/`); cargar y
+  predecir sin statsmodels ni xgboost (scipy y `holidays` se mantienen), con test que los bloquea en `sys.modules`.
+- **D55:** fix de la celda 32 (el índice se listaba a sí mismo: 27 → 28 filas), excepción declarada a D53; marcas de tiempo y salidas de
+  las celdas 7 y 26 aceptadas en el diff; α ausentes como `null`; declarar el α por momentos del modelo exportado.
+- **D56:** `train/train_modelo_final.py`: criterio ≤ 1e-6 (coeficientes, μ de 56 filas, α); autocontenido (el contenedor no tiene
+  statsmodels ni `holidays`): matriz propia con test contra `src/`, IRLS en numpy, α por momentos, calendario constante verificado. Se
+  diseñó con las versiones del 18/09 (pandas 1.5.3); el contenedor del 21/10 tenía pandas 2.3.3 (ver abajo).
+- **D58:** `models/*.json` con fin de línea LF (`guardar_modelo`, celda de metadata y `.gitattributes`), para que `sha256_modelo` de
+  `metadata.json` coincida con el archivo en git; el script del servidor informa «coincide / no coincide» sin detener la corrida.
+- Además (sin número en esta sesión): rutas del script relativas a su carpeta (`/train`) y `run_info.txt` según la guía del servidor.
+
+- **D57:** la guía del servidor (`Guia_entrenamientos_CPU_GPU`) es la fuente para lo que corre en él; la corrida la hace el equipo y solo
+  esa cuenta como evidencia; la prueba en el entorno simulado es un chequeo previo y no va al informe.
+
+**Hecho.**
+- **Ejecución oficial (4b):** primera ejecución completa el 2026-10-20T19:28:50 sobre `86630a3`, 0 errores. Control en validación: 35/35.
+  Bloque final (`tablas/06`): solución 1,1063, contraste 1,1198, sensibilidad 1,1329, L1 1,1359, L0 1,2432, media constante 1,3152.
+  Un intento previo falló en la celda 3 por lanzar `nbconvert` sin activar el `.venv` (Python 3.13.9 del sistema): **no leyó el bloque
+  final**. Lección: siempre `.venv\Scripts\Activate.ps1` y verificar `python` antes de `nbconvert`.
+- **Exportación (4c):** sección 13 del notebook (4 celdas nuevas). `src/modelo.py`: `guardar_modelo`/`cargar_modelo` (JSON, sin pickle),
+  statsmodels y xgboost solo dentro de `entrenar`. Reejecución sobre `42fe260`: registro reproducido (2,51e-15), índice de 27 filas igual a
+  `3852498`, `git diff` sobre `experiments/` vacío, JSON sin NaN. Versión vigente: reejecución sobre `c235ce2` (D58), commiteada en
+  `6be0383`, con los mismos chequeos y coeficientes, α y μ idénticos (durante esa reejecución los tres documentos sin commitear se
+  apartaron con `git stash`, porque no participan del cálculo, y se restauraron después). `models/modelo_final.json` (1.335 bytes) y `metadata.json`
+  (4.001 bytes), en LF; `sha256_modelo` verificado contra `git show HEAD:models/modelo_final.json`. α = 0,009395 **por momentos** (NB2
+  no convergió en la ventana final; también pasó en los cortes 45 y 47 del test).
+- **Script del servidor:** `train/train_modelo_final.py` y `tests/test_train_modelo_final.py` (`pytest`: **45 pasados**). Rutas
+  relativas a la carpeta del script (`/train`, con `data/processed/` y `models/` al lado) y `run_info.txt` según la guía del servidor
+  (§11), por indicación del equipo; reemplaza la búsqueda de raíz de `037851b`. Chequeo previo en un `/train` simulado con las versiones
+  del 18/09 (Python 3.10, pandas 1.5.3) y los JSON de git: corre. **No es evidencia del servidor.** Instrucciones en `train/README.md`.
+- **Corrida en el servidor (la hizo el equipo):** job 136, RUN_ID `20261021_094404`, 21/10/2026. Contenedor: Python 3.10.12, numpy
+  1.26.4, pandas 2.3.3, scikit-learn 1.7.2, scipy 1.12.0, sin statsmodels ni `holidays`; `/train` se monta como `/work/train`. sha256 del
+  panel y del modelo: coinciden. Diferencia relativa máxima contra `models/modelo_final.json`: coeficientes 4,25e-12, μ 3,42e-12, α
+  5,26e-13 → **CUMPLE**. Fuentes: `documentacion/logs/log_servidor_modelo_final.txt` y `documentacion/logs/servidor_modelo_final/`.
+  `models/modelo_final.json` no se reemplazó. Primer intento, job 135: no encontró el panel porque la carpeta se subió como `processed `
+  (con un espacio al final); se corrigió y se reenvió (`log_servidor_modelo_final_intento1_job135.txt`).
+- **Documentación:** `resumen_evaluacion_final.md` completo (con §4.3), «Diferencias con el informe» (10 puntos) y objetivos;
+  `train/README.md` con la estructura de `/train` y las versiones del contenedor del 21/10.
+- **Pendiente menor:** los comentarios de `train/train_modelo_final.py` y el docstring de `tests/test_train_modelo_final.py` todavía
+  citan las versiones del 18/09 (pandas 1.5.3); no se tocaron para que el script commiteado siga siendo el que corrió en el servidor.
+
+**Próximo:** review de la fase 4; después, fase 5 (prototipo) y fase 6 (alinear el informe, D49).
+
+### Entregable 3, fase 4: fix de la review R3 (2026-10-21, sesión de Claude)
+
+La review R3 (`documentacion/reviews/E3_fase_4.md`) desaprobó la fase por F4-B5. Fix sin review posterior; no se tocaron `notebooks/`,
+`experiments/`, `models/`, `src/` ni `train/`, y no se leyó el bloque final.
+
+**Decisiones D59 a D65** (las de este fix; D57 está arriba):
+- **D60 (F4-B5):** `tests/test_modelo.py::test_modelo_exportado_reproduce_la_prediccion_del_servidor`: sha256 de `models/modelo_final.json`
+  = el de `metadata.json`; carga con `cargar_modelo`; predice la semana con origen 2026-01-01 sin historia (D51); las 56 μ contra
+  `documentacion/logs/servidor_modelo_final/prediccion_semana_2026-01-01.csv` (job 136), diferencia relativa máxima ≤ 1e-6 (D56).
+  Compara contra el servidor, no contra el notebook. `pytest`: **46 pasados**.
+- **D61:** cada reejecución reescribe `commit_base` y `fecha_generacion` de `metadata.json`; es el único diff aceptado en `models/`.
+- **D65:** `predicciones_bloque_final.csv` versiona los conteos observados del bloque final; el equipo confirmó el 21/10/2026 que
+  versionarlos no viola las restricciones de uso de los datos de UNASEV.
+- **D59:** acción sobre R3 (desaprobada solo por F4-B5). Fix mínimo en la misma rama, en Sonnet, sin review completa nueva. Control: `pytest`
+  completo, `git diff` limitado a los archivos del prompt y diff vacío en `notebooks/`, `experiments/`, `models/`, `src/` y `train/`; el equipo
+  verifica y hace el `merge --no-ff`. Motivo: uso disponible bajo; R3 verificó por su cuenta la propiedad de F4-B5 (3,42e-12 contra el
+  servidor), faltaba el test.
+- **D62:** alcance del fix: F4-B5 más las observaciones 3 a 7 de R3, solo en texto; los riesgos fuera de criterios se declaran en §5 del resumen.
+- **D63:** la fase 5 no tiene review. Sonnet; la sesión muestra cada criterio F5 con su evidencia y el equipo hace la prueba manual y el clon
+  limpio antes del merge. Prompt corregido: sin `historia_reciente.csv` (D51); «Histórico» lee `predicciones_bloque_final.csv` sin recalcular.
+- **D64:** fase 6: Claude Code genera un documento con los cambios necesarios en el informe y la redacción se hace en Claude web.
+
+**Resumen (`resumen_evaluacion_final.md`):** commit del modelo `d93cf0c` (`git log -- models/modelo_final.json`); D57 en §1.2; §3.2 y §3.4
+con las inferencias bajo «Lectura del equipo»; coberturas con la esperada por el modelo (de `tablas/17` y `modelos_candidatos/tablas/46`);
+limitaciones 9 a 12 (D61, log sin versión del script, deuda de pandas 1.5.3, D65); el test nuevo en §1.3. Cifras sin cambios.
 
 ## 4. Pendiente (próximos pasos)
 

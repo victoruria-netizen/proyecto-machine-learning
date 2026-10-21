@@ -17,6 +17,7 @@ encontró aporte fuera de muestra (resumen_diagnostico_municipios.md, §7.5). No
 columna de lluvia en este módulo.
 """
 
+import holidays
 import numpy as np
 import pandas as pd
 
@@ -28,6 +29,7 @@ DIAS_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", 
 NIVELES_CALENDARIO = DIAS_SEMANA + ["feriado"]
 ZONA_A = "MUNICIPIO A"
 _TIPOS_DIA = {"entre_semana", "fin_semana", "feriado"}
+CATEGORIAS_FERIADO = ("public", "bank")      # las del ETL: incluye Carnaval y Semana de Turismo
 
 COLUMNAS_A_X_CALENDARIO = [f"a_x_{n}" for n in NIVELES_CALENDARIO]
 
@@ -44,6 +46,23 @@ def _serie_diaria(obs: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------------------------- calendario
+def tipo_dia(fechas) -> pd.Series:
+    """``tipo_dia`` del ETL para fechas que no están en el panel (p. ej. la semana a predecir).
+
+    Misma regla que ``construir_calendario`` de ``notebooks/preparacion_montevideo.ipynb``: feriado
+    según ``holidays`` (Uruguay, ``CATEGORIAS_FERIADO``), si no ``fin_semana`` el sábado y el
+    domingo, si no ``entre_semana``. Los feriados se conocen de antemano: no hay fuga. Devuelve una
+    Serie indexada por las fechas (decisión D50).
+    """
+    fechas = pd.DatetimeIndex(fechas)
+    fer = holidays.country_holidays("UY", years=range(fechas.min().year, fechas.max().year + 1),
+                                    categories=CATEGORIAS_FERIADO)
+    es_feriado = np.array([d in fer for d in fechas.date])
+    es_finde = fechas.dayofweek >= 5
+    return pd.Series(np.select([es_feriado, es_finde], ["feriado", "fin_semana"], default="entre_semana"),
+                     index=fechas, name="tipo_dia")
+
+
 def calendario_8(panel: pd.DataFrame) -> pd.Series:
     """Calendario de 8 niveles: lunes ... domingo, más feriado.
 

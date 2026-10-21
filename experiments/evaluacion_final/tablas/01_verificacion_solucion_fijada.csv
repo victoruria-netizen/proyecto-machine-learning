@@ -1,0 +1,7 @@
+verificación,ok
+"el JSON tiene un único commit en la historia, y es 1560a5b",True
+el JSON del árbol de trabajo es idéntico al de 1560a5b,True
+1560a5b es antecesor de HEAD,True
+todo commit de este notebook es posterior a 1560a5b,True
+el JSON declara bloque_final_leido = false,True
+decisión D42,True
