@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-21 (E3, fase 4: evaluación final ejecutada y modelo final exportado; verificado en el servidor, job 136)_
+_Última actualización: 2026-10-21 (E3, fase 5: prototipo TRL 5 con la pestaña «Predicción (PAA)» y sus pruebas; falta la prueba manual y el clon limpio del equipo, D63)_
 
 ---
 
@@ -2095,6 +2095,38 @@ La review R3 (`documentacion/reviews/E3_fase_4.md`) desaprobó la fase por F4-B5
 **Resumen (`resumen_evaluacion_final.md`):** commit del modelo `d93cf0c` (`git log -- models/modelo_final.json`); D57 en §1.2; §3.2 y §3.4
 con las inferencias bajo «Lectura del equipo»; coberturas con la esperada por el modelo (de `tablas/17` y `modelos_candidatos/tablas/46`);
 limitaciones 9 a 12 (D61, log sin versión del script, deuda de pandas 1.5.3, D65); el test nuevo en §1.3. Cifras sin cambios.
+
+### Entregable 3, fase 5: prototipo TRL 5 (2026-10-21, sesión de Claude)
+
+**Rama:** `e3/fase-5-prototipo`. Commits: `324fc91` (paso 5a) y `935de76` (paso 5b); el 5c queda para el commit final, que el equipo confirma. Sin review (D63).
+
+**Decisiones del equipo de esta sesión** (D66 a D68 vienen del prompt de la fase; D70 la fijó el equipo en esta sesión):
+- **D66:** el dashboard vigente del PID (`dashboard/`, commit `f803bd6`) se copia sin cambios en `app/`. **D67:** las páginas heredadas no se tocan; la pestaña
+  nueva funciona sin bases de datos y las heredadas pueden mostrar su error. **D68:** versiones del servidor para el paso 5b (**corregida por D70**).
+- **D70:** el Streamlit de referencia del servidor es 1.57.0 (el del docstring de `ui.py`), no 1.35.0 (que venía del `requirements.txt` del Dockerfile). La pestaña
+  usa solo funciones de streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1. `app/requirements.txt` (el de Docker) no se tocó.
+- Dependencias de `app/` agregadas a `requirements.txt`: streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3, psycopg2-binary 2.9.13, pymongo **4.18.2** (la 4.18.3 tenía 13 días),
+  SQLAlchemy **2.0.54** (sin versión en el prompt; la 2.1.x es reciente y cambia de serie), python-dotenv 1.2.4. `streamlit-option-menu` no se agregó (nada lo importa;
+  `ui.render_navbar` usa `st.radio`). Lock regenerado en un entorno limpio **con Python 3.13.9** (aceptado por el equipo; solo agrega paquetes).
+- Capa de municipios simplificada a partir de la copia local `c5d9f651…` (no la `ed0ba13e…` que registra el ETL); aceptado por el equipo y declarado en `app/ORIGEN.md`.
+  `use_container_width` aceptado pese al aviso de deprecación de Streamlit 1.65.
+
+**Hecho.**
+- `app/app.py`: solo la entrada en `NAV`, su ícono en `NAV_ICONS` y la rama `elif` hacia `pagina_prediccion.render()`. `app/ORIGEN.md` con procedencia y cambios.
+  Verificado que `streamlit run app/app.py` arranca sin bases de datos ni `.env` (la página heredada inicial muestra su error de PostgreSQL, como se esperaba).
+- `app/pagina_prediccion.py`: modo «Próxima semana» (01/01/2026 al 07/01/2026, 8 municipios, intervalos del 80 % y 95 %, vía `src/modelo.py` y `models/modelo_final.json`, sin historia, D51) y
+  modo «Histórico» (47 semanas del bloque final, leídas de `predicciones_bloque_final.csv` sin recalcular, D63). Mapa pydeck por municipio, barras, líneas y tabla.
+  Errores claros por semana fuera de rango y por archivo ausente.
+- `tests/test_pipeline_inferencia.py` (24) y `tests/test_app.py` (6). `pytest`: **76 pasadas** (antes 46). En un clon limpio sin `data/`: 66 pasadas y 10 saltadas (las que necesitan el panel).
+  Las 30 nuevas también pasan con streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1. Detalle y errores hallados en `documentacion/pruebas_pipeline.md`.
+- README: sección «Prototipo / dashboard (sin reentrenar)» y el estado de las dependencias.
+
+**Errores hallados por las pruebas (corregidos):** mensaje de archivo ausente que fallaba con rutas fuera del repositorio; la capa simplificada traía el Municipio CH como `MultiPolygon`
+con un fragmento de 5 vértices y `datos_mapa` lo armaba mal (el commit `935de76` trae ese defecto; se corrige en el commit final); una prueba mía que dejaba el módulo modificado.
+
+**Pendiente del equipo (D63):** mirar el mapa y los gráficos en un navegador (AppTest no los dibuja), repetir el clon limpio con el README y hacer el `merge --no-ff`.
+`app/data/` y `app/logs/` los crea `config.py` al importarse (vacías; no se ignoran en `.gitignore` por decisión del equipo).
+**Próximo:** fase 6, alinear el informe (D49, D64).
 
 ## 4. Pendiente (próximos pasos)
 

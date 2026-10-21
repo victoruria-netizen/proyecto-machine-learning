@@ -55,7 +55,11 @@ class ErrorEntrada(Exception):
 # ------------------------------------------------------------------------------- carga y validación
 def _exigir_archivo(ruta: Path, que: str) -> None:
     if not Path(ruta).is_file():
-        raise ErrorEntrada(f"No se encontró {que}: {Path(ruta).relative_to(_RAIZ).as_posix()}. "
+        try:
+            mostrada = Path(ruta).resolve().relative_to(_RAIZ).as_posix()
+        except ValueError:
+            mostrada = str(ruta)
+        raise ErrorEntrada(f"No se encontró {que}: {mostrada}. "
                            "Verificá que el repositorio esté completo (git pull); no hace falta reentrenar nada.")
 
 
@@ -141,8 +145,11 @@ def datos_mapa(valores: pd.Series, capa: dict) -> pd.DataFrame:
         if nombre not in valores.index:
             raise ErrorEntrada(f"La capa de municipios trae {nombre}, que no está en la predicción.")
         v = float(valores[nombre])
-        filas.append({"municipio": nombre, "polygon": f["geometry"]["coordinates"][0], "esperado": v,
-                      "texto": f"{v:.1f}".replace(".", ","), "color": _rampa(v, minimo, maximo)})
+        g = f["geometry"]
+        anillos = [g["coordinates"][0]] if g["type"] == "Polygon" else [p[0] for p in g["coordinates"]]   # contorno exterior
+        for anillo in anillos:
+            filas.append({"municipio": nombre, "polygon": anillo, "esperado": v,
+                          "texto": f"{v:.1f}".replace(".", ","), "color": _rampa(v, minimo, maximo)})
     return pd.DataFrame(filas)
 
 

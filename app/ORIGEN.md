@@ -48,5 +48,8 @@ psycopg2-binary, pymongo, SQLAlchemy y python-dotenv. `streamlit-option-menu` no
   en la copia usada para esta fase. **Ojo:** `experiments/etl_montevideo/tablas/03b_procedencia_capa_zonas.csv` registra otra huella
   para ese archivo (`ed0ba13e…`); `HANDOFF.md` ya consigna que existió una copia con la huella `c5d9f651…` y que no se sabe en qué difería.
   Los 8 polígonos y sus nombres coinciden; la simplificación no se hizo sobre la copia registrada por el ETL.
-- **Transformación:** se conservaron solo el campo `municipio` (con el prefijo `MUNICIPIO `, como en el panel) y la geometría; se simplificó con
-  `geopandas` (`simplify(0.0003, preserve_topology=True)`, unos 30 m) y se escribió con 5 decimales. Sirve para colorear el mapa, no para medir áreas ni límites.
+- **Transformación:** se conservaron solo el campo `municipio` (con el prefijo `MUNICIPIO `, como en el panel) y la geometría. Se simplificó con
+  `geopandas` (`simplify(0.0003, preserve_topology=True)`, unos 30 m), se llevó a una grilla de 5 decimales con `shapely.set_precision(…, 1e-5)` y
+  se conservó el polígono de mayor área de cada municipio. Motivo de este último paso: redondear a 5 decimales partió el contorno del
+  Municipio CH en un polígono más un fragmento de 5 vértices, y esa forma rompía el armado del mapa; lo detectó `tests/test_pipeline_inferencia.py`.
+  Sirve para colorear el mapa, no para medir áreas ni límites.

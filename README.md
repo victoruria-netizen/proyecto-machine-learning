@@ -108,7 +108,9 @@ convierte un nulo en el texto `"nan"` en pandas 2.x; el caso está documentado e
 ningún notebook importaba: pyarrow, seaborn, xgboost, lightgbm, streamlit, streamlit-folium,
 python-dotenv y pytest. **El 2026-10-13 volvieron `xgboost==3.4.1` y `pytest==9.1.1`** (Entregable 3:
 candidato XGBoost y pruebas de `tests/`); el lock se regeneró en un entorno limpio y ningún otro pin
-cambió. `streamlit` sigue sin estar instalado: llega con el prototipo.
+cambió. **El 2026-10-21 (fase 5) volvieron** `streamlit`, `plotly`, `pydeck`, `psycopg2-binary`, `pymongo`,
+`SQLAlchemy` y `python-dotenv`, que importa el dashboard heredado en `app/`; el lock se regeneró en un entorno
+limpio (con Python 3.13.9, no 3.13.2) y solo agregó paquetes. `streamlit-option-menu` no se agregó: nada lo importa.
 
 **Agregar una dependencia.** Instalarla con versión exacta, anotarla en `requirements.txt` con un
 comentario de para qué se usa, reejecutar lo que dependa de ella y regenerar
@@ -122,9 +124,10 @@ Colab (usan seaborn, tensorflow y cv2) y no se ejecutan con este entorno.
 Las credenciales y rutas sensibles se gestionan mediante variables de entorno.
 `.env.example` documenta las que el código lee hoy: `PAA_DIR` (raíz del proyecto) y `PAA_CSV`
 (ruta al CSV crudo de siniestros), ambas opcionales y leídas por
-`notebooks/preparacion_montevideo.ipynb`. **Ningún código carga un archivo `.env` todavía**: hay que
+`notebooks/preparacion_montevideo.ipynb`. **Ningún notebook carga un archivo `.env`**: hay que
 definirlas en la terminal antes de abrir Jupyter (por ejemplo, `$env:PAA_CSV = "D:\datos\..."` en
-PowerShell). Cargarlas desde `.env` requeriría `python-dotenv`, que hoy no está instalado.
+PowerShell). `python-dotenv` está instalado solo porque lo importa `app/config.py` (heredado del PID), que busca
+`app/config/.env`; esa carpeta no existe y la pestaña de predicción no la necesita.
 
 ## Datos
 
@@ -200,15 +203,32 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
   `documentacion/resumen_*.md`). Si una reejecución cambia una cifra de resultados, no darla por
   buena: investigar antes de commitear.
 
+### Prototipo / dashboard (sin reentrenar)
+
+Desde la raíz del repositorio, con el entorno activado (ver «Requisitos e instalación»):
+
+```powershell
+streamlit run app/app.py
+```
+
+Se abre en `http://localhost:8501`. Elegir la pestaña **Predicción (PAA)** (la última de la barra). No hace falta
+`data/`, ni bases de datos, ni `.env`, ni reentrenar: la pestaña usa solo archivos versionados.
+
+| Modo | Qué muestra | De dónde lo lee |
+| --- | --- | --- |
+| Próxima semana | Cantidad esperada de siniestros registrados por municipio y día, del 01/01/2026 al 07/01/2026, con intervalos del 80 % y 95 % | `models/modelo_final.json` (vía `src/modelo.py`) |
+| Histórico | Predicho contra observado, por semana, en el bloque final (06/02/2025 a 31/12/2025). Se muestra tal como está en el archivo, sin recalcular | `experiments/evaluacion_final/predicciones_bloque_final.csv` |
+
+Las demás pestañas son el dashboard heredado del PID (ver `app/ORIGEN.md`): consultan PostgreSQL y MongoDB, que este
+repositorio no incluye, así que **muestran su error de conexión**. Es lo esperado y no afecta a la pestaña nueva.
+
+Si falta `models/modelo_final.json` o `predicciones_bloque_final.csv`, la pestaña lo avisa con un mensaje (`git pull`).
+
 ### Pipeline previsto
 
-> **Estado (2026-10-14):** `src/` tiene sólo `datos.py` (carga del panel sin el bloque final) y
-> `variables.py` (variables del Entregable 3); `tests/` tiene `test_variables.py` y `pytest tests/`
-> **ya funciona**. Los comandos de `src.models.*` y del dashboard son el diseño previsto y hoy no
-> funcionan. `streamlit` no está instalado en este entorno (ver «Requisitos e instalación»).
-
-El flujo completo se ejecutará en cuatro etapas. Los scripts leerán su configuración
-(granularidad temporal y territorial, período, rutas) desde `src/config.py`.
+> **Estado (2026-10-21):** el entrenamiento y la evaluación final viven en los notebooks y en `train/`
+> (`train/train_modelo_final.py`, ver `train/README.md`); `src/` tiene `datos.py`, `variables.py` y `modelo.py`. Los
+> comandos de abajo (`src.data.*`, `src.features.*`, `src.models.*`) son un diseño anterior y **no existen**.
 
 ```bash
 # 1. Ingesta y consolidación: construye el dataset unificado a partir de las fuentes
@@ -226,25 +246,17 @@ python -m src.models.entrenar
 python -m src.models.predecir --horizonte 4
 ```
 
-Prototipo / dashboard:
+### Pruebas
 
-```bash
-streamlit run app/app.py
+```powershell
+pytest
 ```
 
-El dashboard carga el modelo serializado y el pipeline de preprocesamiento desde
-`models/`, por lo que puede ejecutarse sin repetir el entrenamiento. Los notebooks de
-exploración y análisis descriptivo se encuentran en `notebooks/`.
-
-Pruebas (hoy: las de `src/variables.py` y `src/datos.py`; las del pipeline de inferencia llegan
-con el prototipo):
-
-```bash
-pytest tests/
-```
-
-Las pruebas con el panel real se saltan si `data/processed/` no está generado y siempre lo leen
-por `src.datos.cargar_panel_desarrollo()`, que descarta el bloque final al leer.
+Incluye las del pipeline de inferencia (`tests/test_pipeline_inferencia.py`), las de la interfaz con
+`streamlit.testing` (`tests/test_app.py`) y las del modelo (`tests/test_modelo.py`); el detalle de qué se probó y
+qué se encontró está en `documentacion/pruebas_pipeline.md`. Las pruebas con el panel real se saltan si
+`data/processed/` no está generado y siempre lo leen por `src.datos.cargar_panel_desarrollo()`, que descarta el
+bloque final al leer. Con un clon sin `data/`, las que no necesitan el panel igual corren.
 
 ## Resultados esperados
 

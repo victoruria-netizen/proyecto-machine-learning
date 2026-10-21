@@ -5152,3 +5152,172 @@ salen de `modelos_candidatos/tablas/46` y `evaluacion_final/tablas/17`, ya exist
 
 **Uso y verificación:** utilizado tal cual. `python -m pytest -q` en el `.venv`: 46 pasados (antes 45). `git diff --stat` y `git diff` por carpeta, mostrados al equipo antes del commit.
 **Archivos afectados:** `tests/test_modelo.py`, `HANDOFF.md`, `documentacion/resumen_evaluacion_final.md`, `documentacion/registro_uso_IA.md`.
+
+
+## Sesión 2026-10-21 (E3, fase 5: prototipo TRL 5, pasos 5a a 5c) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** fase 5 del Entregable 3 en la rama `e3/fase-5-prototipo`, sin review (D63). Dependencias y lock (`requirements.txt`, `requirements-lock.txt`), `app/app.py` (entrada de
+la pestaña), `app/ORIGEN.md`, `app/pagina_prediccion.py`, `app/assets/municipios_montevideo_simplificado.geojson`, `tests/test_pipeline_inferencia.py`, `tests/test_app.py`,
+`documentacion/pruebas_pipeline.md`, `README.md` y `HANDOFF.md`. No se tocaron `notebooks/`, `experiments/`, `models/`, `src/` ni `train/`, y no se leyó el bloque final
+(el panel no se cargó en ningún código nuevo; la pestaña solo lee `models/modelo_final.json` y `predicciones_bloque_final.csv`). Los commits `324fc91` (5a) y `935de76` (5b)
+se hicieron en la sesión; el del 5c queda a confirmación del equipo.
+
+### Prompt 1
+> Sesión de trabajo del Entregable 3, fase 5, en la rama e3/fase-5-prototipo.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/fase-5-prototipo. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/fase-5-prototipo solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fase 5: prototipo TRL 5. El dashboard vigente del PID (carpeta dashboard/, D66) está copiado
+> sin cambios en app/ (commit "Copia textual del dashboard del PID"), sin librerias/ ni .env.
+> Origen: commit f803bd6 del repo del PID. config.py viene de la raíz de ese repo y está en
+> app/config.py (app.py lo encuentra por app/ en sys.path); la carpeta config/ no se copió.
+> Integrá una pestaña de predicción nueva. Las páginas heredadas no se tocan (D67). Esta fase
+> no tiene review (D63).
+>
+> ## Paso 5a — Entorno y código heredado
+>
+> - Listá las dependencias que importa app/ (app.py, config, constants, ui, charts). Agregá a
+>   requirements.txt las que falten: streamlit==1.65.0, plotly==7.1.0, pydeck==0.9.3,
+>   psycopg2-binary==2.9.13, pymongo==4.18.3, python-dotenv==1.2.4, y SQLAlchemy y
+>   streamlit-option-menu si se usan. Cada versión con más de dos semanas publicada y
+>   compatible con Python 3.13. Mostrame la lista antes de instalar; después regenerá el lock
+>   en un entorno limpio.
+> - Creá app/ORIGEN.md: repositorio y commit de origen, qué se copió y qué no (librerias/,
+>   .env), y cada cambio hecho al código heredado con su motivo.
+> - Cambios permitidos en app/app.py, y en ningún otro archivo heredado:
+>   (1) la entrada "Predicción (PAA)" al final de NAV y su ícono al final de NAV_ICONS;
+>   (2) una rama elif que llame a render() de app/pagina_prediccion.py.
+>   El manejo de errores de las páginas heredadas queda igual. Cualquier otro cambio,
+>   consultame antes.
+> - Verificá que la app arranca con `streamlit run app/app.py` sin bases de datos ni .env.
+>   Si falla al importar config u otro módulo heredado, detenete y mostrame el error: no lo
+>   corrijas por tu cuenta.
+>
+> DETENETE.
+>
+> ## Paso 5b — Pestaña de predicción (app/pagina_prediccion.py)
+>
+> - Inferencia solo a través de src/modelo.py, models/modelo_final.json, models/metadata.json
+>   y experiments/evaluacion_final/predicciones_bloque_final.csv. No hay
+>   models/historia_reciente.csv: el conjunto (a) no usa historia (D51). Nada se reentrena.
+>   Cargá el modelo con cargar_modelo dentro de st.cache_resource. scipy y holidays se usan al
+>   predecir (D54): verificá que estén en requirements.txt.
+> - La pestaña no usa bases de datos ni los módulos de conexión heredados.
+> - Modo "Próxima semana": predicción del 01/01/2026 al 07/01/2026 para los 8 municipios,
+>   con intervalos si el modelo los tiene.
+> - Modo "Histórico": elegir una semana del bloque final y mostrar predicho contra observado
+>   leyendo predicciones_bloque_final.csv, sin recalcular. Esas predicciones salen del
+>   reentrenamiento semanal de la fase 4; el modelo exportado no las reproduce y no se usa
+>   para este modo (D63).
+> - Mapa de los 8 municipios coloreado por cantidad esperada (pydeck), con una copia
+>   simplificada de la capa de municipios en app/assets/ y su procedencia y licencia en
+>   ORIGEN.md. Tabla y gráfico por municipio y día. Podés reutilizar el estilo de ui y charts
+>   sin modificarlos.
+> - Usá solo funciones que existan en plotly 5.22.0, pydeck 0.9.1 y streamlit 1.35.0 (Python 3.11), las versiones del
+>   dashboard en el servidor (D68), aunque en local haya versiones más nuevas. Si algo que
+>   necesitás no existe en esas versiones, consultame antes.
+> - Un texto corto que diga qué se predice: la cantidad esperada de siniestros registrados.
+>   No usar "riesgo", "peligroso" ni "dónde ocurrirá".
+> - Errores de entrada con mensajes claros: semana fuera de rango y archivo del modelo o
+>   de predicciones ausente.
+>
+> DETENETE.
+>
+> ## Paso 5c — Pruebas del pipeline de inferencia
+>
+> - tests/test_pipeline_inferencia.py: validación de entradas, carga del modelo (y error si
+>   falta), flujo completo de "Próxima semana" (salida de 8 × 7 sin nulos ni negativos e
+>   igual a la del test de F4-B5 en tests/test_modelo.py) y, para "Histórico", que una semana
+>   mostrada coincide fila a fila con predicciones_bloque_final.csv.
+> - tests/test_app.py con streamlit.testing.v1.AppTest: render() de la pestaña nueva, en los
+>   dos modos, sin excepciones y sin bases de datos. La barra de navegación heredada es un
+>   componente personalizado que AppTest puede no manejar: si es así, probá render() de forma
+>   aislada (AppTest.from_function o un script mínimo) y declaralo en pruebas_pipeline.md.
+> - documentacion/pruebas_pipeline.md: cada prueba, su resultado, los errores encontrados y
+>   cómo se corrigieron (lo exige la guía).
+> - README: cómo ejecutar el prototipo sin reentrenar, probado desde un clon limpio.
+> - Al cerrar, mostrame cada criterio F5 del plan con su evidencia (comando y salida, o
+>   archivo y línea), porque no hay review (D63). F5-B2 se lee con D67: la pestaña nueva
+>   funciona sin bases de datos; las heredadas pueden mostrar su error.
+>
+> DETENETE.
+
+**Respuesta (extracto relevante):** lista de dependencias de `app/` con versión y fecha de publicación en PyPI; dos desvíos señalados antes de instalar (pymongo 4.18.3 con 13 días de publicada,
+SQLAlchemy sin versión en el prompt) y la observación de que `streamlit-option-menu` no se importa en ningún archivo (`ui.render_navbar` usa `st.radio`). Tras la respuesta del equipo: instalación en un
+entorno limpio fuera del repositorio, lock regenerado (solo agrega paquetes), `app/ORIGEN.md`, los dos cambios permitidos en `app/app.py` y arranque verificado con `AppTest` (la página heredada inicial
+muestra su error de PostgreSQL, como se esperaba).
+
+**Uso y verificación:** utilizado tal cual. `pip check` sin conflictos en el entorno limpio; `diff` del lock contra el anterior (solo líneas agregadas); `streamlit run app/app.py` con `/_stcore/health` en 200 y
+`AppTest.from_file` sin errores de importación; `git diff app/app.py` con exactamente los tres cambios.
+**Archivos afectados:** `requirements.txt`, `requirements-lock.txt`, `app/app.py`, `app/ORIGEN.md`.
+
+### Prompt 2
+> Confirmado:
+> 1. pymongo 4.18.2.
+> 2. SQLAlchemy 2.0.54.
+> 3. Streamlit de referencia para el servidor: 1.57.0, la del docstring de ui.py, no 1.35.0. El
+>    1.35.0 venía del requirements.txt del Dockerfile, que describe el despliegue con Docker y no
+>    el del servidor (D70). En 5b usá solo funciones que existan en streamlit 1.57.0, plotly 5.22.0
+>    y pydeck 0.9.1.
+> 4. streamlit-option-menu no se agrega. Agregá igual el ícono en NAV_ICONS.
+> Seguí con los pasos 1 a 5 como los propusiste, con el venv limpio fuera del repo. Si el lock
+> choca, detenete y mostrame el conflicto.
+
+**Respuesta (extracto relevante):** ejecución del paso 5a según lo confirmado (ver Prompt 1). El lock no chocó.
+
+**Uso y verificación:** utilizado tal cual; ver Prompt 1 para la verificación.
+**Archivos afectados:** los del Prompt 1.
+
+### Prompt 3
+> Confirmado el 5a. Aceptamos el lock generado con Python 3.13.9 tal como lo declaraste; no lo
+> repitas con 3.13.2. Hacé un commit solo con el paso 5a ("Fase 5, paso 5a: dependencias, ORIGEN.md
+> y entrada de la pestaña") y seguí con el 5b.
+>
+> En el 5b: si al ejecutar aparecen archivos dentro de app/data/ o app/logs/ (los crea config.py),
+> agregá esas dos carpetas al .gitignore en el commit del 5b y mencionalo en ORIGEN.md.
+
+**Respuesta (extracto relevante):** commit `324fc91`. `app/pagina_prediccion.py` con dos modos (Próxima semana: `mod.predecir_semana(modelo, historia_vacía, modelo["origen"])`; Histórico: filas del CSV con
+`papel == "solución"` y el origen elegido, sin recalcular), mapa pydeck con `PolygonLayer`, `charts.barras` y `charts.lineas` para los gráficos, `ErrorEntrada` para los mensajes. Capa de municipios
+simplificada con `geopandas.simplify(0.0003)` desde `data/raw/municipios_montevideo.geojson`. Se señaló que la huella de esa copia (`c5d9f651…`) no es la que registra el ETL (`ed0ba13e…`) y que
+`app/data/` y `app/logs/` solo aparecen como carpetas vacías, sin archivos (no se tocó el `.gitignore`).
+
+**Uso y verificación:** adaptado: la validación de semana se hizo con un selector de las 47 semanas disponibles más una función `validar_semana` que da el mensaje de «fuera del bloque final». Verificado con
+`AppTest` (aislado y dentro de `app/app.py`) en ambos modos y cambiando de semana y de municipio; mensajes de error probados con rutas inexistentes. **El mapa no se vio en un navegador.**
+**Archivos afectados:** `app/pagina_prediccion.py`, `app/assets/municipios_montevideo_simplificado.geojson`, `app/ORIGEN.md`.
+
+### Prompt 4
+> Confirmado el 5b. Sin cambios en .gitignore. Aceptamos la capa simplificada de la copia
+> c5d9f651 tal como está declarada en ORIGEN.md, y use_container_width. Hacé el commit del 5b
+> ("Fase 5, paso 5b: pestaña de predicción") y seguí con el 5c.
+
+**Respuesta (extracto relevante):** commit `935de76`. Pruebas del 5c: 24 en `tests/test_pipeline_inferencia.py` y 6 en `tests/test_app.py`; las pruebas encontraron tres errores (ver `documentacion/pruebas_pipeline.md`, §4): el
+mensaje de archivo ausente fallaba con rutas fuera del repositorio; el Municipio CH de la capa simplificada salió como `MultiPolygon` con un fragmento de 5 vértices y `datos_mapa` lo armaba mal (el commit `935de76`
+trae ese defecto); y dos pruebas dejaban modificado el módulo compartido. La capa se regeneró (`simplify`, `shapely.set_precision(…, 1e-5)`, polígono de mayor área) y `datos_mapa` admite `MultiPolygon`.
+Se instaló el `.venv` del proyecto desde el lock (no tenía streamlit). La barra de navegación heredada resultó ser un `st.radio` nativo, que AppTest maneja; las pruebas de `render()` se hicieron igual de forma aislada.
+Se probó además en un clon limpio sin `data/` (entorno nuevo, Python 3.13.9) y en un entorno con las versiones del servidor (D70).
+
+**Uso y verificación:** utilizado, con las correcciones descritas. `pytest` en el `.venv`: **76 pasadas** (antes 46); clon limpio: 66 pasadas y 10 saltadas (las que necesitan el panel); las 30 nuevas también pasan con
+streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1. README (sección del prototipo) probado con `streamlit run app/app.py` en el clon limpio (`/_stcore/health` en 200).
+**Archivos afectados:** `app/pagina_prediccion.py`, `app/assets/municipios_montevideo_simplificado.geojson`, `app/ORIGEN.md`, `tests/test_pipeline_inferencia.py`, `tests/test_app.py`,
+`documentacion/pruebas_pipeline.md`, `README.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
