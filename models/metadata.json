@@ -1,0 +1,114 @@
+{
+  "descripcion": "Modelo final del Entregable 3: la solución fijada en la fase 3 (D42), entrenada con todos los datos hasta la fecha de corte y su ventana. Los coeficientes están en modelo_final.json (mod.cargar_modelo).",
+  "archivo_modelo": "models/modelo_final.json",
+  "sha256_modelo": "debb3ec69cd22ec24018858f6f0b11e1a84adf1313578fde02c1b6a91695863a",
+  "configuracion": {
+    "configuracion": "GLM Poisson (a) [deslizante 364 d]",
+    "modelo": "GLM",
+    "familia": "Poisson",
+    "enlace": "log",
+    "implementacion": "statsmodels.api.GLM(y, X, family=sm.families.Poisson()).fit()",
+    "hiperparametros": {
+      "ajuste": "IRLS, valores por defecto de statsmodels",
+      "regularizacion": null,
+      "constante": "no (8 indicadoras de municipio, D31)"
+    },
+    "conjunto_de_variables": {
+      "conjunto": "a",
+      "descripcion": "municipio + calendario de 8 niveles",
+      "columnas": [
+        "mun_A",
+        "mun_B",
+        "mun_C",
+        "mun_CH",
+        "mun_D",
+        "mun_E",
+        "mun_F",
+        "mun_G",
+        "cal_martes",
+        "cal_miércoles",
+        "cal_jueves",
+        "cal_viernes",
+        "cal_sábado",
+        "cal_domingo",
+        "cal_feriado"
+      ],
+      "parametrizacion": "D31: 8 indicadoras de municipio sin constante; calendario con 7 columnas, lunes de referencia",
+      "fuente": "src/variables.py"
+    },
+    "ventana": {
+      "tipo": "deslizante",
+      "dias": 364
+    },
+    "reentrenamiento_cada_dias": 7,
+    "horizonte_dias": 7,
+    "validacion_47_cortes": {
+      "desvianza_media": 1.220513,
+      "error_estandar": 0.036394,
+      "desvio_entre_cortes": 0.249505,
+      "total_pred_obs": 0.971655,
+      "total_pred_obs_municipio_A": 0.932967,
+      "fuente": "tablas/26_paso_c_globales.csv"
+    }
+  },
+  "solucion_seleccionada": {
+    "archivo": "experiments/modelos_candidatos/solucion_seleccionada.json",
+    "commit_fase3": "1560a5bdddec4c433911a12e4968f19bd4a4f164",
+    "decision": "D42"
+  },
+  "fecha_de_corte": "2025-12-31",
+  "origen_primera_prediccion": "2026-01-01",
+  "entrenamiento": {
+    "desde": "2025-01-02",
+    "hasta": "2025-12-31",
+    "dias": 364,
+    "filas": 2912,
+    "convergio": true,
+    "iteraciones": 4,
+    "avisos": []
+  },
+  "intervalos": {
+    "criterio": "D44 con el fallback de D50: NB2 con μ del modelo y α de NB2 (a) ajustada con las mismas filas (ventana de 364 días); α por momentos si NB2 no converge; Poisson si tampoco hay α positivo",
+    "alpha": 0.00939508767764091,
+    "origen_alpha": "momentos",
+    "alpha_nb2_mv": null,
+    "nb2_iteraciones": 2,
+    "nb2_avisos": [
+      "RuntimeWarning: invalid value encountered in log"
+    ],
+    "cuantiles": {
+      "80": [
+        0.1,
+        0.9
+      ],
+      "95": [
+        0.025,
+        0.975
+      ]
+    }
+  },
+  "panel": {
+    "archivo": "data/processed/panel_diario_montevideo.csv",
+    "sha256": "82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06",
+    "filas": 13160,
+    "desde": "2021-07-01",
+    "hasta": "2025-12-31"
+  },
+  "versiones": {
+    "python": "3.13.2",
+    "pandas": "2.3.3",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.1",
+    "scikit-learn": "1.9.0",
+    "statsmodels": "0.14.6",
+    "xgboost": "3.4.1",
+    "holidays": "0.103"
+  },
+  "generado_por": "notebooks/evaluacion_final.ipynb",
+  "fecha_generacion": "2026-10-20T21:07:21",
+  "commit_base": "42fe260e4fcce3ae10f2aae198722ee7955e17f7",
+  "commit_base_nota": "HEAD al generar. El commit que contiene el modelo se identifica con git log -- models/modelo_final.json, no con este campo (D48).",
+  "fuentes_limpias": true,
+  "fuentes_limpias_definicion": "Verdadero si, al empezar la exportación y antes de escribir en models/, git status --porcelain -- . \":(exclude)experiments\" \":(exclude)models\" no devolvía nada: no había fuentes sin commitear. Se excluyen experiments/ y models/ porque son las salidas de la propia ejecución; nbconvert no reescribe el notebook hasta el final (D54)."
+}
