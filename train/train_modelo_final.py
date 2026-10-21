@@ -26,7 +26,9 @@
 #
 # Uso: submit_cpu train_modelo_final.py
 #      Localmente: python train/train_modelo_final.py --salida <carpeta fuera del repositorio>
-# Entrada: data/processed/panel_diario_montevideo.csv (no se versiona; copiarlo a /work antes de enviar el trabajo).
+# Entrada: data/processed/panel_diario_montevideo.csv (no se versiona) y, para la comparación, models/modelo_final.json.
+#      En el servidor van en /train/data/processed/ y /train/models/ (Jupyter), junto al script en /train/; el
+#      contenedor los ve en /work (train/README.md).
 # Salida: /outputs/runs/<RUN_ID>/ (modelo_final.json, prediccion_semana_2026-01-01.csv, resumen_corrida.json).
 
 import argparse
@@ -45,8 +47,22 @@ import pandas as pd
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-RAIZ = Path(__file__).resolve().parent.parent
-RUTA_PANEL = RAIZ / "data" / "processed" / "panel_diario_montevideo.csv"
+REL_PANEL = Path("data") / "processed" / "panel_diario_montevideo.csv"
+
+
+def _raiz() -> Path:
+    """Primera carpeta, subiendo desde el script o desde el directorio de trabajo, que contiene el panel.
+
+    En el repositorio es la raíz (el script está en train/); en el servidor es /work, donde el script queda en la raíz
+    del workspace, como train_base.py (log del 18/09/2026: «Raíz del repositorio: /work»).
+    """
+    aqui = Path(__file__).resolve()
+    candidatos = [aqui.parent, *aqui.parents, Path.cwd(), *Path.cwd().parents]
+    return next((p for p in candidatos if (p / REL_PANEL).exists()), aqui.parent.parent)
+
+
+RAIZ = _raiz()
+RUTA_PANEL = RAIZ / REL_PANEL
 RUTA_MODELO_LOCAL = RAIZ / "models" / "modelo_final.json"
 SHA256_PANEL = "82467fc87b5d2bceb24ec6f3c5072e1b7cf9e75507b1d5c5a4d20153114a1b06"     # models/metadata.json
 
@@ -245,7 +261,10 @@ def main(argv=None):
     print("Versiones del entorno:", json.dumps(versiones, ensure_ascii=False))
     print("Plataforma:", platform.platform())
 
+    print("Raíz:", RAIZ)
     ruta_panel = Path(args.panel)
+    if not ruta_panel.exists():
+        raise SystemExit(f"No está el panel {ruta_panel}: copiarlo a data/processed/ junto al script (train/README.md).")
     sha = hashlib.sha256(ruta_panel.read_bytes()).hexdigest()
     print(f"\nPanel: {ruta_panel}\n  sha256 {sha}")
     if sha != SHA256_PANEL:

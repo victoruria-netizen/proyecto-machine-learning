@@ -89,6 +89,19 @@ def test_glm_mu_y_alpha_dentro_del_criterio(panel_dev, origenes):
         assert tmf.diferencia_relativa([m["alpha"]], [a_src]) <= tmf.TOL_COMPARACION
 
 
+def test_raiz_en_el_layout_del_servidor(tmp_path):
+    "En el servidor el script está en la raíz del workspace (/work), con data/ al lado; en el repositorio, en train/."
+    (tmp_path / "data" / "processed").mkdir(parents=True)
+    (tmp_path / tmf.REL_PANEL).write_text("", encoding="utf-8")
+    script = tmp_path / "train_modelo_final.py"
+    script.write_bytes((datos.RAIZ / "train" / "train_modelo_final.py").read_bytes())
+    spec = importlib.util.spec_from_file_location("tmf_servidor", script)
+    copia = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(copia)
+    assert copia.RAIZ == tmp_path and copia.RUTA_MODELO_LOCAL == tmp_path / "models" / "modelo_final.json"
+    assert tmf.RAIZ == datos.RAIZ or not datos.RUTA_PANEL.exists()
+
+
 def test_irls_recupera_coeficientes_conocidos():
     rng = np.random.default_rng(0)
     X = np.eye(3)[rng.integers(0, 3, 30_000)]
