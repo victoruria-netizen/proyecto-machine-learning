@@ -75,3 +75,73 @@ a PostgreSQL y muestra su error de conexión: es lo esperado (D67), y la prueba 
 - **Las páginas heredadas no se prueban** (D67): consultan bases de datos que este repositorio no incluye.
 - **Los valores del modelo no se recalculan:** «Histórico» se compara con el CSV por igualdad; «Próxima semana», con el CSV del servidor (tolerancia 1e-6).
   Que las predicciones del CSV histórico provienen del reentrenamiento semanal, y no del modelo exportado, está declarado en `documentacion/resumen_evaluacion_final.md`.
+
+## 6. Ampliación del 25/10/2026 (fase 5b: rótulo, mejoras de la pestaña y tema)
+
+Las secciones 1 a 5 describen el estado del 21/10. Esta sección agrega las pruebas de la fase 5b (D77, D79, D80) sin reescribir aquello.
+Cambios de la pestaña que se prueban: rótulo «Semana posterior al corte», métricas descriptivas y comparación con la referencia L1 en
+«Histórico», etiquetas del mapa, ficha «Sobre el modelo» y tema claro fijado en `.streamlit/config.toml`.
+
+### 6.1 Resultados de las corridas
+
+| Corrida | Comando | Resultado |
+| --- | --- | --- |
+| Repositorio de trabajo (`.venv`, Python 3.13.2, streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3) | `pytest` | **101 pasadas**, 0 fallidas, 0 saltadas |
+| Solo los dos archivos de la pestaña, mismo `.venv` | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **55 pasadas** (44 + 11) |
+| Entorno aparte con las versiones de streamlit, plotly y pydeck de D70 (no reproduce el entorno del servidor), creado con `uv`, con las dependencias de `requirements-lock.txt` salvo streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1 (Python 3.13.2, pandas 2.3.3, numpy 2.5.2) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **55 pasadas** |
+
+Cuentas: 76 pruebas al 21/10, más 1 del rótulo (paso 1) y 24 de este paso = 101. De las 24, 20 están en `test_pipeline_inferencia.py` y 4 en `test_app.py`.
+**Qué es y qué no es la corrida del entorno aparte.**
+- **No es el entorno del servidor.** Es Python 3.13.2, no el Python 3.11 del servidor; solo coinciden las versiones de streamlit (1.57.0), plotly (5.22.0) y pydeck (0.9.1). Las demás librerías son las del lock del repositorio.
+- **No es un clon limpio** como el del 21/10: usa el mismo árbol de trabajo (con `data/processed/`). No se corrió la suite completa ni se levantó `streamlit run` en ese entorno.
+- **Qué muestra.** AppTest ejecuta el script de la pestaña, pero no dibuja nada en un navegador. Lo que queda verificado es que, con plotly 5.22.0, pydeck 0.9.1 y streamlit 1.57.0, las figuras y las capas se construyen sin error (incluido `add_vrect`, las barras de error y las capas `PolygonLayer` y `TextLayer` de pydeck) y que la pestaña corre sin excepciones. **No** queda verificado que streamlit 1.57.0 las muestre, ni cómo se ven.
+
+### 6.2 Pruebas nuevas
+
+`tests/test_pipeline_inferencia.py` (lógica, sin interfaz):
+
+| Prueba | Qué verifica | Contra qué |
+| --- | --- | --- |
+| `test_desvianza_global_coincide_con_la_tabla_06` | La desvianza de Poisson global que calcula la app es 1,106342 (solución) y 1,135861 (L1), con diferencia < 6e-7; la solución tiene menor desvianza que L1 en 33 de 47 semanas | `tablas/06_globales.csv`, columnas `desvianza` y `cortes_que_gana_a_su_referencia` |
+| `test_desvianza_de_cada_semana_coincide_con_la_tabla_08` (2 casos: solución y L1) | En los 47 cortes, la desvianza semanal coincide con `desvianza_poisson` con diferencia < 6e-7 (la máxima observada al diseñar la prueba fue de 4,9e-7 para la solución y 5,2e-7 para L1; el redondeo a 6 decimales de la tabla explica la diferencia) | `tablas/08_por_corte.csv`, unido por `origen` |
+| `test_desvianza_reemplaza_predicciones_no_positivas_por_1e_6` | Con predicción 0 o negativa, la desvianza usa 1e-6 | Cálculo a mano |
+| `test_filas_fuera_del_intervalo_coinciden_con_la_tabla_17` (80 % y 95 %) | Las filas fuera del intervalo en las 2.632 de la solución son (debajo + encima) × n de la fila «todos» del intervalo NB2; el test lo calcula de la tabla (da 262 para el 80 % y 55 para el 95 %) | `tablas/17_cobertura_intervalos.csv` |
+| `test_totales_semanales_traen_47_semanas_y_l1` | 47 semanas, columnas Observado / Solución / L1 (sin L1, solo las dos primeras) | CSV de predicciones |
+| `test_ficha_del_modelo_con_los_archivos_reales_coincide` | Con los archivos reales el sha256 coincide; ventana 364, reentrenamiento cada 7 días, 15 variables, entrenamiento 2025-01-02 a 2025-12-31 con 2.912 filas | `models/metadata.json`, `models/modelo_final.json` |
+| `test_ficha_del_modelo_con_metadata_alterado_no_coincide` | Con un `metadata.json` alterado en `tmp_path`, «no coincide» | Copia modificada |
+| `test_ficha_del_modelo_con_modelo_alterado_no_coincide` | Un byte agregado al modelo en `tmp_path` también da «no coincide» | Copia modificada |
+| `test_ficha_del_modelo_con_archivo_ausente_da_error_claro` | Falta la ficha o falta el modelo: `ErrorEntrada` con mensaje claro | `tmp_path` |
+| `test_ficha_del_modelo_con_metadata_ilegible_da_error_claro` | Un `metadata.json` al que le faltan campos da `ErrorEntrada` | `tmp_path` |
+| `test_etiquetas_del_mapa_son_8_y_caen_dentro_de_la_capa` | 8 etiquetas; cada posición está dentro de los límites de la capa y, además, dentro de un contorno de su propio municipio (conteo de cruces) | `app/assets/municipios_montevideo_simplificado.geojson` |
+| `test_etiquetas_del_mapa_son_letra_y_valor_en_dos_lineas_con_coma_decimal` | Texto `CH\n12,3` (letra, salto de línea, valor con coma decimal) | Valor sintético 12,34 |
+| `test_etiquetas_del_mapa_rechazan_municipio_ajeno` | Un municipio que no está en la predicción da `ErrorEntrada` | Capa sintética |
+| `test_centroide_usa_el_area_con_signo_y_el_contorno_mas_grande` | Centroide y área con signo de un cuadrado (también en sentido horario); en un `MultiPolygon` se elige el contorno de mayor área | Figuras sintéticas |
+| `test_sin_l1_en_el_csv_da_error_claro` | Un CSV sin filas de L1 da `ErrorEntrada` en `cargar_referencia`, y `cargar_historico` sigue funcionando | CSV sin L1 en `tmp_path` |
+| `test_referencia_real_es_l1_con_47_semanas`, `test_referencia_ausente_da_error_claro` | La referencia real son 2.632 filas de L1; con el CSV ausente, mensaje claro | CSV real / `tmp_path` |
+| `test_f5_n4_el_codigo_de_la_pestana_no_habla_de_riesgo_ni_de_donde_ocurrira` | El código de `pagina_prediccion.py`, en minúsculas, no contiene «riesgo», «peligros» ni «dónde ocurrirá» | Texto del archivo |
+
+`tests/test_app.py` (interfaz):
+
+| Prueba | Qué verifica |
+| --- | --- |
+| `test_historico_muestra_4_metricas_y_los_elementos_nuevos` | «Histórico» sin excepciones, errores ni warnings; 4 métricas con las etiquetas esperadas; delta «frente a L1»; subtítulo «Las 47 semanas del bloque final»; caption con 1,1063, 1,1359 y «33 de 47»; columna «Fuera del 80 %» en la tabla; «Sobre el modelo» al final |
+| `test_historico_sin_l1_muestra_un_warning_y_no_una_excepcion` | Con un CSV sin L1, un único `st.warning` («referencia L1», «sin las comparaciones»), sin errores ni excepciones; las 4 métricas siguen, la desvianza sin delta, y la tabla por día de 56 filas |
+| `test_semana_posterior_no_tiene_metricas_y_cierra_con_sobre_el_modelo` | El modo «Semana posterior al corte» no muestra métricas (no hay observados) y termina con «Sobre el modelo» |
+| `test_tema_claro_fijado_en_streamlit_config` | `.streamlit/config.toml` existe y tiene `theme.base = "light"` (D80) |
+
+### 6.3 Errores hallados y correcciones
+
+| # | Qué pasó | Cómo se detectó | Corrección |
+| --- | --- | --- | --- |
+| 4 | Al agregar las etiquetas de dos líneas (D80, punto 2) quedó un salto de línea real dentro de un f-string de `etiquetas_mapa`: `SyntaxError` al importar la pestaña | La colección de pytest falló al correr los tests de `test_pipeline_inferencia.py` | Error de edición mío, no de diseño: se escribió el `\n` como secuencia de escape; `test_etiquetas_del_mapa_son_letra_y_valor_en_dos_lineas_con_coma_decimal` fija el texto exacto |
+| 5 | **La tabla 17 trae dos filas «todos» por nivel**, una del intervalo NB2 y otra del Poisson; tomar la primera que coincide con el nivel habría comparado contra el intervalo equivocado (el Poisson da otras proporciones) | Al leer la tabla antes de escribir la prueba | La prueba filtra por el tipo de intervalo que trae el propio CSV de predicciones (`tipo_intervalo`, NB2) y exige exactamente una fila |
+| — | Las pruebas nuevas no encontraron defectos en el código de la pestaña: pasaron en la primera corrida completa | — | — |
+
+Además, el intérprete global del equipo (streamlit 1.58.0) no importa por un conflicto con `starlette`; no se usó. Las corridas de §6.1 salen del `.venv` y del entorno aparte.
+
+### 6.4 Lo que esta ampliación no cubre
+
+- **Siguen sin verificarse visualmente** el dibujo del mapa (etiquetas con fondo y salto de línea en `TextLayer`), las leyendas, las barras de error del intervalo y la franja de la semana elegida: AppTest comprueba qué elementos se generan, no cómo se ven. Lo revisa el equipo con capturas.
+- **El parámetro `background` de `TextLayer`** (y `get_background_color`) no lo interpreta pydeck sino deck.gl, en el navegador: pydeck 0.9.1 lo acepta al construir la capa, pero no se verificó que la versión de deck.gl que trae lo dibuje. Tampoco se verificó el salto de línea dentro del texto de la etiqueta.
+- **El tema claro se prueba como archivo, no como render:** la prueba verifica que `.streamlit/config.toml` existe con `base = "light"`; el problema de legibilidad lo reprodujo el equipo en Chromium con `prefers-color-scheme: dark`, y que el tema claro lo resuelva no lo comprueba ninguna prueba automática. Además Streamlit solo lo toma si se lanza desde la raíz del repositorio.
+- **Las métricas son descriptivas:** que la solución tenga menor desvianza que L1 en 33 de 47 semanas es una descripción del bloque final, que no es una prueba independiente (D63); no decide nada.

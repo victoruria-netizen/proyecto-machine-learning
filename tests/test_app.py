@@ -6,6 +6,8 @@ de datos: la página inicial heredada («Resumen») muestra su error de conexió
 solo se mira lo que pasa después de elegir la pestaña nueva.
 """
 
+import tomllib
+
 import pandas as pd
 import pytest
 
@@ -126,3 +128,45 @@ def test_app_completa_tiene_la_pestana_nueva_y_funciona():
     assert at.dataframe[1].value.shape[0] == 56
     at.radio(key="pred_modo").set_value("Histórico").run()
     _sin_problemas(at)
+
+
+def test_historico_muestra_4_metricas_y_los_elementos_nuevos():
+    at = _pestana()
+    at.radio(key="pred_modo").set_value("Histórico").run()
+    _sin_problemas(at)
+    assert not at.warning
+    assert [m.label for m in at.metric] == ["Observado en la semana", "Esperado (solución)", "Desvianza de Poisson media",
+                                            "Fuera del intervalo del 80 %"]
+    assert at.metric[2].delta.endswith("frente a L1") and "56" in at.metric[3].value
+    assert any("Las 47 semanas del bloque final" in s.value for s in at.subheader)
+    assert any("1,1063" in c.value and "1,1359" in c.value and "33 de 47" in c.value for c in at.caption)
+    assert "Fuera del 80 %" in at.dataframe[1].value.columns
+    assert [e.label for e in at.expander][-1] == "Sobre el modelo"
+
+
+def test_historico_sin_l1_muestra_un_warning_y_no_una_excepcion(tmp_path):
+    "Con un CSV sin la referencia L1, la pestaña avisa y sigue, sin las comparaciones."
+    ruta = tmp_path / "sin_l1.csv"
+    crudo = pd.read_csv(RUTA_PRED)
+    crudo[~crudo["modelo"].str.startswith("L1")].to_csv(ruta, index=False)
+    at = AppTest.from_string(_script_con_archivo_ausente("cargar_referencia", "_referencia_en_cache", ruta),
+                             default_timeout=90).run()
+    at.radio(key="pred_modo").set_value("Histórico").run()
+    assert not at.exception and not at.error
+    assert len(at.warning) == 1 and "referencia L1" in at.warning[0].value and "sin las comparaciones" in at.warning[0].value
+    assert len(at.metric) == 4 and not at.metric[2].delta                    # sin L1 no hay delta
+    assert at.dataframe[1].value.shape[0] == 56
+
+
+def test_semana_posterior_no_tiene_metricas_y_cierra_con_sobre_el_modelo():
+    at = _pestana()
+    _sin_problemas(at)
+    assert len(at.metric) == 0
+    assert [e.label for e in at.expander] == ["Tabla por municipio y día, con intervalos", "Sobre el modelo"]
+
+
+def test_tema_claro_fijado_en_streamlit_config():
+    "D80: sin este archivo, con el sistema en modo oscuro los textos casi no se leen sobre el fondo claro del CSS heredado."
+    ruta = datos.RAIZ / ".streamlit" / "config.toml"
+    assert ruta.is_file()
+    assert tomllib.loads(ruta.read_text(encoding="utf-8"))["theme"]["base"] == "light"
