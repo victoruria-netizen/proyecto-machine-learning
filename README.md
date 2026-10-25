@@ -211,6 +211,9 @@ Desde la raíz del repositorio, con el entorno activado (ver «Requisitos e inst
 streamlit run app/app.py
 ```
 
+Hay que lanzarlo desde la raíz: así Streamlit toma `.streamlit/config.toml`, que fija el tema claro (`base = "light"`). Sin él,
+con el sistema en modo oscuro los textos del dashboard casi no se leen sobre el fondo claro del CSS heredado (D80; ver `app/ORIGEN.md`).
+
 Se abre en `http://localhost:8501`. Elegir la pestaña **Predicción (PAA)** (la última de la barra). No hace falta
 `data/`, ni bases de datos, ni `.env`, ni reentrenar: la pestaña usa solo archivos versionados.
 

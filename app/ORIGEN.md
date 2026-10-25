@@ -19,13 +19,15 @@ heredadas que consultan bases de datos muestran su error de conexión (D67). Al 
 
 ## Cambios al código heredado
 
-Solo en `app/app.py` (D67); ningún otro archivo heredado se modificó.
+Solo en `app/app.py` (D67); ningún otro archivo heredado se modificó. Aparte, hay un archivo de configuración nuevo en la raíz del
+repositorio (D80), que no es código heredado:
 
 | Cambio | Motivo |
 | --- | --- |
 | Entrada `"Predicción (PAA)": "🔮 Predicción (PAA)"` al final de `NAV` | Agregar la pestaña de predicción del PAA |
 | `"graph-up-arrow"` al final de `NAV_ICONS` | Ícono de esa entrada (`render_navbar` hoy no usa los íconos; se agrega por coherencia con la lista) |
 | Rama `elif pagina == "🔮 Predicción (PAA)":` antes del pie, que importa `pagina_prediccion` y llama a `render()` | Enrutar a la pestaña nueva; el manejo de errores de las páginas heredadas queda igual |
+| Archivo nuevo `.streamlit/config.toml` (en la raíz, fuera de `app/`) con `[theme]` `base = "light"` | Con el sistema operativo en modo oscuro, Streamlit pintaba textos, ejes, leyendas, tablas y títulos de los expanders con colores de tema oscuro sobre el fondo claro que fija el CSS heredado, y casi no se leían (reproducido en Chromium con `prefers-color-scheme: dark`). Fijar el tema claro lo evita sin tocar código heredado. Streamlit lo toma solo si se lanza desde la raíz |
 
 ## Dependencias
 
@@ -35,8 +37,8 @@ psycopg2-binary, pymongo, SQLAlchemy y python-dotenv. `streamlit-option-menu` no
 
 ## Archivos nuevos del PAA en `app/` (no vienen del PID)
 
-- `pagina_prediccion.py`: pestaña «Predicción (PAA)». Lee solo `models/modelo_final.json`, `experiments/evaluacion_final/predicciones_bloque_final.csv`
-  y la capa de abajo; no usa bases de datos ni `config`.
+- `pagina_prediccion.py`: pestaña «Predicción (PAA)». Lee solo `models/modelo_final.json`, `models/metadata.json`,
+  `experiments/evaluacion_final/predicciones_bloque_final.csv` y la capa de abajo; no usa bases de datos ni `config`.
 - `assets/municipios_montevideo_simplificado.geojson` (38,8 kB): capa de los 8 municipios de Montevideo para el mapa.
 
 ### Procedencia y licencia de la capa de municipios
