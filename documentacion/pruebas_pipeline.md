@@ -5,6 +5,11 @@
 **Código que prueban:** `app/pagina_prediccion.py` (pestaña «Predicción (PAA)»), que llama a `src/modelo.py`.
 **Fecha:** 2026-10-21. **Ejecución:** `pytest` en el `.venv` (Python 3.13.2) y, aparte, en un clon limpio con entorno nuevo (Python 3.13.9).
 
+> **Nota de rótulo (D77, 25/10/2026).** El modo que este documento llama «Próxima semana» (y que las pruebas del 21/10 ejercitaron con ese
+> nombre) se llama ahora **«Semana posterior al corte»**: es un entorno simulado con corte al 31/12/2025, no la semana actual. Los
+> **nombres internos se mantienen**: `predecir_proxima_semana`, `test_proxima_semana_*` y `test_render_proxima_semana`. Las constantes de la
+> interfaz son `MODO_POSTERIOR` y `MODO_HISTORICO`. Donde abajo dice «Próxima semana», léase ese modo.
+
 ## 1. Cómo usar este documento
 
 Es el registro que exige la guía para el prototipo: cada prueba, su resultado, los errores encontrados y cómo se corrigieron.

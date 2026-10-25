@@ -5,8 +5,8 @@ Qué muestra: la cantidad esperada de siniestros viales registrados por municipi
 final del PAA (GLM Poisson (a), ventana de 364 días). No usa bases de datos ni los módulos de conexión heredados.
 
 Entradas (todas dentro del repositorio, nada se reentrena):
-  - ``models/modelo_final.json`` vía ``src.modelo.cargar_modelo``: modo «Próxima semana» (01/01/2026 al 07/01/2026, D51:
-    sin historia).
+  - ``models/modelo_final.json`` vía ``src.modelo.cargar_modelo``: modo «Semana posterior al corte» (01/01/2026 al 07/01/2026,
+    D51: sin historia; entorno simulado con corte al 31/12/2025, D77).
   - ``experiments/evaluacion_final/predicciones_bloque_final.csv``: modo «Histórico», leído tal cual, sin recalcular.
     Esas predicciones salen del reentrenamiento semanal de la fase 4; el modelo exportado no las reproduce (D63).
   - ``app/assets/municipios_montevideo_simplificado.geojson``: capa de municipios para el mapa (ver ORIGEN.md).
@@ -40,6 +40,8 @@ PAPEL_SOLUCION = "solución"
 COLUMNAS_HISTORICO = ["fecha", "origen", "corte", "municipio", "observado", "predicho",
                       "inf_80", "sup_80", "inf_95", "sup_95", "tipo_intervalo", "papel"]
 SEMANA_COMPLETA = "Semana completa"
+MODO_POSTERIOR = "Semana posterior al corte"
+MODO_HISTORICO = "Histórico"
 
 TEXTO_QUE_SE_PREDICE = (
     "**Qué se predice.** La cantidad esperada de siniestros viales *registrados* en cada municipio de Montevideo, por día. "
@@ -110,7 +112,7 @@ def historia_vacia() -> pd.DataFrame:
 
 
 def predecir_proxima_semana(modelo: dict) -> pd.DataFrame:
-    "56 filas (7 días × 8 municipios) desde el origen del modelo, con columnas ``municipio``, ``esperado`` e intervalos."
+    "Semana posterior al corte del modelo (el nombre interno se mantiene, D77). 56 filas (7 días × 8 municipios) desde el origen del modelo, con columnas ``municipio``, ``esperado`` e intervalos."
     s = mod.predecir_semana(modelo, historia_vacia(), modelo["origen"])
     return s.rename(columns={"zona_id": "municipio", "pred": "esperado"})
 
@@ -185,6 +187,15 @@ def _fmt(d) -> str:
     return pd.Timestamp(d).strftime("%d/%m/%Y")
 
 
+def texto_modo_posterior(modelo: dict, semana: pd.DataFrame) -> str:
+    "Texto del modo «Semana posterior al corte»; las fechas y la ventana salen del modelo, no se escriben fijas (D77)."
+    return (f"Entorno simulado con fecha de corte {_fmt(modelo['hasta'])}, el último día con datos. Predicción de la "
+            f"semana posterior al corte, del {_fmt(semana['fecha'].min())} al {_fmt(semana['fecha'].max())}, para los "
+            "8 municipios, con el modelo final exportado (`models/modelo_final.json`), entrenado con los "
+            f"{modelo['ventana_dias']} días anteriores al corte. No es la semana actual y no hay observados con los que "
+            "compararla.")
+
+
 def _intervalo(inf, sup) -> str:
     return f"{int(inf)} a {int(sup)}"
 
@@ -242,15 +253,13 @@ def _mostrar_semana(semana: pd.DataFrame, con_observado: bool) -> None:
 def render() -> None:
     ui.hero("🔮 Predicción (PAA)", "Cantidad esperada de siniestros registrados por municipio de Montevideo · solución final del PAA")
     st.info(TEXTO_QUE_SE_PREDICE)
-    modo = st.radio("Modo", ["Próxima semana", "Histórico"], horizontal=True, key="pred_modo")
+    modo = st.radio("Modo", [MODO_POSTERIOR, MODO_HISTORICO], horizontal=True, key="pred_modo")
 
     try:
-        if modo == "Próxima semana":
+        if modo == MODO_POSTERIOR:
             modelo = _modelo_en_cache()
             semana = predecir_proxima_semana(modelo)
-            st.markdown(f"**Predicción del {_fmt(semana['fecha'].min())} al {_fmt(semana['fecha'].max())}** para los "
-                        "8 municipios, con el modelo final exportado (`models/modelo_final.json`), entrenado con datos "
-                        f"hasta el {_fmt(modelo['hasta'])}. Todavía no hay observados con los que compararla.")
+            st.markdown(texto_modo_posterior(modelo, semana))
             _mostrar_semana(semana, con_observado=False)
         else:
             historico = _historico_en_cache()

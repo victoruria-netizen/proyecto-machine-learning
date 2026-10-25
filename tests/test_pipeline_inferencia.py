@@ -1,5 +1,5 @@
 """Pruebas del pipeline de inferencia del prototipo (fase 5, paso 5c): validación de entradas, carga del modelo, flujo
-completo de «Próxima semana» y fidelidad del modo «Histórico» al CSV de la evaluación final.
+completo de «Semana posterior al corte» (D77; los nombres internos conservan «proxima_semana») y fidelidad del modo «Histórico» al CSV de la evaluación final.
 
 Sólo prueban la lógica de ``app/pagina_prediccion.py`` (sin interfaz; la interfaz está en ``tests/test_app.py``). No
 reentrenan nada y no leen el panel: el modelo exportado y ``predicciones_bloque_final.csv`` son las únicas entradas.
@@ -91,7 +91,7 @@ def test_modelo_real_carga():
     assert m["modelo"] == "GLM" and m["origen"] == pd.Timestamp("2026-01-01") and len(m["columnas"]) == 15
 
 
-# ---------------------------------------------------------------------------------- flujo «Próxima semana»
+# ------------------------------------------------------------------------- flujo «Semana posterior al corte»
 def test_proxima_semana_es_8_por_7_sin_nulos_ni_negativos(semana_nueva):
     s = semana_nueva
     assert s.shape[0] == 56 and s["municipio"].nunique() == 8 and s["fecha"].nunique() == 7

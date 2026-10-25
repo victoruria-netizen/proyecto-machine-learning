@@ -216,7 +216,7 @@ Se abre en `http://localhost:8501`. Elegir la pestaña **Predicción (PAA)** (la
 
 | Modo | Qué muestra | De dónde lo lee |
 | --- | --- | --- |
-| Próxima semana | Cantidad esperada de siniestros registrados por municipio y día, del 01/01/2026 al 07/01/2026, con intervalos del 80 % y 95 % | `models/modelo_final.json` (vía `src/modelo.py`) |
+| Semana posterior al corte | Entorno simulado con corte al 31/12/2025, el último día con datos: cantidad esperada de siniestros registrados por municipio y día, del 01/01/2026 al 07/01/2026, con intervalos del 80 % y 95 %. No es la semana actual y no hay observados para compararla | `models/modelo_final.json` (vía `src/modelo.py`) |
 | Histórico | Predicho contra observado, por semana, en el bloque final (06/02/2025 a 31/12/2025). Se muestra tal como está en el archivo, sin recalcular | `experiments/evaluacion_final/predicciones_bloque_final.csv` |
 
 Las demás pestañas son el dashboard heredado del PID (ver `app/ORIGEN.md`): consultan PostgreSQL y MongoDB, que este

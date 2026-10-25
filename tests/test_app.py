@@ -44,6 +44,17 @@ def test_render_proxima_semana():
     assert "cantidad esperada de siniestros viales" in at.info[0].value
 
 
+def test_rotulo_del_modo_semana_posterior_al_corte():
+    "D77: el modo se llama «Semana posterior al corte», aclara que es un entorno simulado y no dice «Próxima semana»."
+    at = _pestana()
+    _sin_problemas(at)
+    assert list(at.radio(key="pred_modo").options) == ["Semana posterior al corte", "Histórico"]
+    textos = [e.value for e in list(at.markdown) + list(at.info) + list(at.caption) + list(at.subheader)]
+    assert any("Entorno simulado con fecha de corte 31/12/2025" in t for t in textos)
+    assert not any("Próxima semana" in t for t in textos)
+    assert "Próxima semana" not in at.radio(key="pred_modo").label
+
+
 def test_render_historico_y_cambio_de_semana():
     at = _pestana()
     at.radio(key="pred_modo").set_value("Histórico").run()
@@ -100,7 +111,7 @@ def test_falta_el_archivo_de_predicciones_muestra_mensaje_y_no_traza(tmp_path):
 
 
 def test_falta_el_archivo_del_modelo_muestra_mensaje_y_no_traza(tmp_path):
-    "Con el modelo ausente, «Próxima semana» muestra st.error (no una excepción)."
+    "Con el modelo ausente, «Semana posterior al corte» muestra st.error (no una excepción)."
     at = AppTest.from_string(_script_con_archivo_ausente("cargar_modelo_final", "_modelo_en_cache", tmp_path / "no_esta.json"),
                              default_timeout=90).run()
     assert not at.exception
