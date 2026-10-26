@@ -249,6 +249,10 @@ comprueba en vivo el sha256 de `models/modelo_final.json`. Las métricas son des
 Las demás pestañas son el dashboard heredado del PID (ver `app/ORIGEN.md`): consultan PostgreSQL y MongoDB, que este
 repositorio no incluye, así que **muestran su error de conexión**. Es lo esperado y no afecta a la pestaña nueva.
 
+**Despliegue en el dashboard del servidor.** La pestaña también corre dentro del dashboard que ya está en el servidor institucional, mediante un puente
+(`app/servidor/pagina_prediccion_puente.py`) que carga `app/pagina_prediccion.py` de un clon de este repositorio fijado en un commit. El diagnóstico del
+servidor, el diseño, los comandos de instalación y la vuelta atrás están en `documentacion/despliegue_servidor.md`; las pruebas, en `documentacion/pruebas_pipeline.md` (§7).
+
 Si falta `models/modelo_final.json` o `predicciones_bloque_final.csv`, la pestaña lo avisa con un mensaje (`git pull`).
 
 ### Código de la solución (`src/`, `train/` y prototipo)
