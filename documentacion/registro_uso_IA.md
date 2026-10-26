@@ -6089,3 +6089,119 @@ completo en el `.venv`: 102 pasadas. Cifras del README contrastadas con las tabl
 
 **Respuesta (resumen):** `HANDOFF.md` con la entrada de la fase 8a (paso D2) y esta entrada del registro, generada por el script. Sin commit hasta la confirmación del equipo.
 **Uso y verificación:** el script compara cada texto contra la transcripción (igualdad exacta) y comprueba que lo que ya estaba en el registro quedó intacto. **Archivos afectados:** `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+## Sesión 2026-10-26 (E3, fase 8a, paso D3: cierre del despliegue de la pestaña en el dashboard del servidor) — lucaspimentel-uy — Claude Code web (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** el cierre anterior (paso D2, `e3/despliegue-servidor`) quedó en `0117bff`; `c1c40c3` es el merge de esa rama en `main`. Esta sesión parte de `c1c40c3`, en la rama `e3/despliegue-cierre` (creada en la sesión). Solo documentación: se registra el resultado del despliegue que hizo el equipo en el servidor el 26/10/2026, con el problema del módulo cacheado y su solución. No se tocó código ni tests. Archivos: `documentacion/despliegue_servidor.md`, `README.md`, `app/ORIGEN.md`, `HANDOFF.md` y este registro.
+
+**Cómo se generó esta entrada.** Los mensajes del usuario se extrajeron **por programa** de la transcripción de la sesión (`.jsonl` de Claude Code) y se agregaron tal cual, en orden y con su hora local (UTC-3); el script comparó cada texto escrito aquí contra la transcripción (igualdad exacta) y comprobó que las líneas anteriores del registro quedaron intactas. **A diferencia de las sesiones anteriores, esta corrió en la nube** (Claude Code web), no en el local: la transcripción es la del contenedor de la sesión (`~/.claude/projects/-home-user-proyecto-machine-learning/9cedfd5b-5440-5425-ab0b-80b0e651fada.jsonl`) y no está en el repositorio ni se conserva después de la sesión. Este mensaje no trae marcas de texto pegado. No se omitió ningún mensaje del usuario, y tampoco se transcribe nada de las respuestas, que se resumen en cada bloque.
+
+### Prompt 1 — 2026-10-26 13:33 (UTC-3)
+
+> Sesión de trabajo del Entregable 3, fase 8a, en la rama e3/despliegue-cierre (creala desde main en c1c40c3)
+>
+> Antes de avanzar, esta sesion se iba a correr con los creditos del plan, localmente. Se puede correr en la nube sin problemas, o se puede correr solo en el local. En caso de que no se pueda, DETENTE y veo que hacer. 
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/despliegue-cierre. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/despliegue-cierre solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fase 8a, cierre del despliegue (paso D3, D84). Rama e3/despliegue-cierre desde main en
+> c1c40c3. Solo documentación: documentacion/despliegue_servidor.md, README.md, app/ORIGEN.md,
+> HANDOFF.md y documentacion/registro_uso_IA.md. No se toca código ni tests.
+>
+> Lo que pasó en el servidor el 26/10 (lo registró el equipo):
+> - Pasos 1 a 4 sin errores:
+>   - el clon pasó de 46e0c65 a c1c40c3, con HEAD suelto;
+>   - el stash con base_2 se conservó;
+>   - pip instaló scipy 1.16.3 y holidays 0.103, con dos avisos esperables: pip como root, y
+>     librerias/bin ya existe, así que el ejecutable holidays-ics no se copió;
+>   - se creó /app/.streamlit/config.toml.
+> - Paso 5: después de copiar el puente como /app/streamlit/pagina_prediccion.py, la pestaña
+>   siguió mostrando el diagnóstico de D1. El proceso del dashboard ya tenía importado ese
+>   módulo, y el servidor no recarga módulos importados cuando cambia el archivo (app.py sí se
+>   relee).
+>   Solución:
+>   - el puente se copió como /app/streamlit/paa_puente.py;
+>   - en app.py, la línea del elif pasó a «import paa_puente as pagina_prediccion»;
+>   - py_compile sin errores;
+>   - se borró /app/streamlit/pagina_prediccion.py.
+> - Paso 6:
+>   - la pestaña funciona en los dos modos, con el pie «Versión desplegada: c1c40c3» y el tema
+>     claro;
+>   - en Histórico, semana del 06/02/2025: 143, 163,0, 1,033 (+0,053 frente a L1) y 5 de 56;
+>   - pie de las 47 semanas: 1,1063, 1,1359 y 33 de 47, igual que tablas/06;
+>   - tablas en pantalla: verificadas;
+>   - «Sobre el modelo», integridad: Coincide;
+>   - páginas del PID revisadas: Revisadas.
+>
+> Cambios:
+>
+> 1. despliegue_servidor.md:
+>    - Paso 5 y vuelta atrás con el nombre paa_puente.py y la línea de app.py.
+>    - Una sección nueva en el diseño, «Recarga de módulos en el servidor», que explique por
+>      qué el puente no se reemplaza en caliente y que la pestaña se actualiza con un checkout
+>      del clon.
+>    - Vuelta atrás del clon: git checkout main (la rama main local quedó en 46e0c65; el fetch
+>      no la mueve) y después git stash pop.
+>    - En §3.4 y §5, lo que verificó Claude web el 26/10, en Linux:
+>      - el mismo comando pip --target ocupó 156 MB, y scipy importó con Python 3.11.15 y
+>        numpy 2.4.4;
+>      - en una réplica con un clon git real y HEAD suelto, el pie mostró el commit, y la
+>        pestaña recargó sin reiniciar al pasar de 0117bff a 6f79092 y volver.
+>      Lo que se comprobó en el servidor pasa a «verificado en el servidor».
+>    - §6 con el resultado: fecha, commit c1c40c3, cada punto del paso 6, y el problema del
+>      módulo cacheado con su solución.
+>    - §7 actualizada.
+>
+> 2. README:
+>    - En «Resultados», la línea del despliegue pendiente pasa a decir que el prototipo está
+>      desplegado en el dashboard del servidor institucional (puerto 18504) desde el
+>      26/10/2026, en el commit c1c40c3, con remisión a documentacion/despliegue_servidor.md.
+>      El entrenamiento en el servidor (job 136) se sigue mencionando aparte.
+>    - En la sección del prototipo, una línea sobre cómo se ve en el servidor: la pestaña
+>      «Predicción (PAA)», con el pie que muestra el commit.
+>
+> 3. app/ORIGEN.md: el nombre del puente en el servidor (paa_puente.py) y la línea de app.py.
+>
+> 4. HANDOFF y registro de IA. Los prompts se extraen por programa del .jsonl, como en el
+>    cierre anterior. La entrada del registro empieza aclarando que el cierre anterior quedó
+>    en 0117bff.
+>
+> Commits: uno para los puntos 1 a 3 y otro para el 4. Mostrame git status y
+> git log --oneline -3. Nada de merge ni push.
+
+**Respuesta (resumen):** Claude comprobó que podía correr en la nube (es una fase solo de documentación, y la transcripción `.jsonl` de la sesión está disponible en el contenedor), creó `e3/despliegue-cierre` desde `c1c40c3` (la sesión empezó en otra rama, `claude/beautiful-turing-77l2eu`, en el mismo commit) y leyó `CLAUDE.md`, `HANDOFF.md` (entrada del paso D2), `despliegue_servidor.md`, `README.md`, `app/ORIGEN.md` y el comienzo de `resumen_modelos_candidatos.md`. Editó `documentacion/despliegue_servidor.md` (paso 5 y vuelta atrás con `paa_puente.py` y la línea de `app.py`; sección 3.7 «Recarga de módulos en el servidor»; vuelta atrás del clon con `git checkout main` y `git stash pop`; §3.4 y §5 con lo verificado por Claude web en Linux separado de lo verificado en el servidor; §6 con el resultado; §7), `README.md` (el despliegue deja de figurar como pendiente y se agrega la línea del prototipo) y `app/ORIGEN.md`. Escribió la entrada del paso D3 en `HANDOFF.md` y esta entrada del registro, generada por script. No tocó código ni tests. Señaló tres cosas que el prompt no cubría: completó el `<commit de main>` del paso 2 con `c1c40c3`; en la vuelta atrás restaura también `pagina_prediccion.py` desde el respaldo, porque el `app.py` del respaldo la importa y el paso 6 la borra; y dejó dicho que el registro del equipo no menciona el punto 5 del paso 6 (ningún `st.error`).
+**Uso y verificación:** utilizado, con salvedades: los hechos del servidor son los del prompt, sin contraste propio, porque Claude no tiene acceso al servidor. Verificación: el signo del delta de «+0,053 frente a L1» se leyó en `app/pagina_prediccion.py` (`desvianza - d_ref`, es decir, la solución fue peor que L1 esa semana); `src/modelo.py` importa scipy y `src/variables.py` importa holidays, lo que respalda que la pestaña los usa en el servidor (se marcó como inferencia); los números de la semana del 06/02/2025 **no** se contrastaron contra `predicciones_bloque_final.csv` (el bloque final solo lo lee `evaluacion_final.ipynb`). No se corrió `pytest`: la sesión corrió en la nube sin `.venv` y no cambió ningún archivo de código ni de tests. Pendiente de confirmación del equipo: el punto 5 del paso 6, y el docstring del puente, que sigue diciendo `pagina_prediccion.py` (es código). **Archivos afectados:** `documentacion/despliegue_servidor.md`, `README.md`, `app/ORIGEN.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 2 — 2026-10-26 13:42 (UTC-3)
+
+> 1. lucaspimentel-uy
+> 2. comitea como lucaspimentel con coautor claude
+> 3. dejalo asi. 
+>
+> hace solo commit 
+>
+> Solo para verificar, leiste lo que te puse sobre la sesion? Era pensada para correrla en el local. Se pudo correr en este entorno sin cambios?
+
+**Respuesta (resumen):** Claude no commiteó ante el aviso del hook de fin de turno (commit y push), porque las reglas de la sesión piden confirmación del equipo para commitear y prohíben el push. Con las respuestas del equipo: integrante `lucaspimentel-uy` en el encabezado, commits con la identidad de lucaspimentel-uy y coautor Claude, modelo en el registro como está, solo commit. Respondió a la pregunta de si había leído lo de la sesión local: sí; en la nube la fase se pudo hacer porque es solo documentación, con diferencias de entorno (sin `.venv`, `pytest` no corrido, transcripción en el contenedor y no en `%USERPROFILE%`, identidad de git y rama de arranque distintas). Regeneró esta entrada con el script y hizo los dos commits.
+**Uso y verificación:** utilizado. El script volvió a comparar todos los mensajes contra el `.jsonl` (igualdad exacta) y comprobó que el registro anterior quedó intacto. Los commits se hicieron sin push. **Archivos afectados:** `documentacion/registro_uso_IA.md`.
