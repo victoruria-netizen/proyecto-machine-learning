@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-21 (E3, fase 5: prototipo TRL 5 con la pestaña «Predicción (PAA)» y sus pruebas; falta la prueba manual y el clon limpio del equipo, D63)_
+_Última actualización: 2026-10-25 (E3, fase 5b: mejoras finales del prototipo, tema claro, pruebas y README en `e3/dashboard-final`; faltan las capturas y la prueba manual del equipo, D63, D79)_
 
 ---
 
@@ -2127,6 +2127,56 @@ con un fragmento de 5 vértices y `datos_mapa` lo armaba mal (el commit `935de76
 **Pendiente del equipo (D63):** mirar el mapa y los gráficos en un navegador (AppTest no los dibuja), repetir el clon limpio con el README y hacer el `merge --no-ff`.
 `app/data/` y `app/logs/` los crea `config.py` al importarse (vacías; no se ignoran en `.gitignore` por decisión del equipo).
 **Próximo:** fase 6, alinear el informe (D49, D64).
+
+### Entregable 3, fase 5b: mejoras finales del prototipo y README (2026-10-25, sesión de Claude)
+
+**Rama:** `e3/dashboard-final` (desde `main` en `0142520`). Sin review (como D63): el control fue `pytest`, las capturas que revisa el equipo y la prueba manual. Un commit por paso, todos con
+confirmación del equipo; nada en `main` y nada de push. Commits: `a41f214` (paso 1, rótulo), `15f9a0e` (paso 2, mejoras de la pestaña y tema claro), `143e05d` (paso 3, pruebas), `0d43836` (paso 4, README y
+pie de los intervalos), `32343ed` (ajustes del README), `1523e32` (precisión sobre el Python del servidor en `pruebas_pipeline.md`) y el commit de este cierre (`HANDOFF.md` y `registro_uso_IA.md`).
+Modelo: Sonnet 5.5.
+
+**Decisiones del equipo de esta sesión**
+- **D77:** el modo «Próxima semana» pasa a **«Semana posterior al corte»** (entorno simulado con corte al 31/12/2025, sin observados). Los nombres internos (`predecir_proxima_semana`,
+  `test_proxima_semana_*`) se mantienen y está declarado en `documentacion/pruebas_pipeline.md`.
+- **D79:** mejoras finales del prototipo y README antes de crear `entregable_3`.
+- **D80:** tema claro fijado en `.streamlit/config.toml` (`base = "light"`), porque con el sistema en modo oscuro Streamlit pintaba textos, ejes, leyendas, tablas y títulos de expanders en colores
+  de tema oscuro sobre el fondo claro del CSS heredado (reproducido por el equipo en Chromium). Archivo nuevo en la raíz; no se toca código heredado. Declarado en `app/ORIGEN.md` y en el README
+  (hay que lanzar `streamlit run app/app.py` desde la raíz para que lo tome).
+
+**Hecho**
+- `app/pagina_prediccion.py`: constantes `MODO_POSTERIOR` / `MODO_HISTORICO`; un color fijo por municipio; leyendas horizontales arriba (por los `**kw` de `charts`, sin tocar `charts.py`); mapa con
+  `TextLayer` (letra y valor en dos líneas, coma decimal, fondo blanco semitransparente, en el centroide del contorno exterior más grande); tablas con 2 decimales (`NumberColumn`, valores sin cambiar).
+  En «Histórico»: referencia L1 del mismo CSV (`cargar_referencia`; sin L1, `st.warning` y la pestaña sigue sin las comparaciones), 4 `st.metric` de la semana (observado, esperado, desvianza de Poisson
+  media con delta frente a L1, pares fuera del intervalo del 80 %), gráfico de las 47 semanas (observado, solución, L1 punteada, semana elegida con `add_vrect`, caption con desvianzas a 4 decimales:
+  1,1063 y 1,1359, y 33 de 47 semanas con menor desvianza para la solución), gráfico por día con barras de error del intervalo del 80 % y puntos rojos fuera de él, columna «Fuera del 80 %».
+  En los dos modos: descarga CSV de la tabla de la semana y expander «Sobre el modelo» (`models/metadata.json`, sha256 de `modelo_final.json` calculado en vivo). Pie de la tabla de intervalos
+  corregido: «con cuantiles de colas iguales (10 % y 90 % para el 80 %; 2,5 % y 97,5 % para el 95 %)… el modelo espera que cubran algo más que el nivel nominal» (en `tablas/17`, NB2 al 80 %: 3,2 %
+  debajo, 6,8 % encima; cobertura esperada por el modelo 0,887). Las métricas se presentan como descriptivas; el código no contiene «riesgo», «peligros» ni «dónde ocurrirá» (F5-N4, con test).
+- Pruebas: 24 nuevas del paso 3 (20 en `tests/test_pipeline_inferencia.py`, 4 en `tests/test_app.py`), 1 del rótulo y 1 del pie. `pytest` completo en el `.venv`: **102 pasadas** (antes 76). Las 56 de los dos
+  archivos de la pestaña también pasan en un entorno aparte con streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1 (Python 3.13.2; **no es el entorno del servidor ni un clon limpio**). La desvianza y las
+  filas fuera del intervalo que calcula la app coinciden con `tablas/06`, `08` y `17` de `evaluacion_final` (6e-7). Detalle, errores hallados y límites en la sección 6 de `documentacion/pruebas_pipeline.md`.
+- README: introducción, «Modificaciones en el PAA», «Datos», tabla de notebooks (fila de `evaluacion_final`, único que lee el bloque final), «Código de la solución» en lugar de «Pipeline previsto»,
+  «Resultados» del E3 (tabla de `tablas/06`, configuración elegida con el porqué de las 364 días según `modelos_candidatos/tablas/26`, `28` y `29`, evidencia del job 136 y límites declarados) y versiones del
+  contenedor de `submit_cpu` según el log del job 136.
+- `git diff --name-only main` no incluye `app/app.py`, `charts.py`, `ui.py`, `constants.py`, `config.py`, `src/`, `models/`, `experiments/`, `notebooks/` ni `train/`. Se tocaron además `app/ORIGEN.md` y
+  `.streamlit/config.toml`, que no estaban en la lista inicial pero los pidió D80.
+
+**Errores hallados (corregidos):** un salto de línea real dentro de un f-string de las etiquetas del mapa (`SyntaxError`, detectado por la colección de pytest); la tabla 17 trae dos filas «todos» por
+nivel (NB2 y Poisson) y la prueba tiene que filtrar por el tipo de intervalo del CSV. Las pruebas no encontraron defectos en la lógica de la pestaña.
+
+**Lo que NO está verificado**
+- **Nada se vio en un navegador:** AppTest no dibuja. El equipo debe revisar con capturas el mapa (etiquetas de dos líneas con fondo; el parámetro `background` de `TextLayer` lo interpreta deck.gl en el
+  navegador y no queda verificado, tampoco el salto de línea del texto), las leyendas, las barras de error del intervalo, la franja de la semana elegida y el tema claro en modo oscuro.
+- Las figuras y capas se construyen sin error con plotly 5.22.0, pydeck 0.9.1 y streamlit 1.57.0; eso no prueba que Streamlit 1.57 las muestre.
+
+**Abierto**
+- **«D14» no existe en el repositorio.** El equipo lo citó para la retirada de la lluvia; en los documentos figura como «decisión del equipo, 14/10/2026» (`resumen_modelos_candidatos.md` §1.1) y así quedó
+  en el README. Si D14 es un número de otra lista, hay que alinearlo.
+- **Python del servidor.** `pruebas_pipeline.md` dice: Python 3.11 del dashboard del servidor (inferido de los binarios `cpython-311` de `librerias/`, sin verificación directa); el contenedor de
+  `submit_cpu` usa Python 3.10.12 (log del job 136). `librerias/` no está en este repositorio.
+- **El despliegue del prototipo en el servidor está pendiente** (hoy se ejecuta con `streamlit run app/app.py`; en el servidor solo se corrió el entrenamiento del modelo final).
+
+**Pendiente del equipo:** capturas y prueba manual; crear `entregable_3` (D79); `merge --no-ff` de `e3/dashboard-final`. **Próximo:** fase 6, alinear el informe (D49, D64).
 
 ## 4. Pendiente (próximos pasos)
 
