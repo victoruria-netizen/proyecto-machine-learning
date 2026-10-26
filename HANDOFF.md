@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-25 (E3, fase 5b: mejoras finales del prototipo, tema claro, pruebas y README en `e3/dashboard-final`; faltan las capturas y la prueba manual del equipo, D63, D79)_
+_Última actualización: 2026-10-26 (E3, fase 8a, paso D2: preparación del despliegue de la pestaña en el dashboard del servidor, en `e3/despliegue-servidor`; faltan el merge, el push y el despliegue en el servidor, que hace el equipo)_
 
 ---
 
@@ -2202,6 +2202,33 @@ nivel (NB2 y Poisson) y la prueba tiene que filtrar por el tipo de intervalo del
 - **El despliegue del prototipo en el servidor está pendiente** (hoy se ejecuta con `streamlit run app/app.py`; en el servidor solo se corrió el entrenamiento del modelo final).
 
 **Pendiente del equipo:** capturas y prueba manual; crear `entregable_3` (D79); `merge --no-ff` de `e3/dashboard-final`. **Próximo:** fase 6, alinear el informe (D49, D64).
+
+### Entregable 3, fase 8a, paso D2: preparación del despliegue en el servidor (2026-10-26, sesión de Claude)
+
+**Rama:** `e3/despliegue-servidor` (creada en la sesión desde `main` en `6f79092`). Sin review: el control es `pytest` en dos entornos y la prueba en el servidor que hace el equipo. Un commit por paso, con
+confirmación del equipo; nada en `main` y nada de push. Commits: `958538b` (paso 1), `2c00f70` (paso 2), `d0483bd` (paso 3), `d541b3f` (paso 4), `e1166c6` (el puente verifica que `src` sea el del clon) y el
+commit de este cierre (`HANDOFF.md` y `registro_uso_IA.md`). Modelo: Sonnet 5.5. Decisiones del servidor: D81 a D83.
+
+**Hecho**
+- `app/pagina_prediccion.py`: `app/` y la raíz se agregan **al final** de `sys.path` (antes, al principio), para no tapar los `charts`, `ui`, `config` y `constants` del dashboard del PID en el servidor.
+- `app/servidor/pagina_prediccion_puente.py` (nuevo): se copia en el servidor como `/app/streamlit/pagina_prediccion.py` y carga `app/pagina_prediccion.py` del clon (`/app/proyecto-machine-learning` o `PAA_REPO`).
+  Lee el commit de `.git` sin `subprocess`; si cambió, vacía la caché de cada función cacheada del módulo viejo (no usa `st.cache_*.clear()` globales, para no tocar las cachés del PID), descarta el módulo y
+  `src` y recarga. Verifica que `src.modelo` sea el del clon. Ante un clon ausente, una importación rota o un `src` ajeno muestra `st.error` (con traceback en un expander) y no lanza excepción. Pie: «Versión desplegada: <hash corto> del repositorio del PAA».
+- `documentacion/despliegue_servidor.md` (nuevo): diagnóstico del servidor del 26/10, diseño, comandos de a uno por línea, vuelta atrás completa, lo no verificado y la sección 6 de resultados (vacía, para el equipo).
+  Incluye lo del cambio local de `notebooks/base_2.ipynb` en el clon, guardado en el respaldo y en un `git stash`, no descartado. README (sección del prototipo) y `app/ORIGEN.md` remiten a él.
+- Tres comprobaciones que el prompt no pedía, aprobadas por el equipo: anotar el commit del clon antes del `fetch`, comprobar que `/app/.streamlit` no exista antes de crearlo y listar `librerias/` antes de borrar.
+
+**Pruebas** (detalle, versiones y límites en la sección 7 de `documentacion/pruebas_pipeline.md`)
+- `tests/test_servidor.py` (nuevo): 13 pruebas, pasan en el `.venv` y en el entorno de las versiones del servidor.
+- **84 pasadas** en el entorno con Python 3.11.15, streamlit 1.56.0, pandas 3.0.2, numpy 2.4.4, plotly 5.22.0, pydeck 0.9.1, scipy 1.16.3 y holidays 0.103 (`test_pipeline_inferencia.py`, `test_app.py`, `test_servidor.py` y
+  `test_variables.py`; 44 + 12 + 13 + 15). `test_modelo.py` y `test_train_modelo_final.py` quedan fuera de ese entorno porque necesitan `statsmodels`.
+- **115 pasadas** con `pytest` completo en el `.venv` (antes 102).
+- **Esas corridas no reemplazan la prueba en el servidor:** el entorno es Windows y el servidor es Linux; no reproducen su `sys.path`, su `app.py` ni el clon real, ni el `pip install --target` de scipy y holidays.
+
+**Pendiente del equipo**
+- Merge de `e3/despliegue-servidor` en `main` y push; con el hash del commit de merge se completa `<commit de main>` en el paso 2 de `despliegue_servidor.md`.
+- **Paso D3:** desplegar en el servidor siguiendo `documentacion/despliegue_servidor.md` y anotar el resultado en su sección 6.
+- Actualizar la línea de «Resultados» del `README.md` (dice que el despliegue en el servidor está pendiente) y el informe, **después** de D3. En esta fase no se tocaron.
 
 ## 4. Pendiente (próximos pasos)
 

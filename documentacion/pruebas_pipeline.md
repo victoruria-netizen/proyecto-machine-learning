@@ -146,3 +146,75 @@ Además, el intérprete global del equipo (streamlit 1.58.0) no importa por un c
 - **El parámetro `background` de `TextLayer`** (y `get_background_color`) no lo interpreta pydeck sino deck.gl, en el navegador: pydeck 0.9.1 lo acepta al construir la capa, pero no se verificó que la versión de deck.gl que trae lo dibuje. Tampoco se verificó el salto de línea dentro del texto de la etiqueta.
 - **El tema claro se prueba como archivo, no como render:** la prueba verifica que `.streamlit/config.toml` existe con `base = "light"`; el problema de legibilidad lo reprodujo el equipo en Chromium con `prefers-color-scheme: dark`, y que el tema claro lo resuelva no lo comprueba ninguna prueba automática. Además Streamlit solo lo toma si se lanza desde la raíz del repositorio.
 - **Las métricas son descriptivas:** que la solución tenga menor desvianza que L1 en 33 de 47 semanas es una descripción del bloque final, que no es una prueba independiente (D63); no decide nada.
+
+## 7. Ampliación del 26/10/2026 (fase 8a: despliegue en el dashboard del servidor, D81 a D83)
+
+Las secciones 1 a 6 describen el estado del 21/10 y del 25/10. Esta sección agrega las pruebas del despliegue (`sys.path` de la pestaña y puente
+para el servidor) y dos corridas: una con las versiones del servidor y otra con la suite completa del repositorio. El procedimiento de despliegue
+está en `documentacion/despliegue_servidor.md`.
+
+### 7.1 Pruebas nuevas: `tests/test_servidor.py` (13 pruebas)
+
+| Prueba | Qué verifica |
+| --- | --- |
+| `test_importar_la_pagina_no_cambia_los_primeros_elementos_de_sys_path` | En un intérprete aparte, con un `sys.path` conocido que no tiene `app/` ni la raíz del repositorio, importar `app/pagina_prediccion.py` no cambia ningún elemento previo y agrega esas dos carpetas **al final**, en ese orden (paso 1). Se comprobó que la prueba falla si el código vuelve a `sys.path.insert(0, …)` |
+| `test_el_puente_carga_la_pagina_del_clon_y_expone_render` | Con un clon falso en `tmp_path`, el puente carga `app/pagina_prediccion.py` bajo el nombre `paa_pagina_prediccion`, expone `render` y lee el commit de la ref a la que apunta `.git/HEAD` |
+| `test_el_puente_dibuja_la_pestana_y_el_commit_desplegado` | Con `PAA_REPO` apuntando al clon falso, `render()` dibuja la pestaña y cierra con «Versión desplegada: 1111111 del repositorio del PAA» |
+| `test_el_puente_recarga_cuando_cambia_el_commit` | Con el mismo commit devuelve el mismo módulo; al cambiar el commit y los archivos (como un `git checkout`), carga uno nuevo y `src` también se recarga |
+| `test_el_puente_lee_el_commit_de_packed_refs_y_de_head_suelto` | El commit se lee de `packed-refs` si la ref suelta no existe, de un `HEAD` suelto, y es `None` si no hay `.git` |
+| `test_sin_clon_muestra_error_y_no_lanza` | Con `PAA_REPO` apuntando a una carpeta inexistente: un único `st.error` («No se encontró el clon…») y ninguna excepción |
+| `test_con_una_importacion_que_falla_muestra_error_y_no_lanza` | Con una página que importa un módulo inexistente: un único `st.error` con `ModuleNotFoundError`, el traceback en el expander y ninguna excepción; no queda `paa_pagina_prediccion` a medio cargar en `sys.modules` |
+| `test_tras_cambiar_el_commit_la_funcion_cacheada_de_la_pagina_devuelve_el_valor_nuevo` | Una función de la página con `st.cache_data` que lee un archivo devuelve el valor nuevo tras cambiar el commit y el archivo. Sin vaciar su caché, devolvería el anterior (se comprobó quitando la llamada: la prueba falla) |
+| `test_vaciar_la_cache_de_la_pagina_no_vacia_la_de_una_funcion_ajena` | Una función cacheada que no es del módulo conserva su caché después de la recarga (D82: no se usan `st.cache_*.clear()` globales) |
+| `test_si_falla_el_vaciado_de_una_cache_se_anota_en_el_diagnostico_y_el_puente_sigue` | Si el `.clear()` de un atributo del módulo lanza una excepción, el puente la anota como `st.warning` en el expander de diagnóstico, vacía igual las demás cachés y la página sigue mostrando el valor nuevo |
+| `test_un_src_ajeno_antes_en_sys_path_dispara_un_error_con_las_dos_rutas` | Con un paquete `src` ajeno puesto antes en `sys.path`, el puente detecta que `sys.modules["src.modelo"].__file__` no está dentro del clon: un único `st.error` con la ruta esperada y la cargada, ninguna excepción, y no queda cargada la pestaña. Se comprobó que la prueba falla si se quita la verificación |
+| `test_con_el_src_del_clon_la_verificacion_pasa` | Con el `src` del clon primero en `sys.path`, la verificación no da error y la pestaña se dibuja |
+| `test_el_puente_con_este_repositorio_como_clon_muestra_la_pestana_real` | Integración: con este mismo repositorio como clon (`PAA_REPO`), el puente dibuja la pestaña real (texto «qué se predice») y el pie con un hash, sin errores |
+
+**Un detalle de la prueba de recarga.** Las versiones del clon falso tienen distinto largo («version-dos»). Con textos del mismo largo escritos en el mismo
+segundo (`v1` y `v2`), Python reutilizaba el `.pyc` de la versión anterior y `src` parecía no recargarse. Es un artefacto de la prueba: un `git checkout`
+real cambia la fecha de modificación de los archivos que modifica, de modo que Python no reutiliza el `.pyc` viejo.
+
+### 7.2 Corridas
+
+| Corrida | Comando | Resultado |
+| --- | --- | --- |
+| **Entorno con las versiones del servidor** (ver abajo) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py tests/test_servidor.py tests/test_variables.py` | **84 pasadas** (44 + 12 + 13 + 15), 0 fallidas, 0 saltadas |
+| **Repositorio de trabajo** (`.venv`: Python 3.13.2, streamlit 1.65.0, pandas 2.3.3, numpy 2.5.2, plotly 7.1.0, pydeck 0.9.3, scipy 1.18.1, holidays 0.103, statsmodels 0.14.6) | `pytest` | **115 pasadas**, 0 fallidas, 0 saltadas |
+| `tests/test_servidor.py` solo, en los dos entornos anteriores | `pytest tests/test_servidor.py` | **13 pasadas** en cada uno |
+
+Cuentas: 102 pruebas al 25/10 (§6.1) + 13 de `tests/test_servidor.py` = 115. En el entorno del servidor: 44 + 12 + 13 + 15 = 84.
+
+**Entorno con las versiones del servidor.** Armado con `uv` fuera del repositorio: Python **3.11.15**, streamlit 1.56.0, pandas 3.0.2, numpy 2.4.4,
+plotly 5.22.0, pydeck 0.9.1, SQLAlchemy 2.0.36, python-dotenv 1.0.1, streamlit-option-menu 0.3.6, scipy 1.16.3, holidays 0.103 y pytest 9.1.1 (las
+versiones se leyeron del propio entorno después de instalarlo). Comandos:
+
+```
+uv venv --python 3.11.15 entorno_servidor
+uv pip install --python entorno_servidor/Scripts/python.exe streamlit==1.56.0 pandas==3.0.2 numpy==2.4.4 plotly==5.22.0 pydeck==0.9.1 SQLAlchemy==2.0.36 python-dotenv==1.0.1 streamlit-option-menu==0.3.6 scipy==1.16.3 holidays==0.103 pytest
+```
+
+Se corrieron cuatro archivos. (La primera versión de esta sección, del commit del paso 3, daba 81 pasadas, con 10 pruebas en `test_servidor.py`; el puente ganó después la verificación del `src` y tres pruebas.) **`tests/test_modelo.py` y `tests/test_train_modelo_final.py` quedaron excluidos** porque necesitan `statsmodels`,
+que el servidor no usa para la pestaña y que este entorno no tiene instalado. `tests/test_variables.py` (15 pruebas) sí se incluyó: no necesita `statsmodels`.
+La pestaña (`src/modelo.py` incluido) no importa `statsmodels`: las 84 pruebas pasaron sin él.
+
+`tests/test_variables.py` usa un panel sintético, salvo dos pruebas (`test_panel_real_*`) que leen el panel real por `src/datos.py:cargar_panel_desarrollo()`
+y se saltan solas si `data/processed/` no existe. **En esta corrida no se saltaron**, porque el árbol de trabajo tiene `data/processed/` (no se versiona).
+En un clon sin esos datos, como el del servidor, esas dos se saltarían: el total sería 82 pasadas y 2 saltadas.
+
+### 7.3 Lo que estas corridas no cubren
+
+- **No reemplazan la prueba en el servidor.** El entorno de la primera corrida reproduce las **versiones** de Python y de las bibliotecas del diagnóstico del
+  26/10, pero es **Windows**, con un Python de uv, y el servidor es Linux. No reproduce el `sys.path` del servidor (`/app/streamlit`, `/app`,
+  `/app/streamlit/librerias`, `site-packages`), el `cwd` `/app`, el `app.py` del dashboard del PID (con sus `charts.py` y `ui.py` propios), ni el clon real
+  en `/app/proyecto-machine-learning`.
+- **No prueban la instalación de scipy y holidays en `librerias/`.** Esa corrida los instala con `uv pip install`, no con el `pip install --target` del
+  procedimiento de despliegue, que baja ruedas `manylinux` para Linux; en Windows no se pueden ejecutar.
+- **El puente se prueba con un clon falso, no con el real:** no se probó un `git checkout` verdadero sobre `/app/proyecto-machine-learning` ni la lectura de
+  su `.git` (por ejemplo con `packed-refs` generado por `git gc`; sólo se prueba con archivos escritos a mano).
+- **La concurrencia no se probó.** Si dos sesiones cargan la página a la vez justo cuando cambia el commit, el estado del puente (un diccionario del módulo) es compartido; no se analizó ese caso.
+- **No se verificó con el tema del servidor ni visualmente** (igual que §6.4).
+- **Pandas 3.0.2 contra 2.3.3.** Las pruebas de la pestaña pasan con las dos versiones: en las dos se comparan las 56 μ de la semana posterior al corte con el CSV del job 136
+  (tolerancia 1e-6) y la desvianza global con `tablas/06_globales.csv`, de modo que los resultados numéricos no cambian entre versiones.
+  Esta es la corrida de las pruebas, no una comparación aparte de valores.
+- **Corrección a §6.1.** Allí el Python del dashboard del servidor figura como «inferido… sin verificación directa»: el diagnóstico del 26/10, leído desde la propia pestaña, da 3.11.15.

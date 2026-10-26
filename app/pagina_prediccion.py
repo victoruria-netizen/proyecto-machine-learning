@@ -22,9 +22,9 @@ from pathlib import Path
 
 _AQUI = Path(__file__).resolve().parent
 _RAIZ = _AQUI.parent
-for _p in (str(_AQUI), str(_RAIZ)):
+for _p in (str(_AQUI), str(_RAIZ)):   # al final, no al principio: en el servidor, charts/ui/config/constants del PID tienen prioridad
     if _p not in sys.path:
-        sys.path.insert(0, _p)
+        sys.path.append(_p)
 
 import hashlib
 import json

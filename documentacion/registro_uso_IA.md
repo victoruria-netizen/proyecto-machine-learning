@@ -5791,3 +5791,301 @@ commit aparte (`32343ed`, sin `--amend`) y la precisión del Python del servidor
 **Uso y verificación:** utilizado, con una adaptación: el nombre del commit (a) se distinguió del de `0d43836` («Fase 5b, paso 4 (ajustes): …») para no tener dos commits con el mismo asunto. `pytest`
 completo en el `.venv`: 102 pasadas. Cifras del README contrastadas con las tablas 26, 28 y 29 de `modelos_candidatos`; búsqueda de IDs de decisión (`D` más dos dígitos) en el README sin coincidencias.
 **Archivos afectados:** `README.md`, `documentacion/pruebas_pipeline.md`.
+
+
+## Sesión 2026-10-26 (E3, fase 8a, paso D2: preparación del despliegue de la pestaña en el dashboard del servidor) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** rama `e3/despliegue-servidor`, creada en la sesión desde `main` en `6f79092`. Se prepara el despliegue de la pestaña «Predicción (PAA)» en el dashboard del servidor: `sys.path` de la pestaña, puente para el servidor, pruebas con las versiones del servidor y documento de despliegue. Commits: `958538b`, `2c00f70`, `d0483bd`, `d541b3f`, `e1166c6` y el de este cierre. Archivos: `app/pagina_prediccion.py`, `app/servidor/pagina_prediccion_puente.py`, `tests/test_servidor.py`, `documentacion/despliegue_servidor.md`, `documentacion/pruebas_pipeline.md`, `README.md`, `app/ORIGEN.md`, `HANDOFF.md` y este registro.
+
+**Cómo se generó esta entrada.** Los mensajes del usuario se extrajeron **por programa** de la transcripción de la sesión (`.jsonl` de Claude Code) y se agregaron tal cual, en orden y con su hora local (UTC-3); el script comparó cada texto escrito aquí contra la transcripción (igualdad exacta). Se omiten solo las marcas con que Claude Code envuelve el texto pegado. No se omitió ningún mensaje del usuario, y tampoco se transcribe nada de las respuestas, que se resumen en cada bloque. En una escritura anterior de esta entrada, la respuesta de Claude Code fue cortada por un clasificador de seguridad; por eso se extrajo por programa.
+
+### Prompt 1 — 2026-10-26 11:28 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> Sesión de trabajo del Entregable 3, fase 8a, en la rama e3/despliegue-servidor.
+>
+> Antes de hacer nada:
+> 1. Verificá con `git branch --show-current` que estás en e3/despliegue-servidor. Si no, detenete y avisame.
+> 2. Leé CLAUDE.md, HANDOFF.md y documentacion/resumen_modelos_candidatos.md. Respetá todas
+>    las reglas de CLAUDE.md: ninguna cifra sin artefacto, documento acompañante por notebook,
+>    registro de IA y HANDOFF al cierre.
+> 3. Las reglas fijadas en la sección 1 de notebooks/modelos_candidatos.ipynb no se modifican.
+>    Si algo necesita precisarse, se agrega un bloque fechado debajo y me lo consultás antes.
+>
+> Reglas de la sesión:
+> - El bloque final (2025-02-06 → 2025-12-31) solo lo lee notebooks/evaluacion_final.ipynb.
+>   En cualquier otro código, el panel entra únicamente por src/datos.py:cargar_panel_desarrollo().
+>   Esto incluye comandos sueltos de exploración.
+> - Variables solo desde src/variables.py. Si hace falta una nueva, va ahí y con tests.
+> - Los notebooks se ejecutan con `jupyter nbconvert --execute` en el .venv, con 0 errores.
+>   `pytest` tiene que pasar entero.
+> - Detenete en cada parada que indique el prompt. No avances sin mi confirmación.
+> - Si una instrucción choca con lo que encontrás en el repositorio, o si una decisión no
+>   está cubierta por el prompt, preguntá en vez de resolverla por tu cuenta.
+> - Al cerrar: actualizá el documento acompañante, HANDOFF.md y
+>   documentacion/registro_uso_IA.md. Mostrame `git status` y un resumen de los archivos tocados.
+>   Hacé commit en e3/despliegue-servidor solo cuando yo lo confirme. Nunca en main y nunca push.
+>
+> Prompt de la fase:
+> Fase 8a, paso D2: preparar el despliegue de la pestaña en el dashboard del servidor (D81 a D83).
+> Rama e3/despliegue-servidor desde main en 6f79092. Sin review: el control es pytest en dos
+> entornos y la prueba en el servidor que hace el equipo.
+>
+> Contexto del servidor (diagnóstico del 26/10, leído desde la propia pestaña):
+> - El dashboard ejecuta /app/streamlit/app.py con Python 3.11.15 y cwd /app. Su sys.path, en
+>   orden: /app/streamlit, /app, /app/streamlit/librerias, site-packages.
+> - En site-packages: streamlit 1.56.0, pandas 3.0.2, numpy 2.4.4. En librerias/: plotly 5.22.0,
+>   pydeck 0.9.1, SQLAlchemy 2.0.36, python-dotenv 1.0.1, streamlit-option-menu 0.3.6.
+>   No tiene scipy ni holidays.
+> - app.py, charts.py y ui.py del servidor son una versión anterior del PID, distinta de la de
+>   app/. charts.py y ui.py tienen estilizar, barras, lineas y hero con la misma firma que usa
+>   la pestaña. No se tocan.
+> - El app.py del servidor ya tiene las tres líneas de la pestaña e importa pagina_prediccion
+>   desde /app/streamlit.
+> - En /app/proyecto-machine-learning hay un clon de este repo, que el dashboard ve.
+> - Claude web ya verificó, en un entorno con Python 3.11.15, esas versiones, scipy 1.16.3 y
+>   holidays 0.103: tests/test_pipeline_inferencia.py y tests/test_app.py pasan (56), y la
+>   semana posterior al corte y las métricas globales dan idénticas al entorno del repo.
+>
+> Se pueden tocar:
+> - app/pagina_prediccion.py, solo el manejo de sys.path;
+> - archivos nuevos en app/servidor/ y tests nuevos;
+> - documentacion/pruebas_pipeline.md y documentacion/despliegue_servidor.md (nuevo);
+> - README.md, en la sección del prototipo;
+> - app/ORIGEN.md, HANDOFF.md y registro_uso_IA.md.
+> No se tocan src/, models/, experiments/, notebooks/ ni train/, ni app/app.py, charts.py,
+> ui.py, constants.py o config.py.
+>
+> ## Paso 1 — sys.path sin tapar módulos del servidor
+>
+> En app/pagina_prediccion.py, la carpeta app/ y la raíz se agregan al final de sys.path
+> (append), solo si no están, en vez de insertarse al principio.
+> Motivo: en el servidor, app/ del clon tiene charts.py, ui.py, config.py y constants.py, que
+> no pueden tapar los del dashboard del PID.
+> Las rutas de datos (RUTA_*) siguen relativas al archivo. Si en local charts o ui pasan a
+> resolverse distinto, avisame antes de cambiar otra cosa.
+> Test: importar pagina_prediccion no cambia los primeros elementos de sys.path.
+>
+> ## Paso 2 — Puente
+>
+> Archivo nuevo: app/servidor/pagina_prediccion_puente.py. En el servidor se copia como
+> /app/streamlit/pagina_prediccion.py.
+> - Ubica el clon en Path(__file__).resolve().parent.parent / "proyecto-machine-learning", o
+>   en la variable de entorno PAA_REPO si existe.
+> - Carga app/pagina_prediccion.py del clon con importlib.util.spec_from_file_location, bajo el
+>   nombre "paa_pagina_prediccion", y expone render().
+> - Lee el commit del clon desde .git/HEAD (y la ref o packed-refs a la que apunte), sin
+>   subprocess. Si el commit cambió desde la última carga, quita de sys.modules
+>   paa_pagina_prediccion, src y src.* antes de recargar. Así un git checkout en el clon se ve
+>   sin reiniciar el dashboard.
+> - render() del puente llama al render() del clon y muestra al final un st.caption:
+>   «Versión desplegada: <hash corto> del repositorio del PAA».
+> - Si el clon no está o la importación falla, muestra st.error con el motivo y el traceback
+>   dentro de un st.expander. Nunca deja escapar la excepción.
+> - Usa solo la biblioteca estándar y streamlit.
+> Tests, con un clon falso en tmp_path:
+> - carga y expone render;
+> - recarga cuando cambia el commit;
+> - sin clon: st.error y ninguna excepción;
+> - con una importación que falla: st.error y ninguna excepción.
+>
+> DETENETE.
+>
+> ## Paso 3 — Prueba con las versiones del servidor
+>
+> Armá un entorno aparte con uv: Python 3.11.15, streamlit 1.56.0, pandas 3.0.2, numpy 2.4.4,
+> plotly 5.22.0, pydeck 0.9.1, SQLAlchemy 2.0.36, python-dotenv 1.0.1,
+> streamlit-option-menu 0.3.6, scipy 1.16.3, holidays 0.103 y pytest.
+> Corré ahí tests/test_pipeline_inferencia.py, tests/test_app.py y los tests nuevos.
+> test_modelo.py y test_train_modelo_final.py necesitan statsmodels, que el servidor no usa
+> para la pestaña: excluilos y declaralo.
+> Corré también pytest completo en el .venv del repo.
+> Registrá las dos corridas en una sección nueva de pruebas_pipeline.md: versiones, resultados
+> y lo que no cubren (no reemplazan la prueba en el servidor).
+>
+> DETENETE.
+>
+> ## Paso 4 — Documento de despliegue
+>
+> documentacion/despliegue_servidor.md, con:
+> - el diagnóstico: versiones, rutas y sys.path;
+> - el diseño: puente, clon fijado en un commit, librerías agregadas sin reemplazar nada, tema;
+> - los comandos del equipo para el servidor, de a uno por línea, porque la terminal de
+>   Jupyter se traba si se pegan varias líneas juntas.
+>
+> Comandos:
+> 1. Respaldo: ya está hecho en /app/Respaldo/streamlit_20261026.
+> 2. git -C /app/proyecto-machine-learning status --short. Si hay cambios locales, detenerse.
+>    Después, fetch y checkout del commit de main que resulte del merge de esta rama.
+> 3. Instalar scipy 1.16.3 y holidays 0.103 en librerias/:
+>    python3 -m pip install --no-deps --only-binary=:all: --python-version 3.11 --implementation cp --platform manylinux2014_x86_64 --platform manylinux_2_17_x86_64 --platform manylinux_2_28_x86_64 --target /app/streamlit/librerias scipy==1.16.3 holidays==0.103
+>    Ocupa unos 156 MB. holidays usa python-dateutil, que ya viene con pandas.
+> 4. Tema: crear /app/.streamlit/config.toml con [theme] y base = "light". El cwd del
+>    dashboard es /app. streamlit 1.56 lo toma sin reiniciar, desde la siguiente carga de la
+>    página. Afecta también las páginas del PID, que ya fijan un fondo claro.
+> 5. Copiar app/servidor/pagina_prediccion_puente.py del clon a
+>    /app/streamlit/pagina_prediccion.py (reemplaza el diagnóstico).
+> 6. Verificación: py_compile del puente, la pestaña en los dos modos y dos páginas del PID.
+> 7. Vuelta atrás completa:
+>    - app.py desde el respaldo;
+>    - borrar de librerias/ solo lo que se agregó (scipy, scipy.libs, holidays y sus
+>      dist-info);
+>    - borrar /app/streamlit/pagina_prediccion.py y /app/.streamlit.
+>
+> README (sección del prototipo) y app/ORIGEN.md remiten a este documento.
+>
+> DETENETE.
+>
+> Al cerrar: HANDOFF.md y registro_uso_IA.md (este prompt textual, D47); un commit por paso,
+> con mi confirmación; mostrame git status. Nunca en main y nunca push.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** Claude verificó la rama: estaba en `main` y `e3/despliegue-servidor` no existía, y se detuvo a preguntar (la regla de la sesión pedía detenerse). Se leyeron `HANDOFF.md`, `app/pagina_prediccion.py`, `tests/test_app.py`, `app/ORIGEN.md`, `pytest.ini` y el comienzo de `resumen_modelos_candidatos.md`.
+**Uso y verificación:** la respuesta del equipo es el mensaje siguiente. **Archivos afectados:** ninguno.
+
+### Prompt 2 — 2026-10-26 11:32 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> Sí, creala vos. Antes de crearla:
+> - git switch main y git pull;
+> - confirmá con git log -1 --oneline que main está en 6f79092;
+> - confirmá con git status que el árbol está limpio.
+> Si alguna de las dos cosas no se cumple, detenete y avisame.
+> Si se cumplen, git switch -c e3/despliegue-servidor y seguí con el Paso 1.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** `main` estaba en `6f79092` y el árbol limpio; se creó la rama. Paso 1: `app/` y la raíz se agregan con `sys.path.append` en `app/pagina_prediccion.py`. Paso 2: `app/servidor/pagina_prediccion_puente.py` (ubica el clon, lee el commit de `.git`, recarga si cambió, `st.error` ante fallos, pie con la versión).
+**Uso y verificación:** utilizado. `pytest tests/test_servidor.py tests/test_app.py` en el `.venv`: 13 pasadas; la prueba de `sys.path` falla si se vuelve a `insert(0, …)`. Dos arreglos de las pruebas, no del código (raíz del repositorio ya en `sys.path` bajo pytest; `.pyc` reutilizado con textos del mismo largo). Claude señaló una decisión no cubierta por el prompt (vaciar las cachés de streamlit al recargar). **Archivos afectados:** `app/pagina_prediccion.py`, `app/servidor/pagina_prediccion_puente.py`, `tests/test_servidor.py`.
+
+### Prompt 3 — 2026-10-26 11:39 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> Commits: uno por paso.
+> - «Fase 8a, D2 paso 1: sys.path de la pestaña con append»: app/pagina_prediccion.py y el test
+>   de sys.path de tests/test_servidor.py.
+> - «Fase 8a, D2 paso 2: puente para el servidor»: app/servidor/pagina_prediccion_puente.py y el
+>   resto de tests/test_servidor.py.
+> Si los tests están en un solo archivo y no se pueden separar limpiamente, hacé un único commit
+> con los dos pasos y decilo en el mensaje.
+>
+> Cachés: no uses st.cache_resource.clear() ni st.cache_data.clear() globales. Antes de quitar el
+> módulo viejo de sys.modules, llamá a .clear() sobre sus funciones cacheadas:
+> _modelo_en_cache, _historico_en_cache y _referencia_en_cache, más cualquier otro atributo del
+> módulo que sea una función cacheada de streamlit. Cada llamada va en su propio try/except: si
+> una falla, se anota en el expander de diagnóstico y el puente sigue.
+> Motivo: se vacían solo las cachés de la pestaña, y las páginas del PID no se ven afectadas.
+> Test: en el clon falso, una función cacheada que lee un archivo devuelve el valor nuevo después
+> de cambiar el commit y el archivo; y la caché de otra función cacheada, ajena al módulo, no se
+> vacía.
+>
+> Anotá en despliegue_servidor.md (paso 4) lo del .pyc: un checkout real cambia la fecha de
+> modificación de los archivos, así que Python no reutiliza el .pyc viejo; en el test hizo falta
+> cambiar el tamaño.
+>
+> Después seguí con el Paso 3.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** commits `958538b` y `2c00f70`. El puente vacía solo las cachés de las funciones cacheadas del módulo viejo, cada una en su `try/except`, y anota los fallos en el expander. Paso 3: entorno `uv` con las versiones del servidor (Python 3.11.15): 66 pasadas; `pytest` completo en el `.venv`: 112; sección 7 de `pruebas_pipeline.md`.
+**Uso y verificación:** utilizado. Quitando la llamada a `.clear()` fallan dos de las tres pruebas de caché. Versiones del entorno leídas del propio entorno. **Archivos afectados:** `app/servidor/pagina_prediccion_puente.py`, `tests/test_servidor.py`, `documentacion/pruebas_pipeline.md`.
+
+### Prompt 4 — 2026-10-26 12:08 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> Antes del commit del paso 3:
+> - Corré tests/test_variables.py en el entorno con las versiones del servidor. Si no necesita
+>   statsmodels ni data/, sumalo a la corrida y actualizá la sección 7 de pruebas_pipeline.md
+>   (cantidad, comando y lista de archivos). Si necesita algo que el entorno no tiene, dejalo
+>   excluido y decí qué falta.
+> - Después, el commit «Fase 8a, D2 paso 3: pruebas con las versiones del servidor».
+>
+> Paso 4: además de lo del .pyc, agregá en el paso 2 de los comandos de despliegue_servidor.md:
+> el 26/10 el clon tenía un cambio local en notebooks/base_2.ipynb (2 líneas; notebook retirado
+> del repo el 24/09, que vive en la rama entregable_2). Antes del checkout se guardó en
+> /app/Respaldo/clon_paa_20261026/base_2_modificado_en_servidor.ipynb y con git stash (mensaje
+> «base_2 modificado en el servidor, antes del despliegue del 26/10»). No se descartó. El fetch
+> del 26/10 trajo main hasta 6f79092 y el tag e3-entrega-25-10.
+>
+> En los comandos, el checkout va al commit de main que resulte del merge de esta rama. Dejalo
+> como <commit de main> y aclaralo; el equipo lo completa.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** `tests/test_variables.py` (15 pruebas) no necesita `statsmodels`; dos pruebas usan `data/processed/` y se saltan sin él. Se sumó a la corrida del entorno del servidor (81 pasadas) y se hizo el commit `d0483bd`. Paso 4: `documentacion/despliegue_servidor.md`, párrafo en el README y en `app/ORIGEN.md`; tres comprobaciones agregadas a los comandos.
+**Uso y verificación:** utilizado; los tres agregados se señalaron al equipo. El `<commit de main>` queda sin completar a propósito. **Archivos afectados:** `documentacion/pruebas_pipeline.md`, `documentacion/despliegue_servidor.md`, `README.md`, `app/ORIGEN.md`.
+
+### Prompt 5 — 2026-10-26 12:13 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> 1. Commit del paso 4 con el mensaje que propusiste: «Fase 8a, D2 paso 4: documento de
+>    despliegue en el servidor». Dejá tus tres agregados en los comandos.
+>
+> 2. Antes del cierre, un cambio chico en el puente, en un commit propio («Fase 8a, D2: el
+>    puente verifica que src sea el del clon»):
+>    - después de cargar la pestaña, comprobá que sys.modules["src.modelo"].__file__ esté
+>      dentro de la carpeta del clon;
+>    - si no lo está, st.error con las dos rutas (la esperada y la cargada), sin excepción,
+>      igual que los otros fallos.
+>    Test: en el clon falso, un paquete src ajeno puesto antes en sys.path dispara ese error.
+>    En despliegue_servidor.md, el riesgo del src ajeno pasa de «conocido» a «detectado por
+>    el puente».
+>    Corré tests/test_servidor.py en el .venv y en el entorno de las versiones del servidor, y
+>    actualizá la cuenta en la sección 7 de pruebas_pipeline.md.
+>
+> 3. Cierre: HANDOFF.md y registro_uso_IA.md con los prompts textuales (D47), en su propio
+>    commit. Mostrame git status y git log --oneline -8. No hagas merge ni push.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** commit `d541b3f` (paso 4). El puente verifica que `src.modelo` sea el del clon (`SrcAjeno`, `st.error` con las dos rutas) y se agregaron tres pruebas; commit `e1166c6`. Cuentas: `test_servidor.py` 13 pasadas en los dos entornos; 84 en el entorno del servidor; 115 en el `.venv`. Al escribir el registro, la respuesta de Claude Code fue cortada por un clasificador de seguridad y el cierre quedó a medias; Claude se detuvo y avisó.
+**Uso y verificación:** utilizado. Las páginas falsas de las pruebas anteriores ahora importan `src.modelo`; la prueba del `src` ajeno falla si se quita la verificación. **Archivos afectados:** `app/servidor/pagina_prediccion_puente.py`, `tests/test_servidor.py`, `documentacion/pruebas_pipeline.md`, `documentacion/despliegue_servidor.md`.
+
+### Prompt 6 — 2026-10-26 12:24 (UTC-3)
+
+>
+>
+> <pasted_content id="80b0">
+> Seguí con una variante del camino 2. El registro no lo escribas vos: extraelo por programa.
+>
+> 1. HANDOFF.md: entrada de la fase 8a (paso D2) con
+>    - los commits 958538b, 2c00f70, d0483bd, d541b3f y e1166c6;
+>    - las pruebas: 84 en el entorno del servidor, 13 de test_servidor.py en cada entorno y
+>      115 en el .venv;
+>    - lo pendiente: merge y push (equipo), despliegue en el servidor siguiendo
+>      despliegue_servidor.md (paso D3, equipo), y la línea de «Resultados» del README y el
+>      informe, que se actualizan después de D3.
+>    Sin commit todavía.
+>
+> 2. registro_uso_IA.md: escribí un script fuera del repo que
+>    - lea la transcripción .jsonl de esta sesión, en la carpeta de proyectos de Claude Code
+>      (C--Proyectos-proyecto-machine-learning);
+>    - agregue al final del registro una entrada con un encabezado breve (fecha, herramienta,
+>      modelo, propósito) y, textuales y en orden, los mensajes del usuario de esta sesión con
+>      su fecha: el bloque S con el prompt del paso D2 y todos los mensajes de seguimiento;
+>    - compare cada texto agregado contra el .jsonl (igualdad exacta);
+>    - imprima solo la cantidad de mensajes, la longitud de cada uno y el resultado de la
+>      comparación, sin el texto.
+>    No transcribas los prompts escribiéndolos vos.
+>
+> 3. Si el script o la escritura se vuelven a cortar, detenete y avisame: el registro lo
+>    completa el equipo.
+>
+> 4. Commit: «Cierre de la fase 8a (D2): HANDOFF y registro de uso de IA». Mostrame git status
+>    y git log --oneline -3. Nada de merge ni push.
+> </pasted_content id="80b0">
+>
+
+**Respuesta (resumen):** `HANDOFF.md` con la entrada de la fase 8a (paso D2) y esta entrada del registro, generada por el script. Sin commit hasta la confirmación del equipo.
+**Uso y verificación:** el script compara cada texto contra la transcripción (igualdad exacta) y comprueba que lo que ya estaba en el registro quedó intacto. **Archivos afectados:** `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
