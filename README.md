@@ -252,6 +252,7 @@ repositorio no incluye, así que **muestran su error de conexión**. Es lo esper
 **Despliegue en el dashboard del servidor.** La pestaña también corre dentro del dashboard que ya está en el servidor institucional, mediante un puente
 (`app/servidor/pagina_prediccion_puente.py`) que carga `app/pagina_prediccion.py` de un clon de este repositorio fijado en un commit. El diagnóstico del
 servidor, el diseño, los comandos de instalación y la vuelta atrás están en `documentacion/despliegue_servidor.md`; las pruebas, en `documentacion/pruebas_pipeline.md` (§7).
+En el servidor se ve como la pestaña «Predicción (PAA)» del dashboard, con un pie que muestra el commit desplegado («Versión desplegada: `c1c40c3`» el 26/10/2026).
 
 Si falta `models/modelo_final.json` o `predicciones_bloque_final.csv`, la pestaña lo avisa con un mensaje (`git pull`).
 
@@ -334,11 +335,12 @@ con reentrenamiento en cada corte). Desvianza de Poisson media, tal como sale de
   5,26e-13 en α (criterio fijado de antemano: ≤ 1e-6, **CUMPLE**); el sha256 del modelo coincide con `models/metadata.json`. Fuente:
   `documentacion/logs/log_servidor_modelo_final.txt` y `documentacion/logs/servidor_modelo_final/resumen_corrida.json`. Verifica que el
   entrenamiento es reproducible, no el desempeño del modelo.
+- **Despliegue del prototipo en el servidor (26/10/2026).** El prototipo está desplegado en el dashboard del servidor institucional (puerto 18504)
+  desde el 26/10/2026, en el commit `c1c40c3`: la pestaña «Predicción (PAA)» funciona en los dos modos y su pie muestra el commit desplegado. Es un despliegue
+  distinto del entrenamiento del job 136 de arriba. Procedimiento, qué se verificó en el servidor y qué no, en `documentacion/despliegue_servidor.md`.
 - **Límites declarados.**
   - El bloque final **no es una prueba independiente**: se consultó preliminarmente en el Entregable 2 (aunque la solución se fijó
     antes de la evaluación final, ver `documentacion/resumen_evaluacion_final.md`, §5, puntos 1 y 2).
-  - **El despliegue del prototipo en el servidor está pendiente**: hoy se ejecuta localmente con `streamlit run app/app.py`; en el servidor
-    solo se corrió el entrenamiento.
   - La solución predice el 96,06 % del total observado (subestima), y la meteorología no se evaluó (objetivo 2 incumplido en esa
     dimensión; `tablas/19_cumplimiento_objetivos.csv`).
 

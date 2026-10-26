@@ -40,8 +40,10 @@ psycopg2-binary, pymongo, SQLAlchemy y python-dotenv. `streamlit-option-menu` no
 - `pagina_prediccion.py`: pestaña «Predicción (PAA)». Lee solo `models/modelo_final.json`, `models/metadata.json`,
   `experiments/evaluacion_final/predicciones_bloque_final.csv` y la capa de abajo; no usa bases de datos ni `config`.
 - `assets/municipios_montevideo_simplificado.geojson` (38,8 kB): capa de los 8 municipios de Montevideo para el mapa.
-- `servidor/pagina_prediccion_puente.py` (fase 8a): puente para el dashboard del servidor. Se copia allí como `/app/streamlit/pagina_prediccion.py` y carga
-  `pagina_prediccion.py` del clon del repositorio; no contiene la pestaña. Procedimiento, diseño y vuelta atrás en `documentacion/despliegue_servidor.md`.
+- `servidor/pagina_prediccion_puente.py` (fase 8a): puente para el dashboard del servidor. Se copia allí como `/app/streamlit/paa_puente.py` y carga
+  `pagina_prediccion.py` del clon del repositorio; no contiene la pestaña. En el `app.py` del servidor, la línea de importación del `elif` de la pestaña es
+  `import paa_puente as pagina_prediccion`. Se copia con ese nombre porque el proceso del dashboard ya tenía importado un módulo `pagina_prediccion` (la página de diagnóstico de D1)
+  y el servidor no recarga módulos importados. Procedimiento, diseño y vuelta atrás en `documentacion/despliegue_servidor.md`.
   Es código del PAA; no viene del PID y no usa `charts.py`, `ui.py`, `config.py` ni `constants.py`.
 
 `pagina_prediccion.py` agrega `app/` y la raíz del repositorio **al final** de `sys.path` (antes, al principio), para que en el servidor los `charts.py`, `ui.py`,
