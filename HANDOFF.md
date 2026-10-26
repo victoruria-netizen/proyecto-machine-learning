@@ -3,7 +3,7 @@
 Documento de traspaso de contexto. Registra el estado del proyecto y lo pendiente para
 retomar el trabajo sin perder información. Actualizar al cerrar cada sesión de trabajo.
 
-_Última actualización: 2026-10-26 (E3, fase 8a, paso D2: preparación del despliegue de la pestaña en el dashboard del servidor, en `e3/despliegue-servidor`; faltan el merge, el push y el despliegue en el servidor, que hace el equipo)_
+_Última actualización: 2026-10-26 (E3, fase 8a, paso D3: cierre del despliegue de la pestaña en el dashboard del servidor, en `e3/despliegue-cierre`; faltan el merge y el push, que hace el equipo)_
 
 ---
 
@@ -2229,6 +2229,47 @@ commit de este cierre (`HANDOFF.md` y `registro_uso_IA.md`). Modelo: Sonnet 5.5.
 - Merge de `e3/despliegue-servidor` en `main` y push; con el hash del commit de merge se completa `<commit de main>` en el paso 2 de `despliegue_servidor.md`.
 - **Paso D3:** desplegar en el servidor siguiendo `documentacion/despliegue_servidor.md` y anotar el resultado en su sección 6.
 - Actualizar la línea de «Resultados» del `README.md` (dice que el despliegue en el servidor está pendiente) y el informe, **después** de D3. En esta fase no se tocaron.
+
+### Entregable 3, fase 8a, paso D3: cierre del despliegue en el servidor (2026-10-26, sesión de Claude)
+
+**Rama:** `e3/despliegue-cierre` (creada en la sesión desde `main` en `c1c40c3`). Solo documentación: no se tocó código ni tests. Sin review. Dos commits, con confirmación del equipo: uno para
+`documentacion/despliegue_servidor.md`, `README.md` y `app/ORIGEN.md`, y uno para este cierre (`HANDOFF.md` y `registro_uso_IA.md`); los hashes están en `git log`. Nada en `main` y nada de push. Modelo: Sonnet 5.5.
+**Esta sesión corrió en la nube (Claude Code web), no en el local**, a diferencia de las anteriores: sin `.venv`, así que no se corrió `pytest`; no hacía falta, porque no cambió ningún archivo de código ni de tests.
+**El cierre anterior (D2) quedó en `0117bff`**; `c1c40c3` es el merge de esa rama en `main`. Decisión: D84.
+
+**Lo que pasó en el servidor el 26/10** (lo registró el equipo; detalle en la sección 6 de `documentacion/despliegue_servidor.md`)
+- Pasos 1 a 4 sin errores: el clon pasó de `46e0c65` a `c1c40c3` con `HEAD` suelto; el stash con `base_2` se conservó; pip instaló scipy 1.16.3 y holidays 0.103 (avisos esperables: pip como `root` y
+  `librerias/bin` ya existía, por lo que `holidays-ics` no se copió); se creó `/app/.streamlit/config.toml`.
+- **Paso 5, el problema:** tras copiar el puente como `/app/streamlit/pagina_prediccion.py`, la pestaña siguió mostrando el diagnóstico de D1. El proceso del dashboard ya tenía importado ese módulo y el servidor
+  no recarga los módulos importados cuando cambia el archivo (`app.py` sí se relee). **Solución:** el puente se copió como `/app/streamlit/paa_puente.py`; en `app.py`, la línea del `elif` pasó a
+  `import paa_puente as pagina_prediccion`; `py_compile` sin errores; se borró `/app/streamlit/pagina_prediccion.py`.
+- **Paso 6:** la pestaña funciona en los dos modos, con el pie «Versión desplegada: c1c40c3» y el tema claro. En «Histórico», semana del 06/02/2025: 143, 163,0, 1,033 (+0,053 frente a L1) y 5 de 56. Pie de las
+  47 semanas: 1,1063, 1,1359 y 33 de 47, igual que `tablas/06`. Tablas en pantalla verificadas; «Sobre el modelo», integridad «Coincide»; páginas del PID «Revisadas».
+
+**Hecho en esta sesión**
+- `documentacion/despliegue_servidor.md`: paso 5 y vuelta atrás con `paa_puente.py` y la línea de `app.py`; sección nueva **3.7 «Recarga de módulos en el servidor»** (por qué el puente no se reemplaza en caliente y que la pestaña
+  se actualiza con un checkout del clon); vuelta atrás del clon con `git checkout main` (la `main` local quedó en `46e0c65`; el `fetch` no la mueve) y después `git stash pop`; §3.4 y §5 con lo que **verificó Claude web el 26/10 en Linux**
+  (el mismo `pip --target` ocupó 156 MB y scipy importó con Python 3.11.15 y numpy 2.4.4; en una réplica con un clon git real y `HEAD` suelto el pie mostró el commit y la pestaña recargó sin reiniciar al pasar de `0117bff` a
+  `6f79092` y volver) separado de lo **verificado en el servidor**; §6 con el resultado; §7 actualizada.
+- `README.md`: en «Resultados», el despliegue deja de figurar como límite pendiente y pasa a un punto propio (desplegado en el dashboard del servidor, puerto 18504, desde el 26/10/2026, commit `c1c40c3`), aparte de la
+  evidencia del job 136; en la sección del prototipo, una línea sobre cómo se ve en el servidor.
+- `app/ORIGEN.md`: el nombre del puente en el servidor (`paa_puente.py`) y la línea de `app.py`.
+- Tres cosas que el prompt no pedía y que quedan señaladas: (1) `<commit de main>` del paso 2 completado con `c1c40c3`; (2) en la vuelta atrás, se restaura también `pagina_prediccion.py` desde el respaldo, porque el
+  `app.py` del respaldo la importa y el paso 6 la borra; (3) las secciones 5 y 6 separan lo medido, lo que es inferencia y lo que el registro del equipo no dice.
+
+**Lo que NO está verificado**
+- **El punto 5 del paso 6** (ningún `st.error` ni «Detalle técnico» en la pestaña): el registro del equipo no lo menciona. La sección 6 lo declara así; falta que el equipo lo confirme.
+- La **recarga al cambiar de commit en el servidor real**: solo se probó en pruebas automáticas y en una réplica en Linux. El **mapa, las etiquetas y los gráficos** del servidor no se detallaron y no hay capturas en el repositorio.
+  Las **varias sesiones a la vez** no se probaron. La **vuelta atrás completa** no consta que se haya ejecutado.
+- Los números de la semana del 06/02/2025 los leyó el equipo en la pantalla; no se contrastaron contra `predicciones_bloque_final.csv` en esta sesión (el bloque final solo lo lee `evaluacion_final.ipynb`, y no se hizo ninguna lectura suelta).
+
+**Abierto**
+- **El docstring del puente** (`app/servidor/pagina_prediccion_puente.py`, líneas 1 a 5) sigue diciendo que se copia como `/app/streamlit/pagina_prediccion.py`: es el nombre que no funcionó. Es código; queda para otra fase.
+- **`documentacion/cambios_informe.md`** todavía lista el despliegue como pendiente (D69). No se tocó, igual que el informe.
+- **Cambiar el puente** no llega al servidor con un checkout: hay que copiarlo con otro nombre y cambiar la importación de `app.py`, o reiniciar el proceso del dashboard (3.7).
+
+**Pendiente del equipo:** confirmar el punto 5 del paso 6; `merge --no-ff` de `e3/despliegue-cierre` en `main` y push (un commit solo de documentación: **no hace falta mover el clon del servidor**, que sigue en `c1c40c3`); actualizar el informe con el
+resultado del despliegue.
 
 ## 4. Pendiente (próximos pasos)
 
