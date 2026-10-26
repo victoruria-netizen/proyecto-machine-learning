@@ -63,7 +63,8 @@ def _clon_falso(raiz, version="v1", commit=HASH_1, pagina=PAGINA):
     (raiz / "app").mkdir(exist_ok=True)
     (raiz / "app" / "pagina_prediccion.py").write_text(pagina, encoding="utf-8")
     (raiz / "src").mkdir(exist_ok=True)
-    (raiz / "src" / "__init__.py").write_text(f"VERSION = {version!r}\n", encoding="utf-8")
+    (raiz / "src" / "__init__.py").write_text(f"VERSION = {version!r}\nfrom . import modelo  # noqa: E402,F401\n", encoding="utf-8")
+    (raiz / "src" / "modelo.py").write_text("", encoding="utf-8")
     return raiz
 
 
@@ -139,9 +140,13 @@ def test_con_una_importacion_que_falla_muestra_error_y_no_lanza(puente, tmp_path
 
 
 PAGINA_CON_CACHE = '''
+import sys
 from pathlib import Path
 
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # en pytest ya está en sys.path el src del repo real
+from src import modelo  # noqa: E402,F401  (el puente exige que src.modelo sea el del clon)
 
 DATO = Path(__file__).resolve().parent.parent / "dato.txt"
 
@@ -205,3 +210,46 @@ def test_si_falla_el_vaciado_de_una_cache_se_anota_en_el_diagnostico_y_el_puente
     assert at.markdown[0].value == "dato: dos"                         # la caché sana sí se vació y la página sigue
     assert any("rota" in w.value and "RuntimeError" in w.value for w in at.warning)
     assert at.caption[-1].value == "Versión desplegada: 2222222 del repositorio del PAA"
+
+
+PAGINA_SIN_ORDEN_PROPIO = '''
+import streamlit as st
+from src import modelo
+
+def render():
+    st.write("pestaña con " + modelo.__file__)
+'''
+
+
+def test_un_src_ajeno_antes_en_sys_path_dispara_un_error_con_las_dos_rutas(puente, tmp_path, monkeypatch):
+    ajeno = tmp_path / "ajeno"
+    (ajeno / "src").mkdir(parents=True)
+    (ajeno / "src" / "__init__.py").write_text("", encoding="utf-8")
+    (ajeno / "src" / "modelo.py").write_text("", encoding="utf-8")
+    clon = _clon_falso(tmp_path / "proyecto-machine-learning", pagina=PAGINA_SIN_ORDEN_PROPIO)
+    monkeypatch.setenv("PAA_REPO", str(clon))
+    monkeypatch.setattr(sys, "path", [str(ajeno)] + sys.path)          # el src ajeno tiene prioridad, como en un servidor con otro src
+    at = _correr_render()
+    assert not at.exception
+    assert len(at.error) == 1
+    mensaje = at.error[0].value
+    assert str(clon.resolve()) in mensaje and str((ajeno / "src" / "modelo.py").resolve()) in mensaje
+    assert "paa_pagina_prediccion" not in sys.modules and puente._ESTADO["modulo"] is None
+
+
+def test_con_el_src_del_clon_la_verificacion_pasa(puente, tmp_path, monkeypatch):
+    clon = _clon_falso(tmp_path / "proyecto-machine-learning", pagina=PAGINA_SIN_ORDEN_PROPIO)
+    monkeypatch.setenv("PAA_REPO", str(clon))
+    monkeypatch.setattr(sys, "path", [str(clon)] + sys.path)
+    at = _correr_render()
+    assert not at.exception and not at.error
+    assert str((clon / "src" / "modelo.py").resolve()) in at.markdown[0].value
+
+
+def test_el_puente_con_este_repositorio_como_clon_muestra_la_pestana_real(puente, monkeypatch):
+    "Integración: el clon es el propio repositorio (tiene .git, app/pagina_prediccion.py y el src real)."
+    monkeypatch.setenv("PAA_REPO", str(datos.RAIZ))
+    at = _correr_render()
+    assert not at.exception and not at.error, [e.value for e in at.error]
+    assert "cantidad esperada de siniestros viales" in at.info[0].value
+    assert at.caption[-1].value.startswith("Versión desplegada: ") and "desconocida" not in at.caption[-1].value

@@ -153,7 +153,7 @@ Las secciones 1 a 6 describen el estado del 21/10 y del 25/10. Esta sección agr
 para el servidor) y dos corridas: una con las versiones del servidor y otra con la suite completa del repositorio. El procedimiento de despliegue
 está en `documentacion/despliegue_servidor.md`.
 
-### 7.1 Pruebas nuevas: `tests/test_servidor.py` (10 pruebas)
+### 7.1 Pruebas nuevas: `tests/test_servidor.py` (13 pruebas)
 
 | Prueba | Qué verifica |
 | --- | --- |
@@ -167,6 +167,9 @@ está en `documentacion/despliegue_servidor.md`.
 | `test_tras_cambiar_el_commit_la_funcion_cacheada_de_la_pagina_devuelve_el_valor_nuevo` | Una función de la página con `st.cache_data` que lee un archivo devuelve el valor nuevo tras cambiar el commit y el archivo. Sin vaciar su caché, devolvería el anterior (se comprobó quitando la llamada: la prueba falla) |
 | `test_vaciar_la_cache_de_la_pagina_no_vacia_la_de_una_funcion_ajena` | Una función cacheada que no es del módulo conserva su caché después de la recarga (D82: no se usan `st.cache_*.clear()` globales) |
 | `test_si_falla_el_vaciado_de_una_cache_se_anota_en_el_diagnostico_y_el_puente_sigue` | Si el `.clear()` de un atributo del módulo lanza una excepción, el puente la anota como `st.warning` en el expander de diagnóstico, vacía igual las demás cachés y la página sigue mostrando el valor nuevo |
+| `test_un_src_ajeno_antes_en_sys_path_dispara_un_error_con_las_dos_rutas` | Con un paquete `src` ajeno puesto antes en `sys.path`, el puente detecta que `sys.modules["src.modelo"].__file__` no está dentro del clon: un único `st.error` con la ruta esperada y la cargada, ninguna excepción, y no queda cargada la pestaña. Se comprobó que la prueba falla si se quita la verificación |
+| `test_con_el_src_del_clon_la_verificacion_pasa` | Con el `src` del clon primero en `sys.path`, la verificación no da error y la pestaña se dibuja |
+| `test_el_puente_con_este_repositorio_como_clon_muestra_la_pestana_real` | Integración: con este mismo repositorio como clon (`PAA_REPO`), el puente dibuja la pestaña real (texto «qué se predice») y el pie con un hash, sin errores |
 
 **Un detalle de la prueba de recarga.** Las versiones del clon falso tienen distinto largo («version-dos»). Con textos del mismo largo escritos en el mismo
 segundo (`v1` y `v2`), Python reutilizaba el `.pyc` de la versión anterior y `src` parecía no recargarse. Es un artefacto de la prueba: un `git checkout`
@@ -176,10 +179,11 @@ real cambia la fecha de modificación de los archivos que modifica, de modo que 
 
 | Corrida | Comando | Resultado |
 | --- | --- | --- |
-| **Entorno con las versiones del servidor** (ver abajo) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py tests/test_servidor.py tests/test_variables.py` | **81 pasadas** (44 + 12 + 10 + 15), 0 fallidas, 0 saltadas |
-| **Repositorio de trabajo** (`.venv`: Python 3.13.2, streamlit 1.65.0, pandas 2.3.3, numpy 2.5.2, plotly 7.1.0, pydeck 0.9.3, scipy 1.18.1, holidays 0.103, statsmodels 0.14.6) | `pytest` | **112 pasadas**, 0 fallidas, 0 saltadas |
+| **Entorno con las versiones del servidor** (ver abajo) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py tests/test_servidor.py tests/test_variables.py` | **84 pasadas** (44 + 12 + 13 + 15), 0 fallidas, 0 saltadas |
+| **Repositorio de trabajo** (`.venv`: Python 3.13.2, streamlit 1.65.0, pandas 2.3.3, numpy 2.5.2, plotly 7.1.0, pydeck 0.9.3, scipy 1.18.1, holidays 0.103, statsmodels 0.14.6) | `pytest` | **115 pasadas**, 0 fallidas, 0 saltadas |
+| `tests/test_servidor.py` solo, en los dos entornos anteriores | `pytest tests/test_servidor.py` | **13 pasadas** en cada uno |
 
-Cuentas: 102 pruebas al 25/10 (§6.1) + 10 de `tests/test_servidor.py` = 112.
+Cuentas: 102 pruebas al 25/10 (§6.1) + 13 de `tests/test_servidor.py` = 115. En el entorno del servidor: 44 + 12 + 13 + 15 = 84.
 
 **Entorno con las versiones del servidor.** Armado con `uv` fuera del repositorio: Python **3.11.15**, streamlit 1.56.0, pandas 3.0.2, numpy 2.4.4,
 plotly 5.22.0, pydeck 0.9.1, SQLAlchemy 2.0.36, python-dotenv 1.0.1, streamlit-option-menu 0.3.6, scipy 1.16.3, holidays 0.103 y pytest 9.1.1 (las
@@ -190,13 +194,13 @@ uv venv --python 3.11.15 entorno_servidor
 uv pip install --python entorno_servidor/Scripts/python.exe streamlit==1.56.0 pandas==3.0.2 numpy==2.4.4 plotly==5.22.0 pydeck==0.9.1 SQLAlchemy==2.0.36 python-dotenv==1.0.1 streamlit-option-menu==0.3.6 scipy==1.16.3 holidays==0.103 pytest
 ```
 
-Se corrieron cuatro archivos. **`tests/test_modelo.py` y `tests/test_train_modelo_final.py` quedaron excluidos** porque necesitan `statsmodels`,
+Se corrieron cuatro archivos. (La primera versión de esta sección, del commit del paso 3, daba 81 pasadas, con 10 pruebas en `test_servidor.py`; el puente ganó después la verificación del `src` y tres pruebas.) **`tests/test_modelo.py` y `tests/test_train_modelo_final.py` quedaron excluidos** porque necesitan `statsmodels`,
 que el servidor no usa para la pestaña y que este entorno no tiene instalado. `tests/test_variables.py` (15 pruebas) sí se incluyó: no necesita `statsmodels`.
-La pestaña (`src/modelo.py` incluido) no importa `statsmodels`: las 81 pruebas pasaron sin él.
+La pestaña (`src/modelo.py` incluido) no importa `statsmodels`: las 84 pruebas pasaron sin él.
 
 `tests/test_variables.py` usa un panel sintético, salvo dos pruebas (`test_panel_real_*`) que leen el panel real por `src/datos.py:cargar_panel_desarrollo()`
 y se saltan solas si `data/processed/` no existe. **En esta corrida no se saltaron**, porque el árbol de trabajo tiene `data/processed/` (no se versiona).
-En un clon sin esos datos, como el del servidor, esas dos se saltarían: el total sería 79 pasadas y 2 saltadas.
+En un clon sin esos datos, como el del servidor, esas dos se saltarían: el total sería 82 pasadas y 2 saltadas.
 
 ### 7.3 Lo que estas corridas no cubren
 

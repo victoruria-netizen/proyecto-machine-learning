@@ -30,7 +30,7 @@ Leído desde la propia pestaña de diagnóstico que estaba instalada, no desde u
 | Respaldo previo | `/app/Respaldo/streamlit_20261026` |
 
 **Lo que el diagnóstico no dice.** No hay evidencia de que exista un paquete o módulo `src` en alguna carpeta de `sys.path` anterior al clon. Si existiera,
-taparía el `src` de este repositorio (ver riesgos, sección 3.6).
+taparía el `src` de este repositorio; el puente lo detecta (secciones 3.1 y 3.6).
 
 ## 3. Diseño
 
@@ -43,6 +43,7 @@ carga `app/pagina_prediccion.py` del clon de este repositorio y llama a su `rend
   variable de entorno `PAA_REPO`, se usa esa carpeta.
 - **Carga.** Con `importlib.util.spec_from_file_location`, bajo el nombre `paa_pagina_prediccion`. El puente usa solo la biblioteca estándar y streamlit.
 - **Pie.** Cada vez que se dibuja, termina con «Versión desplegada: `<hash corto>` del repositorio del PAA». Sirve para comprobar de un vistazo qué commit se está viendo.
+- **Verificación del `src`.** Después de cargar la pestaña, el puente comprueba que `sys.modules["src.modelo"].__file__` esté dentro de la carpeta del clon. Si no lo está (hay otro `src` antes en `sys.path`), muestra un `st.error` con las dos rutas, la esperada y la cargada, y deja sin cargar la pestaña; no lanza ninguna excepción.
 - **Errores.** Si el clon no está o la importación falla, muestra un `st.error` con el motivo y el traceback dentro de un expander «Detalle técnico». No deja escapar la excepción: las demás páginas del PID siguen funcionando.
 
 ### 3.2 Clon fijado en un commit
@@ -82,7 +83,7 @@ Afecta también a las páginas del PID, que ya fijan un fondo claro por su cuent
 
 ### 3.6 Riesgos conocidos
 
-- **Un `src` ajeno en `sys.path`.** Si hubiera uno en `/app/streamlit`, `/app` o `librerias/`, se importaría en lugar del del clon. En ese caso la pestaña mostraría el error con el traceback, que indica qué archivo se importó.
+- **Un `src` ajeno en `sys.path` (detectado por el puente).** Si hubiera uno en `/app/streamlit`, `/app` o `librerias/`, se importaría en lugar del del clon. El puente lo detecta (3.1): la pestaña no se muestra y el `st.error` dice qué ruta se esperaba y cuál se cargó. La solución sería quitar o renombrar ese `src` ajeno; el procedimiento no lo prevé porque el diagnóstico no encontró ninguno.
 - **Estado compartido entre sesiones.** El puente guarda el módulo cargado y el commit en un diccionario del módulo, compartido por todas las sesiones del dashboard. Si dos sesiones se dibujan a la vez justo cuando cambia el commit, una podría ver un error transitorio; se resuelve recargando la página. No se probó.
 - **Cachés de otras funciones del módulo.** Solo se vacían las funciones cacheadas de streamlit que sean atributos del módulo de la pestaña. Una caché que viviera en otro módulo (por ejemplo dentro de `src`) no se vacía.
 - **`git checkout` a mitad de una lectura.** El puente lee `.git/HEAD` en cada dibujado. Si lo lee justo mientras git actualiza la ref, puede tomar el commit anterior o no poder leerlo (el pie dice «desconocida»); la próxima carga lo corrige.
@@ -234,14 +235,14 @@ El clon queda en el commit nuevo; no hace falta moverlo, porque sin el puente na
 
 ## 5. Qué está verificado y qué no
 
-**Verificado (pruebas automáticas, `pruebas_pipeline.md` §7):** el puente carga la pestaña de un clon, la recarga cuando cambia el commit (incluido `src`), vacía solo las cachés de la pestaña, y ante un clon ausente o una importación rota
+**Verificado (pruebas automáticas, `pruebas_pipeline.md` §7):** el puente carga la pestaña de un clon, la recarga cuando cambia el commit (incluido `src`), vacía solo las cachés de la pestaña, y ante un clon ausente, una importación rota o un `src` ajeno
 muestra el error sin lanzar excepciones; importar la pestaña no cambia el principio de `sys.path`; y las pruebas del pipeline, de la interfaz y de las variables pasan con Python 3.11.15, streamlit 1.56.0, pandas 3.0.2,
 numpy 2.4.4, plotly 5.22.0, pydeck 0.9.1, scipy 1.16.3 y holidays 0.103.
 
 **No verificado, y solo se puede verificar en el servidor:**
 
 - que el comando de `pip --target` del paso 3 instala las ruedas esperadas (las pruebas instalaron las mismas versiones con `uv pip install` en Windows);
-- que el orden real de `sys.path` resuelve `charts`, `ui` y `src` como se describe en 3.3;
+- que el orden real de `sys.path` resuelve `charts`, `ui` y `src` como se describe en 3.3 (para `src`, lo comprueba el puente al cargar; para `charts` y `ui`, el equipo en el paso 6);
 - que el puente lee bien el `.git` del clon real (las pruebas usan clones falsos con archivos escritos a mano);
 - la apariencia: mapa, etiquetas, tema y las páginas del PID (AppTest no dibuja nada);
 - el comportamiento con varias sesiones a la vez.

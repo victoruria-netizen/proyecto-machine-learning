@@ -28,6 +28,10 @@ class ClonNoDisponible(Exception):
     "El clon del repositorio no está, o no tiene la pestaña."
 
 
+class SrcAjeno(Exception):
+    "Se importó un ``src`` que no es el del clon (otro paquete ``src`` antes en ``sys.path``)."
+
+
 # Lo que quedó cargado: el módulo de la pestaña, el commit del clon con el que se cargó y los avisos de diagnóstico.
 _ESTADO = {"modulo": None, "commit": None, "avisos": []}
 
@@ -100,6 +104,16 @@ def _vaciar_cachees_del_modulo(modulo) -> None:
                 _ESTADO["avisos"].append(f"No se pudo vaciar la caché de {nombre}: {type(e).__name__}: {e}")
 
 
+def _verificar_src(clon: Path) -> None:
+    "``src.modelo`` tiene que haberse importado desde la carpeta del clon; si no, ``SrcAjeno`` con la ruta esperada y la cargada."
+    cargado = getattr(sys.modules.get("src.modelo"), "__file__", None)
+    esperada = Path(clon).resolve()
+    if cargado is None:
+        raise SrcAjeno(f"La pestaña no cargó src.modelo del clon (se esperaba dentro de {esperada}).")
+    if not Path(cargado).resolve().is_relative_to(esperada):
+        raise SrcAjeno(f"El paquete src que se importó no es el del clon. Ruta esperada: {esperada}. Ruta cargada: {Path(cargado).resolve()}.")
+
+
 def _cargar(clon: Path):
     "Importa ``app/pagina_prediccion.py`` del clon bajo el nombre ``paa_pagina_prediccion``. Propaga lo que falle."
     ruta = clon / "app" / "pagina_prediccion.py"
@@ -113,6 +127,11 @@ def _cargar(clon: Path):
         spec.loader.exec_module(modulo)
     except BaseException:
         sys.modules.pop(NOMBRE_MODULO, None)
+        raise
+    try:
+        _verificar_src(clon)
+    except SrcAjeno:
+        _descartar_modulos()                           # no dejar cargado lo que usa otro src
         raise
     return modulo
 
@@ -156,6 +175,8 @@ def render() -> None:
         obtener_pagina(clon).render()
     except ClonNoDisponible as e:
         _mostrar_error(f"{e} Definí la variable de entorno {VARIABLE_ENTORNO} o clonar el repositorio ahí (ver documentacion/despliegue_servidor.md).")
+    except SrcAjeno as e:
+        _mostrar_error(str(e))
     except Exception as e:                             # noqa: BLE001 — el puente no deja escapar nada que no sea control de streamlit
         _mostrar_error(f"{type(e).__name__}: {e}")
     else:
