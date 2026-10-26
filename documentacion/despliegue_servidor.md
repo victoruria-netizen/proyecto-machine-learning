@@ -382,7 +382,6 @@ en esa semana; es una semana, no el desempeño del modelo (los 33 de 47 son la c
 
 ## 7. Qué queda pendiente
 
-- **Confirmar el punto 5 del paso 6** (ningún `st.error` ni «Detalle técnico» en la pestaña): el registro del equipo no lo menciona.
 - **Actualizar el informe** con el resultado de la sección 6 (el prototipo está desplegado en el servidor, en `c1c40c3`). `README.md` ya lo dice; `documentacion/cambios_informe.md` todavía lo lista como pendiente (D69) y esta fase no lo toca.
 - **Docstring del puente** (`app/servidor/pagina_prediccion_puente.py`, líneas 1 a 5): dice que se copia como `/app/streamlit/pagina_prediccion.py`. Es el nombre que no funcionó; en el servidor el archivo es `paa_puente.py`. Corregirlo exige tocar código y
   correr las pruebas, por eso queda para otra fase.
