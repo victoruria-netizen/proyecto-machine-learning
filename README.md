@@ -19,7 +19,7 @@ de los municipios la cantidad esperada de siniestros registrados (ver «Prototip
 ## Proyecto de origen (PID)
 
 - **Repositorio PID:** https://git.utec.edu.uy/juan.pimentel/siniestros-viales-grp4
-- **Componentes reutilizados:** Script de extracción, transformación, carga y dataset unificado de siniestros en Uruguay (UNASEV), ya depurado, geolocalizado (coordenadas X/Y y Departamento/Localidad) y trazable; enriquecimiento climático histórico de Open-Meteo previamente cacheado; y el dashboard en Streamlit sobre el que se integrará la nueva funcionalidad.
+- **Componentes reutilizados:** Script de extracción, transformación, carga y dataset unificado de siniestros en Uruguay (UNASEV), ya depurado, geolocalizado (coordenadas X/Y y Departamento/Localidad) y trazable; enriquecimiento climático histórico de Open-Meteo previamente cacheado; y el dashboard en Streamlit sobre el que se integró la pestaña de predicción.
 - **Modificaciones en el PAA:**
   - ETL adaptado (`notebooks/preparacion_montevideo.ipynb`): produce en `data/processed/` el panel diario por municipio
     (`panel_diario_montevideo.csv`, 8 municipios, 2021-07-01 a 2025-12-31) y los paneles por zona del Entregable 2. La unidad de
@@ -129,8 +129,8 @@ comentario de para qué se usa, reejecutar lo que dependa de ella y regenerar
 `requirements-lock.txt` con `pip freeze` (guardado en UTF-8, conservando su encabezado).
 
 **Otros entornos.** El servidor institucional (`submit_cpu`) corre los scripts de `train/` en un
-contenedor con su propio entorno (Python 3.10, pandas 1.5.3, scikit-learn 1.2.0), distinto de este;
-ver `train/README.md`. Los notebooks de `notebooks/Ejemplos/` son material de ejemplo pensado para
+contenedor con su propio entorno, distinto de este (según el log del job 136: Python 3.10.12, numpy 1.26.4,
+pandas 2.3.3, scikit-learn 1.7.2, scipy 1.12.0, sin statsmodels ni `holidays`); ver `train/README.md`. Los notebooks de `notebooks/Ejemplos/` son material de ejemplo pensado para
 Colab (usan seaborn, tensorflow y cv2) y no se ejecutan con este entorno.
 
 Las credenciales y rutas sensibles se gestionan mediante variables de entorno.
@@ -233,7 +233,7 @@ streamlit run app/app.py
 ```
 
 Hay que lanzarlo desde la raíz: así Streamlit toma `.streamlit/config.toml`, que fija el tema claro (`base = "light"`). Sin él,
-con el sistema en modo oscuro los textos del dashboard casi no se leen sobre el fondo claro del CSS heredado (D80; ver `app/ORIGEN.md`).
+con el sistema en modo oscuro los textos del dashboard casi no se leen sobre el fondo claro del CSS heredado (ver `app/ORIGEN.md`).
 
 Se abre en `http://localhost:8501`. Elegir la pestaña **Predicción (PAA)** (la última de la barra). No hace falta
 `data/`, ni bases de datos, ni `.env`, ni reentrenar: la pestaña usa solo archivos versionados.
@@ -316,9 +316,13 @@ con reentrenamiento en cada corte). Desvianza de Poisson media, tal como sale de
   desvianza en el bloque final que en la validación (columna `desvianza_validacion`), así que la mejora respecto de la validación no
   se atribuye a ningún modelo.
 - **Configuración elegida.** GLM Poisson (a) con ventana deslizante de 364 días. **Se apartó de la regla de selección** fijada antes de
-  ejecutar, que había elegido la ventana expansiva; la diferencia de desvianza en validación entre ambas (1,2205 contra 1,2302,
-  columna `desvianza_validacion` de `tablas/06`) es menor que un error estándar. La decisión (D42) es del equipo, se tomó con la
-  validación y sin leer el bloque final; la expansiva quedó como sensibilidad y XGBoost como contraste, sin competir. Detalle en
+  ejecutar. La regla había elegido la ventana expansiva: las cuatro ventanas del GLM empataban a menos de un error estándar y la
+  expansiva las desempató por el menor desvío entre cortes (0,246353, contra 0,246801 de la segunda, la de 728 días: una diferencia de
+  0,00045; la de 364 días tenía 0,249505; `experiments/modelos_candidatos/tablas/29_paso_c_eleccion.csv`). El equipo eligió 364 días
+  porque tiene menor desvianza media en validación (1,2205 contra 1,2302; `tablas/26_paso_c_globales.csv`), gana a la expansiva en 30
+  de los 47 cortes (`tablas/28_paso_c_por_corte.csv`) y calibra mejor el total (predicho / observado 0,9717 contra 0,9341;
+  `tablas/26`). Ninguna de las dos diferencias de desvianza supera un error estándar. La decisión se tomó con la validación y sin leer
+  el bloque final; la expansiva quedó como sensibilidad y XGBoost como contraste, sin competir. Detalle en
   `documentacion/resumen_modelos_candidatos.md` (§3e) y en `documentacion/resumen_evaluacion_final.md` (§6, puntos 5 y 8).
 - **Evidencia del servidor (job 136, 21/10/2026).** El entrenamiento del modelo final en el servidor institucional, con otra
   implementación (IRLS en numpy, α por momentos) y otras versiones de las bibliotecas, coincidió con `models/modelo_final.json` con
