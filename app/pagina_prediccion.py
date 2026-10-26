@@ -477,8 +477,9 @@ def _mostrar_semana(semana: pd.DataFrame, con_observado: bool, historico: pd.Dat
         t["Fuera del 80 %"] = ["Sí" if f else "No" for f in fuera_del_intervalo(semana)]
     with st.expander("Tabla por municipio y día, con intervalos"):
         st.dataframe(t, use_container_width=True, hide_index=True, column_config=_config_dos_decimales(t))
-        st.caption(f"Intervalos de predicción de conteos ({semana['tipo_intervalo'].iloc[0]}): cada uno deja afuera la "
-                   "misma probabilidad en ambas colas.")
+        st.caption(f"Intervalos de predicción de conteos ({semana['tipo_intervalo'].iloc[0]}), con cuantiles de colas iguales "
+                   "(10 % y 90 % para el 80 %; 2,5 % y 97,5 % para el 95 %). Por ser conteos enteros, el modelo espera que "
+                   "cubran algo más que el nivel nominal.")
     st.download_button("Descargar la tabla de la semana (CSV)", t.to_csv(index=False).encode("utf-8"),
                        file_name=f"prediccion_semana_{pd.Timestamp(semana['fecha'].min()):%Y-%m-%d}.csv", mime="text/csv",
                        key="pred_descarga_" + ("historico" if con_observado else "posterior"))

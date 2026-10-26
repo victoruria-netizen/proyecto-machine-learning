@@ -86,11 +86,11 @@ Cambios de la pestaña que se prueban: rótulo «Semana posterior al corte», m�
 
 | Corrida | Comando | Resultado |
 | --- | --- | --- |
-| Repositorio de trabajo (`.venv`, Python 3.13.2, streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3) | `pytest` | **101 pasadas**, 0 fallidas, 0 saltadas |
-| Solo los dos archivos de la pestaña, mismo `.venv` | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **55 pasadas** (44 + 11) |
-| Entorno aparte con las versiones de streamlit, plotly y pydeck de D70 (no reproduce el entorno del servidor), creado con `uv`, con las dependencias de `requirements-lock.txt` salvo streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1 (Python 3.13.2, pandas 2.3.3, numpy 2.5.2) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **55 pasadas** |
+| Repositorio de trabajo (`.venv`, Python 3.13.2, streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3) | `pytest` | **102 pasadas**, 0 fallidas, 0 saltadas |
+| Solo los dos archivos de la pestaña, mismo `.venv` | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **56 pasadas** (44 + 12) |
+| Entorno aparte con las versiones de streamlit, plotly y pydeck de D70 (no reproduce el entorno del servidor), creado con `uv`, con las dependencias de `requirements-lock.txt` salvo streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1 (Python 3.13.2, pandas 2.3.3, numpy 2.5.2) | `pytest tests/test_pipeline_inferencia.py tests/test_app.py` | **56 pasadas** |
 
-Cuentas: 76 pruebas al 21/10, más 1 del rótulo (paso 1) y 24 de este paso = 101. De las 24, 20 están en `test_pipeline_inferencia.py` y 4 en `test_app.py`.
+Cuentas: 76 pruebas al 21/10, más 1 del rótulo (paso 1), 24 de este paso y 1 del pie de la tabla (corrección de texto del 25/10) = 102. De las 24, 20 están en `test_pipeline_inferencia.py` y 4 en `test_app.py`.
 **Qué es y qué no es la corrida del entorno aparte.**
 - **No es el entorno del servidor.** Es Python 3.13.2, no el Python 3.11 del servidor; solo coinciden las versiones de streamlit (1.57.0), plotly (5.22.0) y pydeck (0.9.1). Las demás librerías son las del lock del repositorio.
 - **No es un clon limpio** como el del 21/10: usa el mismo árbol de trabajo (con `data/processed/`). No se corrió la suite completa ni se levantó `streamlit run` en ese entorno.
@@ -126,6 +126,7 @@ Cuentas: 76 pruebas al 21/10, más 1 del rótulo (paso 1) y 24 de este paso = 10
 | --- | --- |
 | `test_historico_muestra_4_metricas_y_los_elementos_nuevos` | «Histórico» sin excepciones, errores ni warnings; 4 métricas con las etiquetas esperadas; delta «frente a L1»; subtítulo «Las 47 semanas del bloque final»; caption con 1,1063, 1,1359 y «33 de 47»; columna «Fuera del 80 %» en la tabla; «Sobre el modelo» al final |
 | `test_historico_sin_l1_muestra_un_warning_y_no_una_excepcion` | Con un CSV sin L1, un único `st.warning` («referencia L1», «sin las comparaciones»), sin errores ni excepciones; las 4 métricas siguen, la desvianza sin delta, y la tabla por día de 56 filas |
+| `test_pie_de_la_tabla_no_presenta_la_cobertura_como_exacta` | El pie de la tabla por municipio y día dice «cuantiles de colas iguales (10 % y 90 % para el 80 %; 2,5 % y 97,5 % para el 95 %)» y «cubran algo más que el nivel nominal», y ya no habla de «la misma probabilidad en ambas colas» (en `tablas/17`, NB2 al 80 %: 3,2 % debajo, 6,8 % encima, cobertura esperada por el modelo 0,887) |
 | `test_semana_posterior_no_tiene_metricas_y_cierra_con_sobre_el_modelo` | El modo «Semana posterior al corte» no muestra métricas (no hay observados) y termina con «Sobre el modelo» |
 | `test_tema_claro_fijado_en_streamlit_config` | `.streamlit/config.toml` existe y tiene `theme.base = "light"` (D80) |
 

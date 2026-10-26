@@ -158,6 +158,16 @@ def test_historico_sin_l1_muestra_un_warning_y_no_una_excepcion(tmp_path):
     assert at.dataframe[1].value.shape[0] == 56
 
 
+def test_pie_de_la_tabla_no_presenta_la_cobertura_como_exacta():
+    "Los intervalos de conteos cubren algo más que el nivel nominal (tablas/17): el pie lo dice y no habla de «la misma probabilidad»."
+    at = _pestana()
+    _sin_problemas(at)
+    pie = [c.value for c in at.caption if c.value.startswith("Intervalos de predicción de conteos")]
+    assert len(pie) == 1
+    assert "cuantiles de colas iguales (10 % y 90 % para el 80 %; 2,5 % y 97,5 % para el 95 %)" in pie[0]
+    assert "cubran algo más que el nivel nominal" in pie[0] and "misma probabilidad" not in pie[0]
+
+
 def test_semana_posterior_no_tiene_metricas_y_cierra_con_sobre_el_modelo():
     at = _pestana()
     _sin_problemas(at)

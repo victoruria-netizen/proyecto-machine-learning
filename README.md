@@ -7,21 +7,33 @@ del Proyecto de Ingeniería de Datos (PID) del mismo equipo. Su objetivo es form
 resolver un problema de aprendizaje automático relacionado con la **predicción de
 siniestros viales**, reutilizando los datos y activos útiles del proyecto anterior.
 
-El problema se aborda como un **pronóstico de series temporales**: estimar la cantidad
-esperada de siniestros por zona y período a partir de la serie histórica de siniestros de
-Uruguay (UNASEV) y de variables exógenas de clima y calendario. Los resultados se
-integran en una nueva pestaña del dashboard existente, que representa sobre un mapa las
-zonas y períodos con mayor cantidad pronosticada de siniestros.
+El problema se aborda como un **pronóstico de series temporales de conteos**: estimar la
+cantidad esperada de siniestros registrados por municipio de Montevideo (8 municipios) y día, con un
+horizonte de 7 días, a partir de la serie histórica de siniestros de UNASEV. La solución final es un GLM
+Poisson que usa solo el municipio y el calendario de 8 niveles (lunes a domingo y feriado): es el
+conjunto de variables (a). **No usa clima ni rezagos de la serie**: la lluvia se retiró de la lista de
+candidatos antes de ejecutar (decisión del equipo del 14/10/2026; ver `documentacion/resumen_modelos_candidatos.md`,
+§1.1). Los resultados se integran en una nueva pestaña del dashboard existente, que muestra sobre un mapa
+de los municipios la cantidad esperada de siniestros registrados (ver «Prototipo / dashboard»).
 
 ## Proyecto de origen (PID)
 
 - **Repositorio PID:** https://git.utec.edu.uy/juan.pimentel/siniestros-viales-grp4
 - **Componentes reutilizados:** Script de extracción, transformación, carga y dataset unificado de siniestros en Uruguay (UNASEV), ya depurado, geolocalizado (coordenadas X/Y y Departamento/Localidad) y trazable; enriquecimiento climático histórico de Open-Meteo previamente cacheado; y el dashboard en Streamlit sobre el que se integrará la nueva funcionalidad.
 - **Modificaciones en el PAA:**
-  - Adaptación del proceso ETL para producir series temporales agregadas por zona y período, con la granularidad temporal y territorial que se defina tras el análisis de densidad y cobertura de los datos.
-  - Construcción de variables predictoras: rezagos y agregados móviles de la serie, variables de calendario (día de la semana, mes, feriados) y variables climáticas (temperatura, precipitación, viento) tomadas de la caché histórica, sin llamadas recurrentes a la API externa.
-  - Incorporación de un módulo de modelado, evaluación con validación temporal y artefactos de inferencia (modelo serializado y pipeline de preprocesamiento).
-  - Ampliación del dashboard con una nueva pestaña de visualización georreferenciada de las predicciones.
+  - ETL adaptado (`notebooks/preparacion_montevideo.ipynb`): produce en `data/processed/` el panel diario por municipio
+    (`panel_diario_montevideo.csv`, 8 municipios, 2021-07-01 a 2025-12-31) y los paneles por zona del Entregable 2. La unidad de
+    análisis del Entregable 3 es municipio × día.
+  - Variables (`src/variables.py`, única implementación compartida por notebooks, pruebas y prototipo): calendario de 8 niveles y
+    municipio. La solución final no usa rezagos, nivel reciente ni clima; los rezagos y el nivel reciente se evaluaron en otros
+    conjuntos de la validación, y el clima (lluvia) se retiró antes de ejecutar.
+  - Módulo de modelado y evaluación con validación temporal: `src/modelo.py` (entrenar, predecir con intervalos del 80 % y 95 %,
+    guardar y cargar el modelo en JSON, sin pickle); candidatos GLM Poisson, binomial negativa (para los intervalos) y XGBoost,
+    comparados con referencias en 47 cortes de 7 días (`notebooks/modelos_candidatos.ipynb`) y evaluados una vez en el bloque final
+    (`notebooks/evaluacion_final.ipynb`).
+  - Artefactos de inferencia: `models/modelo_final.json` y `models/metadata.json`. El entrenamiento del modelo final se
+    reprodujo en el servidor institucional con `train/train_modelo_final.py`.
+  - Dashboard: pestaña «Predicción (PAA)» en `app/`, sobre el código heredado del PID (ver `app/ORIGEN.md`); no usa bases de datos.
 
 ## Estructura del repositorio
 
@@ -136,25 +148,26 @@ PowerShell). `python-dotenv` está instalado solo porque lo importa `app/config.
 | Fuente | Contenido | Acceso | Formato |
 | ----- | ----- | ----- | ----- |
 | UNASEV (Unidad Nacional de Seguridad Vial, Uruguay) | Registros históricos de siniestros de tránsito, con fecha, hora, ubicación (coordenadas X/Y, departamento y localidad) y características del evento | Datos abiertos gubernamentales; no requiere autorizaciones adicionales a las obtenidas en el PID | CSV / TXT |
-| Open-Meteo — Historical Weather API | Variables meteorológicas históricas (temperatura, precipitación, viento) por ubicación y fecha/hora | API pública con límite de uso; se emplea como carga histórica puntual ya cacheada, con clave única por latitud, longitud, fecha y hora | JSON → CSV cacheado |
+| Open-Meteo — Historical Weather API | Variables meteorológicas históricas (temperatura, precipitación, viento) por ubicación y fecha/hora | API pública con límite de uso; carga histórica puntual ya cacheada, con clave única por latitud, longitud, fecha y hora. La lee el ETL, pero **la solución final no usa variables climáticas** | JSON → CSV cacheado |
 | Calendario de feriados de Uruguay | Feriados y días no laborables utilizados como variable exógena | Fuente pública | CSV |
 
-**Variable objetivo y predictoras.** La variable objetivo es la cantidad de siniestros
-agregada por zona y período. Como predictoras se emplean variables temporales (día de la
-semana, mes, feriados), rezagos de la propia serie y variables climáticas.
+**Variable objetivo y predictoras.** La variable objetivo es la cantidad de siniestros registrados por
+municipio de Montevideo y día. La solución final usa el conjunto (a): indicadoras de municipio más el
+calendario de 8 niveles (lunes a domingo y feriado). No usa clima ni rezagos de la serie. Los otros
+conjuntos que se evaluaron en la validación (con rezagos y nivel reciente) y el motivo del retiro de la
+lluvia están en `documentacion/resumen_modelos_candidatos.md`.
 
 **Disponibilidad y versionado.** Los datos de siniestros ya integrados y depurados
 provienen del PID. Los archivos de datos no se versionan en este repositorio: `data/`
 contiene únicamente la estructura de carpetas y la caché climática se obtiene o se
-restaura mediante el script de ingesta. Para reproducir el conjunto de trabajo, ubicar los
-archivos fuente en `data/raw/` y ejecutar el pipeline descrito en la sección siguiente,
-que deja el dataset consolidado en `data/processed/`.
+restaura con `notebooks/preparacion_montevideo.ipynb`. Para reproducir el conjunto de trabajo, ubicar los
+archivos fuente en `data/raw/` y ejecutar los notebooks en el orden de la sección «Ejecución», que deja el
+panel diario por municipio en `data/processed/`. Para usar el prototipo no hace falta nada de eso.
 
-**Calidad y limitaciones conocidas.** Antes de fijar la granularidad definitiva se evalúa
-la densidad de observaciones por zona y período, dado el riesgo de series con exceso de
-períodos en cero, y se verifica la completitud de las variables climáticas para las zonas
-y fechas de interés. El pipeline se diseña para utilizar únicamente información disponible
-al momento de generar el pronóstico, evitando fugas de información.
+**Calidad y limitaciones conocidas.** La granularidad (municipio × día) sale del diagnóstico por
+municipio (`documentacion/resumen_diagnostico_municipios.md`). La completitud de las variables
+climáticas ya no se verifica para la solución, que no las usa. El pipeline utiliza únicamente información
+disponible al momento de generar el pronóstico, evitando fugas de información.
 
 **Protección.** Los datos son públicos y agregados, sin información personal
 identificable. Las credenciales de acceso se gestionan mediante variables de entorno y no
@@ -174,6 +187,7 @@ varios leen lo que escribe uno anterior:
 | 2 | `diagnostico_municipios` | `data/processed/` y, para 2.4/2.5/2.7, `data/raw/` (siniestros crudos y capa de municipios). **Sólo el bloque de desarrollo: el test se descarta al leer** | `experiments/diagnostico_municipios/` |
 | 3 | `linea_base` | `data/processed/panel_zona_top.csv` | `experiments/linea_base/` |
 | 4 | `modelos_candidatos` | `data/processed/panel_diario_montevideo.csv` **sólo hasta 2025-02-05** (el test se descarta al leer, con `assert`) y `experiments/linea_base/tablas/04_desarrollo_backtesting.csv` | `experiments/modelos_candidatos/` |
+| 5 | `evaluacion_final` | `data/processed/panel_diario_montevideo.csv` **completo, con el bloque final**; `experiments/modelos_candidatos/solucion_seleccionada.json` y tablas de validación de `experiments/modelos_candidatos/tablas/`; `experiments/diagnostico_municipios/tablas/00_procedencia.csv` | `experiments/evaluacion_final/` (`tablas/`, `figuras/`, `predicciones_bloque_final.csv`, `registro_ejecucion.csv`) y `models/` (`modelo_final.json`, `metadata.json`) |
 
 ```powershell
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 notebooks/preparacion_montevideo.ipynb
@@ -182,6 +196,12 @@ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeou
 `--inplace` reemplaza el notebook por su versión con las salidas nuevas. Repetir el comando con
 cada notebook de la tabla, en ese orden. Para abrirlos en Jupyter o VS Code, elegir el
 intérprete de `.venv` (Python 3.13.2).
+
+**`evaluacion_final` es el único notebook que lee el bloque final** (2025-02-06 a 2025-12-31), además de
+`train/train_modelo_final.py` (excepción declarada). Ya está ejecutado y sus salidas están versionadas: **no hace falta reejecutarlo
+para usar el prototipo**, que lee solo `models/` y `experiments/evaluacion_final/predicciones_bloque_final.csv`. Si se reejecuta,
+sus tablas tienen que reproducir `experiments/evaluacion_final/registro_ejecucion.csv`; `metadata.json` cambia solo en
+`commit_base` y `fecha_generacion` (detalle en `documentacion/resumen_evaluacion_final.md`, §1.6 y §5).
 
 **Nota (2026-09-24):** hasta esta fecha la tabla tenía seis filas: `base` y `base_2` leían el
 mismo `panel_zona_top.csv` y corrían en los puestos 5 y 6 (el 2026-09-20 los seis corrieron en
@@ -195,7 +215,8 @@ puesto 5; `base.ipynb` y `base_2.ipynb` quedaron preservados en la rama `entrega
 - **Registro del entorno.** `linea_base` guarda las versiones en
   `experiments/linea_base/tablas/00_entorno.csv`, y `diagnostico_municipios` en
   `experiments/diagnostico_municipios/tablas/00b_entorno.csv`, y `modelos_candidatos` en
-  `experiments/modelos_candidatos/tablas/00_entorno.csv`; cada uno registra solo las bibliotecas que
+  `experiments/modelos_candidatos/tablas/00_entorno.csv`, y `evaluacion_final` en
+  `experiments/evaluacion_final/tablas/00_entorno.csv`; cada uno registra solo las bibliotecas que
   importa. `preparacion_montevideo` no las registra.
 - **Cómo leer una reejecución.** La del 2026-09-20 dejó idénticas byte a byte todas las tablas de
   resultados; las diferencias fueron solo de versiones, fechas, tamaños de archivo, etiquetas de tipo
@@ -220,34 +241,34 @@ Se abre en `http://localhost:8501`. Elegir la pestaña **Predicción (PAA)** (la
 | Modo | Qué muestra | De dónde lo lee |
 | --- | --- | --- |
 | Semana posterior al corte | Entorno simulado con corte al 31/12/2025, el último día con datos: cantidad esperada de siniestros registrados por municipio y día, del 01/01/2026 al 07/01/2026, con intervalos del 80 % y 95 %. No es la semana actual y no hay observados para compararla | `models/modelo_final.json` (vía `src/modelo.py`) |
-| Histórico | Predicho contra observado, por semana, en el bloque final (06/02/2025 a 31/12/2025). Se muestra tal como está en el archivo, sin recalcular | `experiments/evaluacion_final/predicciones_bloque_final.csv` |
+| Histórico | Predicho contra observado, por semana, en el bloque final (06/02/2025 a 31/12/2025). Se muestra tal como está en el archivo, sin recalcular. Agrega métricas descriptivas de la semana (desvianza de Poisson, comparada con la referencia L1, y pares fuera del intervalo del 80 %) y el recorrido de las 47 semanas | `experiments/evaluacion_final/predicciones_bloque_final.csv` (la referencia L1 sale del mismo archivo) |
+
+Los dos modos incluyen la descarga de la tabla de la semana en CSV y el panel «Sobre el modelo», que lee `models/metadata.json` y
+comprueba en vivo el sha256 de `models/modelo_final.json`. Las métricas son descriptivas y no deciden nada.
 
 Las demás pestañas son el dashboard heredado del PID (ver `app/ORIGEN.md`): consultan PostgreSQL y MongoDB, que este
 repositorio no incluye, así que **muestran su error de conexión**. Es lo esperado y no afecta a la pestaña nueva.
 
 Si falta `models/modelo_final.json` o `predicciones_bloque_final.csv`, la pestaña lo avisa con un mensaje (`git pull`).
 
-### Pipeline previsto
+### Código de la solución (`src/`, `train/` y prototipo)
 
-> **Estado (2026-10-21):** el entrenamiento y la evaluación final viven en los notebooks y en `train/`
-> (`train/train_modelo_final.py`, ver `train/README.md`); `src/` tiene `datos.py`, `variables.py` y `modelo.py`. Los
-> comandos de abajo (`src.data.*`, `src.features.*`, `src.models.*`) son un diseño anterior y **no existen**.
+- **`src/datos.py`**: `cargar_panel_desarrollo()` lee `data/processed/panel_diario_montevideo.csv` y descarta el bloque final al
+  leer, de modo que el código de desarrollo no puede verlo.
+- **`src/variables.py`**: variables de la solución y de los otros conjuntos evaluados: calendario de 8 niveles (`tipo_dia`,
+  `calendario_8`), nivel del municipio, nivel reciente, rezagos y las matrices de entrenamiento y de horizonte. La solución usa solo
+  el municipio y el calendario.
+- **`src/modelo.py`**: `entrenar` (GLM Poisson o XGBoost, con α de la binomial negativa para los intervalos), `predecir_semana`
+  (56 filas, 7 días × 8 municipios, con la cantidad esperada y los intervalos del 80 % y 95 %), y `guardar_modelo` / `cargar_modelo`
+  (JSON, sin pickle). Cargar y predecir no necesitan statsmodels ni xgboost: solo `entrenar` los importa.
+- **`train/train_modelo_final.py`**: reentrena la solución con los datos hasta el 2025-12-31 en el servidor institucional
+  (`submit_cpu`) y compara con `models/modelo_final.json`. No importa `src/`, porque el contenedor no tiene statsmodels ni `holidays`.
+  Instrucciones de envío y evidencia de la corrida en `train/README.md`.
+- **Prototipo**: `app/` (ver «Prototipo / dashboard»). Carga `models/modelo_final.json` con `src/modelo.py` y lee las predicciones del
+  bloque final; no reentrena nada.
 
-```bash
-# 1. Ingesta y consolidación: construye el dataset unificado a partir de las fuentes
-python -m src.data.ingesta
-
-# 2. Construcción del dataset temporal: agregación por zona y período,
-#    incorporación de variables exógenas (clima cacheado, calendario, feriados) y rezagos
-python -m src.features.construir_dataset
-
-# 3. Entrenamiento y evaluación: línea base y modelos candidatos con validación temporal.
-#    Guarda métricas y configuraciones en experiments/ y los artefactos en models/
-python -m src.models.entrenar
-
-# 4. Inferencia con el modelo ya entrenado (no requiere reentrenar)
-python -m src.models.predecir --horizonte 4
-```
+Todo lo anterior es lo que existe hoy. Un diseño anterior de este README proponía comandos `python -m src.data.*`, `src.features.*` y
+`src.models.*`: nunca se implementaron y se quitaron.
 
 ### Pruebas
 
@@ -261,7 +282,7 @@ qué se encontró está en `documentacion/pruebas_pipeline.md`. Las pruebas con 
 `data/processed/` no está generado y siempre lo leen por `src.datos.cargar_panel_desarrollo()`, que descarta el
 bloque final al leer. Con un clon sin `data/`, las que no necesitan el panel igual corren.
 
-## Resultados esperados
+## Resultados
 
 Los resultados se completan de forma acumulativa según avancen los entregables.
 
@@ -275,21 +296,43 @@ serie. Ese bloque final fue evaluado preliminarmente en el Entregable 2, no es u
 reservada e independiente. Detalle completo, tablas y limitaciones en
 `experiments/linea_base/` y `documentacion/resumen_linea_base.md`.
 
-**Lo previsto para el Entregable 3** (protocolo de evaluación, todavía no ejecutado):
+**Entregable 3: la solución final en el bloque final** (2025-02-06 a 2025-12-31: 47 cortes de 7 días, 2.632 pares día-municipio,
+con reentrenamiento en cada corte). Desvianza de Poisson media, tal como sale de
+`experiments/evaluacion_final/tablas/06_globales.csv` (menor valor, menor desvianza):
 
-- **Modelos candidatos.** Dos familias de enfoques: modelos estadísticos clásicos de
-  series temporales (por ejemplo SARIMA) y modelos de aprendizaje automático supervisado
-  con variables de rezago (por ejemplo modelos de boosting).
-- **Estrategias comparadas.** Con y sin variables exógenas, y esquemas de ventana
-  expansiva frente a ventana deslizante.
-- **Alcance.** El panel completo de 8 municipios, con métricas desagregadas por municipio
-  y hold-out dejando un municipio afuera por vez — no la serie única del Entregable 2.
-- **Validación.** Particiones que respetan el orden cronológico de los datos; el diseño
-  de la evaluación final todavía es una decisión pendiente (ver
-  `documentacion/cambios_para_informe.md`).
-- **Métricas.** Métricas de error estandarizadas para pronóstico, definidas según las
-  características y la distribución de la serie una vez completado el análisis
-  exploratorio.
+| Modelo | Papel | Desvianza | Error estándar (47 cortes) | Total predicho / observado |
+| --- | --- | --- | --- | --- |
+| GLM Poisson (a), ventana deslizante de 364 días | solución | 1,1063 | 0,0335 | 0,9606 |
+| XGBoost (a), ventana deslizante de 364 días | contraste | 1,1198 | 0,0341 | 0,9608 |
+| GLM Poisson (a), ventana expansiva | sensibilidad | 1,1329 | 0,0355 | 0,8989 |
+| L1 (nivel × calendario de 8 niveles) | referencia | 1,1359 | 0,0357 | 0,8952 |
+| L0 (8 semanas) | referencia | 1,2432 | 0,0387 | 0,9785 |
+| Media constante | referencia | 1,3152 | 0,0401 | 0,8944 |
+
+- **Lo que muestran los datos.** La solución tiene la menor desvianza de los seis modelos. Frente a L1, su diferencia media es
+  de −0,0295 y tiene menor desvianza en 33 de los 47 cortes (columnas `dif_vs_su_referencia` y `cortes_que_gana_a_su_referencia` de
+  la misma tabla). Esas comparaciones son descriptivas: los 47 cortes son semanas consecutivas de una sola serie y no se fijó una
+  prueba de significación (`tablas/09_pareado.csv`). Además, **todos** los modelos, incluida la media constante, tienen menor
+  desvianza en el bloque final que en la validación (columna `desvianza_validacion`), así que la mejora respecto de la validación no
+  se atribuye a ningún modelo.
+- **Configuración elegida.** GLM Poisson (a) con ventana deslizante de 364 días. **Se apartó de la regla de selección** fijada antes de
+  ejecutar, que había elegido la ventana expansiva; la diferencia de desvianza en validación entre ambas (1,2205 contra 1,2302,
+  columna `desvianza_validacion` de `tablas/06`) es menor que un error estándar. La decisión (D42) es del equipo, se tomó con la
+  validación y sin leer el bloque final; la expansiva quedó como sensibilidad y XGBoost como contraste, sin competir. Detalle en
+  `documentacion/resumen_modelos_candidatos.md` (§3e) y en `documentacion/resumen_evaluacion_final.md` (§6, puntos 5 y 8).
+- **Evidencia del servidor (job 136, 21/10/2026).** El entrenamiento del modelo final en el servidor institucional, con otra
+  implementación (IRLS en numpy, α por momentos) y otras versiones de las bibliotecas, coincidió con `models/modelo_final.json` con
+  una diferencia relativa máxima de 4,25e-12 en los coeficientes, 3,42e-12 en las 56 predicciones de la semana del 01/01/2026 y
+  5,26e-13 en α (criterio fijado de antemano: ≤ 1e-6, **CUMPLE**); el sha256 del modelo coincide con `models/metadata.json`. Fuente:
+  `documentacion/logs/log_servidor_modelo_final.txt` y `documentacion/logs/servidor_modelo_final/resumen_corrida.json`. Verifica que el
+  entrenamiento es reproducible, no el desempeño del modelo.
+- **Límites declarados.**
+  - El bloque final **no es una prueba independiente**: se consultó preliminarmente en el Entregable 2 (aunque la solución se fijó
+    antes de la evaluación final, ver `documentacion/resumen_evaluacion_final.md`, §5, puntos 1 y 2).
+  - **El despliegue del prototipo en el servidor está pendiente**: hoy se ejecuta localmente con `streamlit run app/app.py`; en el servidor
+    solo se corrió el entrenamiento.
+  - La solución predice el 96,06 % del total observado (subestima), y la meteorología no se evaluó (objetivo 2 incumplido en esa
+    dimensión; `tablas/19_cumplimiento_objetivos.csv`).
 
 El registro detallado de configuraciones y resultados se mantiene en `experiments/`.
 
