@@ -378,8 +378,7 @@ El paso 5 de la sección 4 está escrito con esta solución, no con la primera c
 contra ese archivo al escribir este documento. Lo que sí coincide con un artefacto del repositorio es el pie de las 47 semanas (`tablas/06_globales.csv`). La desvianza de la semana, +0,053 frente a L1, es **peor** que la de L1
 en esa semana; es una semana, no el desempeño del modelo (los 33 de 47 son la comparación sobre todo el bloque).
 
-**Sobre el punto 5.** Si el punto 2 muestra «Coincide» y el 3 muestra métricas, la pestaña cargó, lo que implica que no hubo error de carga ni de `src` ajeno. Es una **inferencia**: el equipo no escribió que no viera un `st.error` ni el expander
-«Detalle técnico», y confirmarlo está pendiente (sección 7).
+**Sobre el punto 5.** Confirmado: la pestaña se mostró en los dos modos sin errores ni el expander «Detalle técnico», con el pie «Versión desplegada: c1c40c3» (impresiones del 26/10 en `documentacion/logs/servidor_despliegue_20261026/`).
 
 ## 7. Qué queda pendiente
 
