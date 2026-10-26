@@ -2128,6 +2128,31 @@ con un fragmento de 5 vértices y `datos_mapa` lo armaba mal (el commit `935de76
 `app/data/` y `app/logs/` los crea `config.py` al importarse (vacías; no se ignoran en `.gitignore` por decisión del equipo).
 **Próximo:** fase 6, alinear el informe (D49, D64).
 
+### Entregable 3, fase 6: documento de cambios al informe (2026-10-21, sesión de Claude)
+
+**Rama:** `e3/fase-6-informe` (creada en la sesión desde `0142520`, que ya trae las fases 0 a 5; el commit lo confirma el equipo, sin push, nunca en `main`). Solo se leyeron archivos versionados;
+no se ejecutó ningún notebook, no se tocó código ni `experiments/`, y no se leyó el bloque final (D64).
+
+**Hecho.** `documentacion/cambios_informe.md` (~556 líneas, tope 900): cambios por sección del informe vigente (`Informe_PAA_Actualizado_el_12-10-26.md`; 2.3.4, 2.3.2, 3.4.2, 3.4.3, Cuadro 3, 3.4.5 y
+Cuadro 4, 3.4.6 y Anexo F.1, glosario, referencias, discusión y conclusiones); las cinco secciones nuevas de resultados con «Los datos muestran» y «Lectura del equipo»; 17 tablas y 17 figuras propuestas con ruta
+y marca de anexo; limitaciones (§5 de `resumen_evaluacion_final.md`, D69, versiones del job 136, lock con Python 3.13.9, capa `c5d9f651`, α por momentos); inconsistencias de Introducción, Marco y Referencias
+(sin corregir); frases prohibidas de cinco resúmenes; pendientes. **Verificación de cifras** (script en el scratchpad, sin artefacto): 299 de 299 cifras con decimales, exponente o miles halladas en las fuentes citadas; los
+enteros de 2 o 3 cifras, 173 de 195 halladas y las demás revisadas a mano.
+
+**Para el equipo (detalle en `cambios_informe.md` §7):**
+- **D2, D4, D14 y D69 no están definidas en ningún archivo versionado** (se citaron como las dio el prompt): confirmarlas o escribirlas acá.
+- **No hay log versionado del job 137** (dos versiones instaladas de numpy, pandas y scikit-learn): commitearlo en `documentacion/logs/` o no citarlo.
+- `experiments/evaluacion_final/tablas/19_cumplimiento_objetivos.csv` marca el objetivo 4 como «no cumplido en esta fase» porque es anterior a la fase 5; el informe debe usar el estado actual.
+- Siguen pendientes: prueba manual y clon limpio del prototipo (D63), capturas, fuentes de XGBoost y NB2, Introducción y Marco a mano, destino de las Tablas 4 y 5 y F1–F4 del E2, y actualizar `resumen_linea_base.md`.
+- Existe además `documentacion/cambios_para_informe.md` (el del E2, otro documento): no confundirlos.
+
+**Próximo:** redacción en Claude web con `cambios_informe.md`; Entregable 3 el 25/10.
+
+**Insumos de redacción (2026-10-21).** `documentacion/insumos_redaccion_e3.md`: cronología con commits, población y columnas del registro, alcance comprometido (E1 y Guía), hipótesis previas
+al 19/10, prototipo, tiempos registrados y figuras. Hallazgos para el equipo: la **Tabla A2 del informe no coincide con `etl_montevideo/tablas/`** (62.427, 39.676, 36.713 y «90 duplicados» sin artefacto);
+el informe dice «todos con personas lesionadas» y una tabla del historial (`8de1454`) da 28,12 % `SIN LESIONADOS` en el archivo completo; **sin log del job 137, sin fecha de prueba manual, sin capturas**;
+`README.md` «Resultados esperados» sigue describiendo el E3 como futuro.
+
 ### Entregable 3, fase 5b: mejoras finales del prototipo y README (2026-10-25, sesión de Claude)
 
 **Rama:** `e3/dashboard-final` (desde `main` en `0142520`). Sin review (como D63): el control fue `pytest`, las capturas que revisa el equipo y la prueba manual. Un commit por paso, todos con
