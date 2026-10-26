@@ -92,7 +92,7 @@ Cambios de la pestaña que se prueban: rótulo «Semana posterior al corte», m�
 
 Cuentas: 76 pruebas al 21/10, más 1 del rótulo (paso 1), 24 de este paso y 1 del pie de la tabla (corrección de texto del 25/10) = 102. De las 24, 20 están en `test_pipeline_inferencia.py` y 4 en `test_app.py`.
 **Qué es y qué no es la corrida del entorno aparte.**
-- **No es el entorno del servidor.** Es Python 3.13.2, no el Python 3.11 del servidor; solo coinciden las versiones de streamlit (1.57.0), plotly (5.22.0) y pydeck (0.9.1). Las demás librerías son las del lock del repositorio.
+- **No es el entorno del servidor.** Es Python 3.13.2, y el del servidor es otro: Python 3.11 en el dashboard del servidor (inferido de los binarios `cpython-311` de `librerias/`, sin verificación directa) y Python 3.10.12 en el contenedor de `submit_cpu` (log del job 136). Solo coinciden las versiones de streamlit (1.57.0), plotly (5.22.0) y pydeck (0.9.1). Las demás librerías son las del lock del repositorio.
 - **No es un clon limpio** como el del 21/10: usa el mismo árbol de trabajo (con `data/processed/`). No se corrió la suite completa ni se levantó `streamlit run` en ese entorno.
 - **Qué muestra.** AppTest ejecuta el script de la pestaña, pero no dibuja nada en un navegador. Lo que queda verificado es que, con plotly 5.22.0, pydeck 0.9.1 y streamlit 1.57.0, las figuras y las capas se construyen sin error (incluido `add_vrect`, las barras de error y las capas `PolygonLayer` y `TextLayer` de pydeck) y que la pestaña corre sin excepciones. **No** queda verificado que streamlit 1.57.0 las muestre, ni cómo se ven.
 
