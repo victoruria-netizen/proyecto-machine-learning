@@ -5321,3 +5321,332 @@ Se probó además en un clon limpio sin `data/` (entorno nuevo, Python 3.13.9) y
 streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1. README (sección del prototipo) probado con `streamlit run app/app.py` en el clon limpio (`/_stcore/health` en 200).
 **Archivos afectados:** `app/pagina_prediccion.py`, `app/assets/municipios_montevideo_simplificado.geojson`, `app/ORIGEN.md`, `tests/test_pipeline_inferencia.py`, `tests/test_app.py`,
 `documentacion/pruebas_pipeline.md`, `README.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+
+## Sesión 2026-10-25 (E3, fase 5b: mejoras finales del prototipo y README) — lucaspimentel-uy — Claude Code (Anthropic, Claude Sonnet 5.5)
+
+**Contexto:** fase 5b del Entregable 3 en la rama `e3/dashboard-final` (creada desde `main` en `0142520`), sin review (como D63). Rótulo del modo, mejoras de la pestaña
+«Predicción (PAA)», tema claro, pruebas, README y correcciones de texto. Archivos: `app/pagina_prediccion.py`, `.streamlit/config.toml` (nuevo), `app/ORIGEN.md`, `tests/test_app.py`,
+`tests/test_pipeline_inferencia.py`, `documentacion/pruebas_pipeline.md`, `README.md`, `HANDOFF.md` y este registro. No se tocaron `app/app.py`, `charts.py`, `ui.py`, `constants.py`, `config.py`,
+`src/`, `models/`, `experiments/`, `notebooks/` ni `train/` (comprobado con `git diff --name-only main`). Commits de la sesión, todos a confirmación del equipo y ninguno en `main` ni con push:
+`a41f214` (paso 1), `15f9a0e` (paso 2), `143e05d` (paso 3), `0d43836` y `32343ed` (paso 4 y sus ajustes), `1523e32` (precisión sobre el Python del servidor).
+Criterio de este registro (D47): se transcriben el prompt que abre la sesión y los mensajes con decisiones o instrucciones; no se transcriben las confirmaciones («dale, confirmo el commit.
+Segui con el paso 2», «confirmo el commit, segui con el paso 3») ni la pregunta de cómo ejecutar el dashboard (se respondió con `streamlit run app/app.py` desde la raíz).
+
+### Prompt 1
+> Fase 5b: mejoras finales del prototipo y README antes de crear entregable_3 (D79). Sin review
+> (como D63): el control es pytest, las capturas que revisa el equipo y la prueba manual.
+> Rama e3/dashboard-final, creada desde main en 0142520.
+>
+> Archivos que se pueden tocar: app/pagina_prediccion.py, tests/test_app.py,
+> tests/test_pipeline_inferencia.py, documentacion/pruebas_pipeline.md, README.md, HANDOFF.md y
+> documentacion/registro_uso_IA.md. No se tocan app/app.py, charts.py, ui.py, constants.py ni
+> config.py (D67), ni src/, models/, experiments/, notebooks/ o train/. Si algo lo necesita,
+> consultame.
+>
+> Datos: la pestaña sigue leyendo solo models/ y experiments/evaluacion_final/
+> predicciones_bloque_final.csv (D63). No lee el panel. Las métricas nuevas son descriptivas,
+> se calculan sobre ese CSV y no deciden nada. Compatibilidad: solo funciones que existan en
+> streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1 (D70). Si dudás de alguna, consultame.
+>
+> ## Paso 1 — Rótulo (D77), en su propio commit
+>
+> - El modo «Próxima semana» pasa a «Semana posterior al corte». Usá las constantes
+>   MODO_POSTERIOR y MODO_HISTORICO.
+> - Texto del modo: «Entorno simulado con fecha de corte <hasta del modelo>, el último día con
+>   datos. Predicción de la semana posterior al corte, del <inicio> al <fin>, para los 8
+>   municipios, con el modelo final exportado (models/modelo_final.json), entrenado con los 364
+>   días anteriores al corte. No es la semana actual y no hay observados con los que
+>   compararla.» Las fechas salen del modelo, no se escriben fijas.
+> - Actualizá la tabla del prototipo en el README y los docstrings. Los nombres internos
+>   (predecir_proxima_semana, test_proxima_semana_*) se mantienen; declaralo en
+>   pruebas_pipeline.md.
+> - Test en test_app.py: las opciones del radio son ["Semana posterior al corte", "Histórico"];
+>   el texto contiene «Entorno simulado con fecha de corte 31/12/2025»; «Próxima semana» no
+>   aparece.
+>
+> DETENETE (commit solo con mi confirmación).
+>
+> ## Paso 2 — Mejoras de la pestaña
+>
+> Correcciones de defectos vistos en el navegador:
+> a. Un color fijo por municipio. La paleta de charts tiene 7 colores y repite el de A en G.
+>    A #0B5394, B #E69F00, C #009E73, CH #CC79A7, D #56B4E9, E #D55E00, F #7F7F7F, G #8C564B.
+>    Pasalos con el argumento color= de charts.lineas.
+> b. Leyendas cortadas («Observad», «MUNICIPIO CI»): leyenda horizontal arriba, con
+>    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0) por los **kw
+>    de charts, sin modificar charts.py.
+> c. Mapa: TextLayer con la letra del municipio y su valor (coma decimal), en el centroide del
+>    contorno exterior más grande (fórmula del área con signo). Caption: el mapa base necesita
+>    conexión; sin red se ven igual los municipios y sus valores.
+> d. Tablas con 2 decimales (st.column_config.NumberColumn, format "%.2f"), sin cambiar los
+>    valores.
+>
+> Nuevo en «Histórico»:
+> e. Cargar la referencia L1 del mismo CSV (papel == "referencia" y modelo que empieza con
+>    "L1"), con st.cache_data, y ErrorEntrada si falta. Si falla, st.warning y la pestaña sigue
+>    sin las comparaciones.
+> f. Fila de 4 st.metric para la semana elegida:
+>    - el observado total;
+>    - el esperado de la solución, con el de L1 en help;
+>    - la desvianza de Poisson media de la semana, con delta frente a L1 (delta_color="inverse");
+>    - los pares municipio-día fuera del intervalo del 80 %, como «k de 56».
+>    La desvianza reemplaza las predicciones ≤ 0 por 1e-6, como en todo el proyecto.
+> g. Gráfico «Las 47 semanas del bloque final»:
+>    - totales semanales: observado, solución y L1 (L1 punteada, en gris);
+>    - la semana elegida marcada con add_vrect;
+>    - un caption con la desvianza global de la solución y de L1 y las semanas en que la
+>      solución tiene menor desvianza, calculadas en la app.
+> h. Gráfico por día del municipio elegido:
+>    - el esperado como línea;
+>    - el intervalo del 80 % como barras de error verticales. No uses una banda con
+>      shape="hv": se probó y desalinea el último día;
+>    - el observado como puntos, en rojo los que caen fuera del intervalo;
+>    - en la tabla plegada, una columna «Fuera del 80 %».
+>
+> Nuevo en los dos modos:
+> i. st.download_button con la tabla de la semana en CSV.
+> j. Expander «Sobre el modelo», al final de la pestaña, con datos de models/metadata.json:
+>    - configuración y variables;
+>    - ventana, y que en la evaluación se reentrenó cada 7 días;
+>    - entrenamiento desde y hasta, con la cantidad de filas;
+>    - α y su origen;
+>    - el sha256 de models/modelo_final.json calculado en vivo, comparado con el de
+>      metadata.json («coincide» / «no coincide»).
+>
+> Textos:
+> - Sin «riesgo», «peligroso» ni «dónde ocurrirá» (F5-N4).
+> - Las métricas se presentan como descriptivas: «tiene menor desvianza», no «es mejor».
+>
+> El orden de los st.dataframe no cambia: el resumen por municipio es el primero y la tabla por
+> día, el segundo (los tests los leen por índice).
+>
+> Al terminar: levantá la app, decime qué ves en cada modo y avisame para que pase capturas.
+> DETENETE.
+>
+> ## Paso 3 — Pruebas
+>
+> En tests/test_pipeline_inferencia.py:
+> - La desvianza global que calcula la app desde el CSV coincide con
+>   experiments/evaluacion_final/tablas/06_globales.csv: solución 1.106342 y L1 1.135861
+>   (tolerancia 6e-7, por el redondeo a 6 decimales). Las semanas que gana la solución son 33
+>   (cortes_que_gana_a_su_referencia).
+> - La desvianza de cada semana, para la solución y para L1, coincide con desvianza_poisson de
+>   tablas/08_por_corte.csv en los 47 cortes (6e-7; la diferencia máxima esperada es de
+>   alrededor de 5,2e-7).
+> - Las filas fuera del intervalo en las 2.632 filas de la solución: 262 para el 80 % y 55 para
+>   el 95 %. Es lo que da (debajo + encima) × n de la fila «todos» de
+>   tablas/17_cobertura_intervalos.csv; el test lo calcula desde esa tabla, no con el número
+>   escrito a mano.
+> - Ficha del modelo: con los archivos reales el sha256 coincide; con un metadata alterado en
+>   tmp_path no coincide; con un archivo ausente da ErrorEntrada.
+> - Etiquetas del mapa: 8 filas, cada una con su posición dentro de los límites de la capa.
+> - Sin L1 en el CSV: ErrorEntrada.
+> - F5-N4: el código fuente de pagina_prediccion.py, en minúsculas, no contiene «riesgo»,
+>   «peligros» ni «dónde ocurrirá».
+>
+> En tests/test_app.py:
+> - «Histórico» muestra 4 métricas sin errores ni excepciones.
+> - Sin L1, muestra un warning y no una excepción.
+>
+> Corré pytest completo. Si podés armar un entorno con streamlit 1.57.0, plotly 5.22.0 y pydeck
+> 0.9.1, corré también los tests nuevos ahí, como en la fase 5, y declaralo.
+>
+> En pruebas_pipeline.md, agregá una sección del 25/10 con cada prueba nueva, su resultado, los
+> errores hallados y las correcciones.
+>
+> DETENETE.
+>
+> ## Paso 4 — README
+>
+> Actualizá solo lo desactualizado; el resto no se toca. Fuentes: resumen_modelos_candidatos.md,
+> resumen_evaluacion_final.md, train/README.md y app/ORIGEN.md.
+>
+> - Introducción y «Datos»: la solución usa el conjunto (a), municipio más calendario de 8
+>   niveles. No usa clima ni rezagos; la lluvia se retiró antes de ejecutar (D14).
+> - «Modificaciones en el PAA», en el bloque del PID: lo que realmente se hizo.
+> - Tabla de notebooks: agregar evaluacion_final, con qué lee y qué escribe. Aclarar que es el
+>   único que lee el bloque final y que no hace falta reejecutarlo para usar el prototipo.
+> - «Pipeline previsto»: eliminar los comandos que no existen. En su lugar, describir src/
+>   (datos, variables, modelo), train/train_modelo_final.py y el prototipo.
+> - «Resultados esperados» pasa a «Resultados». Para el E3:
+>   - las cifras de tablas/06, citando el archivo;
+>   - la configuración elegida, que se apartó de la regla de selección, con remisión al
+>     resumen;
+>   - la evidencia del servidor (job 136);
+>   - los límites declarados: el bloque final no es una prueba independiente y el despliegue en
+>     el servidor está pendiente.
+>   Sin SARIMA como plan.
+> - Cada cifra con su artefacto. Nada de prosa copiada del informe.
+>
+> DETENETE.
+>
+> Al cerrar: HANDOFF.md y registro_uso_IA.md (este prompt textual, según D47), y mostrame git
+> status. Un commit por paso, solo con mi confirmación. Nunca en main y nunca push.
+
+**Respuesta (extracto relevante):** ejecución por pasos con una parada después de cada uno.
+- **Paso 1:** constantes `MODO_POSTERIOR` y `MODO_HISTORICO` (no existían, se crearon) y `texto_modo_posterior(modelo, semana)`, con las fechas y la ventana tomadas del modelo; test
+  `test_rotulo_del_modo_semana_posterior_al_corte`; nota de rótulo en `pruebas_pipeline.md`. Commit `a41f214`.
+- **Paso 2:** `pagina_prediccion.py` con color fijo por municipio (`COLOR_MUNICIPIO`), leyendas horizontales por los `**kw` de `charts`, `etiquetas_mapa` + `TextLayer`, tablas con
+  `NumberColumn(format="%.2f")` (los valores siguen redondeados a 2 decimales, como antes), `cargar_referencia` (L1 del mismo CSV, con `st.cache_data`), `desvianza_poisson` (predicciones ≤ 0 → 1e-6),
+  `fuera_del_intervalo`, `comparacion_global`, `totales_semanales`, `ficha_modelo` (sha256 en vivo), 4 métricas, gráfico de las 47 semanas con `add_vrect`, gráfico por día con barras de error
+  del intervalo (centradas en el punto medio entre el límite inferior y el superior, para cubrir exactamente de inf a sup), descarga CSV y expander «Sobre el modelo». Antes de implementar se
+  comprobó que la desvianza calculada reproduce `06_globales.csv` (1,1063422 y 1,1358614) y `08_por_corte.csv` (diferencia máxima 4,9e-7 y 5,2e-7), y que las filas fuera del intervalo son 262 (80 %) y
+  55 (95 %). Los centroides de las 8 etiquetas caen dentro de su municipio. Tras la primera revisión en el navegador, el equipo agregó D80: `.streamlit/config.toml` con `base = "light"`
+  (declarado en `app/ORIGEN.md` y en el README), etiquetas de dos líneas con fondo blanco semitransparente (`background=True`, tamaño 13) y desvianzas con 4 decimales en el caption. Commit `15f9a0e`.
+- **Paso 3:** 24 pruebas nuevas (20 en `test_pipeline_inferencia.py`, 4 en `test_app.py`), sección 6 de `pruebas_pipeline.md`. Commit `143e05d`. Además se agregaron pruebas del centroide, del
+  reemplazo por 1e-6 y de los totales semanales. Correcciones pedidas por el equipo a la sección 6: el entorno aparte es Python 3.13.2 y no reproduce el del servidor; AppTest no dibuja en
+  el navegador, así que lo verificado es que figuras y capas se construyen sin error con plotly 5.22.0, pydeck 0.9.1 y streamlit 1.57.0 (no que Streamlit 1.57 las muestre); el parámetro
+  `background` de `TextLayer` lo interpreta deck.gl en el navegador y no queda verificado. No se escribió «compatibilidad verificada».
+- **Paso 4:** README (introducción, «Modificaciones en el PAA», «Datos», tabla de notebooks con `evaluacion_final`, «Código de la solución» en lugar de «Pipeline previsto», «Resultados»), commit `0d43836`
+  junto con la corrección del pie de la tabla de intervalos de `pagina_prediccion.py` y su test. Después, ajustes pedidos por el equipo (commit `32343ed`): versiones del contenedor de `submit_cpu`
+  del log del job 136, por qué se eligieron 364 días (cifras verificadas en `modelos_candidatos/tablas/26`, `28` y `29`: desvío entre cortes 0,246353 contra 0,246801 de la segunda, diferencia de
+  0,00045; desvianza 1,2205 contra 1,2302; 30 de 47 cortes calculados desde la tabla 28; total predicho / observado 0,9717 contra 0,9341), sin IDs de decisión. Commit `1523e32`: precisión sobre el
+  Python del servidor en `pruebas_pipeline.md`.
+
+**Uso y verificación:** utilizado, con estas diferencias y hallazgos.
+- Descartado en la implementación: una banda con `shape="hv"` para el intervalo (el equipo ya había advertido que desalinea el último día); texto blanco sobre azul oscuro en las etiquetas, que
+  al agregar el fondo blanco del D80 dejó de tener sentido (texto siempre oscuro).
+- Error mío corregido: un salto de línea real dentro de un f-string de `etiquetas_mapa` (`SyntaxError`), detectado por la colección de pytest y fijado por un test del texto exacto.
+- Trampa hallada al leer `tablas/17`: trae dos filas «todos» por nivel (intervalo NB2 y Poisson); la prueba filtra por el `tipo_intervalo` del propio CSV.
+- Discrepancias señaladas al equipo: «D14» no aparece en ningún archivo del repositorio (la retirada de la lluvia figura como decisión del equipo del 14/10/2026 en `resumen_modelos_candidatos.md`
+  §1.1); `train/README.md` y el log del job 136 registran Python 3.10.12 para el contenedor de `submit_cpu`, y el repositorio no registra el Python del servidor de Streamlit (el equipo indicó
+  3.11, inferido de binarios `cpython-311`, sin verificación directa); el pie de los intervalos ya estaba aplicado en `0d43836` cuando el equipo pidió aplicarlo.
+- Verificación: `pytest` completo en el `.venv` (Python 3.13.2, streamlit 1.65.0, plotly 7.1.0, pydeck 0.9.3): **102 pasadas**, 0 fallidas, 0 saltadas (76 al 21/10, 1 del paso 1, 24 del paso 3, 1 del pie).
+  Las 56 pruebas de `test_pipeline_inferencia.py` y `test_app.py` también pasan en un entorno aparte con streamlit 1.57.0, plotly 5.22.0, pydeck 0.9.1 (Python 3.13.2, pandas 2.3.3, numpy 2.5.2), que no
+  es el del servidor ni un clon limpio. **No se vio nada en un navegador:** el mapa con etiquetas de dos líneas y fondo, las leyendas, las barras de error y la franja de la semana elegida los revisa el
+  equipo con capturas. Cifras del README y de `pruebas_pipeline.md` contrastadas con `06_globales.csv`, `08_por_corte.csv`, `17_cobertura_intervalos.csv`, `resumen_corrida.json` y
+  `modelos_candidatos/tablas/26`, `28` y `29`.
+**Archivos afectados:** `app/pagina_prediccion.py`, `.streamlit/config.toml`, `app/ORIGEN.md`, `tests/test_app.py`, `tests/test_pipeline_inferencia.py`, `documentacion/pruebas_pipeline.md`,
+`README.md`, `HANDOFF.md`, `documentacion/registro_uso_IA.md`.
+
+### Prompt 2
+> Antes del commit del paso 2, tres ajustes (D80, amplía D79):
+>
+> 1. Tema. Con el sistema en modo oscuro, Streamlit pinta textos, ejes, leyendas, tablas y
+>    títulos de los expanders en colores de tema oscuro sobre el fondo claro que fija el CSS
+>    heredado, y casi no se leen (reproducido en Chromium con prefers-color-scheme: dark).
+>    Creá .streamlit/config.toml en la raíz del repositorio con:
+>        [theme]
+>        base = "light"
+>    Es un archivo nuevo; no toques código heredado. Declaralo en app/ORIGEN.md (cambios) y en
+>    la sección del prototipo del README (streamlit se lanza desde la raíz para que lo tome).
+>    Agregá al paso 3 un test que verifique que el archivo existe con base = "light".
+>
+> 2. Etiquetas del mapa: B, C y CH se superponen. Pasalas a dos líneas (letra arriba, valor
+>    abajo, coma decimal), con fondo blanco semitransparente (background=True,
+>    get_background_color=[255, 255, 255, 190]) y tamaño 13.
+>
+> 3. Caption de las 47 semanas: desvianzas con 4 decimales (1,1063 y 1,1359), como
+>    tablas/06 y el informe.
+>
+> Mostrame git diff --stat y DETENETE.
+
+**Respuesta (extracto relevante):** aplicados los tres ajustes (ver Prompt 1, paso 2). `.streamlit/config.toml` con `[theme]` y `base = "light"`; fila nueva en la tabla de cambios de `app/ORIGEN.md`
+(con la aclaración de que el archivo está fuera de `app/` y no es código heredado) y párrafo en la sección del prototipo del README; etiquetas `CH\n12,3`, tamaño 13, `background=True`,
+`get_background_color=[255, 255, 255, 190]`; caption con 1,1063 y 1,1359.
+
+**Uso y verificación:** utilizado tal cual. `pytest tests/test_app.py tests/test_pipeline_inferencia.py`: 31 pasadas tras los cambios; el test de `config.toml` se agregó en el paso 3
+(`test_tema_claro_fijado_en_streamlit_config`). El resultado visual del tema y de las etiquetas no se verificó (AppTest no dibuja).
+**Archivos afectados:** `.streamlit/config.toml`, `app/ORIGEN.md`, `README.md`, `app/pagina_prediccion.py`.
+
+### Prompt 3
+> OK con el paso 3. Antes del commit:
+>
+> 1. Mostrame git status y git diff --stat contra main, y confirmá que no cambió nada en
+>    app/app.py, app/charts.py, app/ui.py, app/constants.py, app/config.py, src/, models/,
+>    experiments/, notebooks/ ni train/ (F5b-3).
+>
+> 2. En la sección 6 de pruebas_pipeline.md, corregí la afirmación sobre las versiones del
+>    servidor:
+>    - el entorno es Python 3.13.2, no 3.11 como el servidor;
+>    - AppTest no dibuja en el navegador: lo verificado es que las figuras y las capas se
+>      construyen sin error con plotly 5.22.0, pydeck 0.9.1 y streamlit 1.57.0 (incluido
+>      add_vrect), no que streamlit 1.57 las muestre;
+>    - el parámetro background de TextLayer lo interpreta deck.gl en el navegador y no queda
+>      verificado.
+>    No escribas «compatibilidad verificada».
+>
+> 3. Commits:
+>    - Si el paso 2 (con D80) no está commiteado, hacé dos commits separados por archivos:
+>      a) «Fase 5b, paso 2: mejoras de la pestaña y tema claro (D79, D80)»:
+>         app/pagina_prediccion.py, .streamlit/config.toml, app/ORIGEN.md y el cambio del
+>         README en la sección del prototipo.
+>      b) «Fase 5b, paso 3: pruebas de la pestaña (D79, D80)»: tests/test_pipeline_inferencia.py,
+>         tests/test_app.py y documentacion/pruebas_pipeline.md.
+>    - Si el paso 2 ya estaba commiteado, hacé un solo commit con el paso 3.
+>    Mostrame git log --oneline -4.
+>
+> 4. OK para el paso 4 (README). DETENETE al terminarlo.
+
+**Respuesta (extracto relevante):** `git diff --name-only main` solo lista `.streamlit/config.toml`, `README.md`, `app/ORIGEN.md`, `app/pagina_prediccion.py`, `documentacion/pruebas_pipeline.md` y los dos tests
+(ninguno de los archivos vedados; `app/ORIGEN.md` y `.streamlit/config.toml` por D80). El paso 2 ya estaba commiteado (`15f9a0e`), así que se hizo un solo commit con el paso 3 (`143e05d`). Sección 6
+de `pruebas_pipeline.md` corregida en los tres puntos. Se señaló que `train/README.md` registra Python 3.10.12 para el contenedor de `submit_cpu` y que el repositorio no tiene registrada la versión del
+Python del servidor de Streamlit.
+
+**Uso y verificación:** utilizado. Comprobado con `git status`, `git diff --stat main` y `git diff --name-only main` filtrado por las rutas vedadas (sin coincidencias); búsqueda de «compatibilidad
+verificada» en `pruebas_pipeline.md` (sin coincidencias).
+**Archivos afectados:** `documentacion/pruebas_pipeline.md`.
+
+### Prompt 4
+> Junto con el paso 4, una corrección de texto en app/pagina_prediccion.py (pie de la tabla por
+> municipio y día). Reemplazá «cada uno deja afuera la misma probabilidad en ambas colas» por:
+> «Intervalos de predicción de conteos (<tipo>), con cuantiles de colas iguales (10 % y 90 % para
+> el 80 %; 2,5 % y 97,5 % para el 95 %). Por ser conteos enteros, el modelo espera que cubran algo
+> más que el nivel nominal.»
+> Motivo: en tablas/17 (NB2, 80 %, todos) quedan 3,2 % debajo y 6,8 % encima, y la cobertura
+> esperada por el modelo es 0,887; el texto anterior la presentaba como exacta. Si algún test
+> compara ese texto, actualizalo. Corré pytest y commitealo con el paso 4, mencionándolo en el
+> mensaje del commit.
+
+**Respuesta (extracto relevante):** el pie se reemplazó por el texto pedido; ningún test comparaba el texto anterior, y se agregó `test_pie_de_la_tabla_no_presenta_la_cobertura_como_exacta`. Se actualizaron
+los conteos de `pruebas_pipeline.md` (102 pasadas; 56 en el entorno aparte). Commit `0d43836`, con la corrección mencionada en el mensaje.
+
+**Uso y verificación:** utilizado tal cual. `pytest` completo: 102 pasadas; 56 pasadas en el entorno con streamlit 1.57.0, plotly 5.22.0 y pydeck 0.9.1.
+**Archivos afectados:** `app/pagina_prediccion.py`, `tests/test_app.py`, `documentacion/pruebas_pipeline.md`.
+
+### Prompt 5
+> Antes del commit del paso 4:
+>
+> 1. README, «Otros entornos»: reemplazá las versiones del contenedor de submit_cpu por las del
+>    log del job 136 (Python 3.10.12, numpy 1.26.4, pandas 2.3.3, scikit-learn 1.7.2,
+>    scipy 1.12.0, sin statsmodels ni holidays), igual que train/README.md.
+>
+> 2. README, «Configuración elegida»: agregá por qué el equipo eligió 364 días. La regla
+>    desempató por el desvío entre cortes, con una diferencia de 0,00045. La ventana de 364
+>    días tiene menor desvianza media (1,2205 contra 1,2302), gana 30 de 47 cortes a la
+>    expansiva y calibra mejor (total predicho / observado 0,9717 contra 0,9341). Verificá cada
+>    cifra en experiments/modelos_candidatos/tablas/26, 28 y 29 y citá la tabla; si alguna no
+>    coincide, avisame y no la escribas.
+>
+> 3. README, detalles:
+>    - «sobre el que se integrará la nueva funcionalidad» pasa a «sobre el que se integró la
+>      pestaña de predicción»;
+>    - quitá los IDs de decisión (D42, D80) y dejá solo la remisión a los documentos.
+>
+> 4. app/pagina_prediccion.py: la corrección del pie de la tabla de intervalos que te pasé con
+>    el paso 4 no se aplicó. Reemplazá «cada uno deja afuera la misma probabilidad en ambas
+>    colas» por: «Intervalos de predicción de conteos (<tipo>), con cuantiles de colas iguales
+>    (10 % y 90 % para el 80 %; 2,5 % y 97,5 % para el 95 %). Por ser conteos enteros, el modelo
+>    espera que cubran algo más que el nivel nominal.» Motivo: en tablas/17 (NB2, 80 %, todos)
+>    quedan 3,2 % debajo y 6,8 % encima, y la cobertura esperada por el modelo es 0,887.
+>    Corré pytest completo.
+>
+> 5. Commits, sin --amend:
+>    a) «Fase 5b, paso 4: README actualizado y pie de los intervalos»: README.md y
+>       app/pagina_prediccion.py;
+>    b) «pruebas_pipeline.md: precisión sobre el Python del servidor»: en la sección 6,
+>       «Python 3.11 del dashboard del servidor (inferido de los binarios cpython-311 de
+>       librerias/, sin verificación directa); el contenedor de submit_cpu usa Python 3.10.12».
+>
+> 6. Después: HANDOFF.md y registro_uso_IA.md (prompts textuales según D47), en su propio
+>    commit. Mostrame git status y git log --oneline -8. DETENETE.
+
+**Respuesta (extracto relevante):** las cifras del punto 2 coinciden con las tablas (desvío entre cortes 0,246353 de la expansiva contra 0,246801 de la segunda, 728 días, diferencia 0,00045 y 0,249505 la de 364 días,
+`tablas/29`; desvianza 1,220513 contra 1,230204 y total predicho / observado 0,971655 contra 0,934095, `tablas/26`; 30 de 47 cortes calculados desde `tablas/28`: la 364 gana 30, la expansiva 17, ningún
+empate). Se avisó que el punto 4 ya estaba aplicado en `0d43836` (con su test), de modo que no había nada que reaplicar. Como el commit «paso 4» ya existía, los cambios nuevos del README entraron en un
+commit aparte (`32343ed`, sin `--amend`) y la precisión del Python del servidor en otro (`1523e32`).
+
+**Uso y verificación:** utilizado, con una adaptación: el nombre del commit (a) se distinguió del de `0d43836` («Fase 5b, paso 4 (ajustes): …») para no tener dos commits con el mismo asunto. `pytest`
+completo en el `.venv`: 102 pasadas. Cifras del README contrastadas con las tablas 26, 28 y 29 de `modelos_candidatos`; búsqueda de IDs de decisión (`D` más dos dígitos) en el README sin coincidencias.
+**Archivos afectados:** `README.md`, `documentacion/pruebas_pipeline.md`.
